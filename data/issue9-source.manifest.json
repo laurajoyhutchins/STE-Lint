@@ -28,6 +28,13 @@
       "structural_extraction": 877,
       "status": "unreconciled",
       "policy": "do not coerce; retain evidence and reconcile before claiming exact coverage"
+    },
+    {
+      "subject": "unapproved word cardinality",
+      "source_statement": 1274,
+      "structural_extraction": 1319,
+      "status": "unreconciled",
+      "policy": "do not coerce; retain evidence and reconcile before claiming exact coverage"
     }
   ],
   "redistribution": {
