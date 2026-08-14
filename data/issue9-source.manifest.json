@@ -1,0 +1,37 @@
+{
+  "standard": "ASD-STE100",
+  "issue": 9,
+  "publication_date": "2025-01-15",
+  "retained_source": {
+    "provider": "google_drive",
+    "file_id": "1GfSldRfzXs91pG1BbgLjbzJFJML_wifP",
+    "title": "ASD-STE100_ISSUE9.pdf",
+    "mime_type": "application/pdf",
+    "byte_size": 3316157,
+    "sha256": "d1f4ea9e7cd6e46b47aa9057209f99e78c0e9cfc4e27a5b07895b05c1a166431",
+    "physical_pages": 434,
+    "encrypted": true
+  },
+  "verified_ingest": {
+    "rules": 53,
+    "general_recommendations": 8,
+    "dictionary_entries": 2196,
+    "approved_headword_records": 877,
+    "unapproved_headword_records": 1319,
+    "raw_dictionary_rows": 3052,
+    "private_bundle_sha256": "0370b1ce24dd4884052b5b33fe63c9892cb3649750c3f2508e8c36c78f83e425"
+  },
+  "discrepancies": [
+    {
+      "subject": "approved word cardinality",
+      "source_statement": 875,
+      "structural_extraction": 877,
+      "status": "unreconciled",
+      "policy": "do not coerce; retain evidence and reconcile before claiming exact coverage"
+    }
+  ],
+  "redistribution": {
+    "public_repo_contains_source_derived_text": false,
+    "private_bundle_required_for_full_source_derived_content": true
+  }
+}
