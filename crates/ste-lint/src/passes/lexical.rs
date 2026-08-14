@@ -115,8 +115,7 @@ fn tokens(text: &str) -> Vec<Token<'_>> {
 }
 
 fn is_boundary_punctuation(character: char) -> bool {
-    character.is_ascii_punctuation()
-        && !matches!(character, '_' | '/' | '\\' | '-')
+    character.is_ascii_punctuation() && !matches!(character, '_' | '/' | '\\' | '-')
 }
 
 fn is_machine_marker(character: char) -> bool {
