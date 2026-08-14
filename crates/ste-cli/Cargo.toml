@@ -1,0 +1,24 @@
+[package]
+name = "ste-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "ste"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ste-core = { path = "../ste-core" }
+ste-data = { path = "../ste-data" }
+ste-glossary = { path = "../ste-glossary" }
+ste-lint = { path = "../ste-lint" }
+ste-rewrite-check = { path = "../ste-rewrite-check" }
+
+[dev-dependencies]
+assert_cmd.workspace = true
+predicates.workspace = true
+tempfile.workspace = true
