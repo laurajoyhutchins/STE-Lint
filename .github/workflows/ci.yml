@@ -14,7 +14,9 @@ jobs:
         with:
           python-version: "3.13"
       - name: Compile authority ingest tooling
-        run: python -m py_compile tools/authority-ingest/ingest_issue9.py
+        run: python -m py_compile tools/authority-ingest/ingest_issue9.py tools/authority-ingest/test_ingest_issue9.py
+      - name: Test authority ingest tooling
+        run: python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
 
   rust:
     runs-on: ubuntu-latest

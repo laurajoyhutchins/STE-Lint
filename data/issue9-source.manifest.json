@@ -16,39 +16,34 @@
     "rules": 53,
     "general_recommendations": 8,
     "dictionary_entries": 2196,
-    "approved_headword_records": 877,
-    "unapproved_headword_records": 1319,
+    "approved_headword_records": 878,
+    "unapproved_headword_records": 1318,
+    "source_declared_approved_words": 875,
+    "source_declared_unapproved_words": 1274,
     "raw_dictionary_rows": 3052,
+    "blank_dictionary_pages_without_table": [226, 274, 292, 294, 328, 348, 366, 412, 432, 434],
+    "all_nonblank_dictionary_pages_have_tables": true,
     "deterministic_replay": true,
-    "private_bundle_sha256": "c5d15f0ba90965550ffa623f7b57f88137caa96b81fbdc9e6307f31bbdf41019",
+    "private_bundle_sha256": "cafaf654900bfae5cb7d8cb69fbf039b8516d7ac3269b2e0821696bcc29d5eda",
     "artifact_sha256": {
       "source.json": "e9e7f8076748c9e910f74c4f38e62ba2c9640e482dee52bc747997543659a06a",
       "rules.json": "19e94ae86e6bd78d191454df1fdd0da809a3ae3e06ae40da9bd6db869970848a",
       "general-recommendations.json": "5cee33d7679db2e9631f716ea28c2a38381d434dd413519a5ee8467154e307f2",
-      "dictionary.json": "a4a22fdb3a52705a2bf3b07a0f0d09e9614773402527f00bf178905542918b05",
+      "dictionary.json": "f1ee9adbf965e0dc8f031ce5668ff69b07076e0db4953ebc4ee5eab5a43d68c7",
       "pages.jsonl": "75765c8c3991b1cb037feb6f039ec39c2c42b64c935ef3b67e148ecd49e3fe6d",
       "dictionary-rows.jsonl": "3f93f9501c14a2a7edbd366357615dc475c1bf58f102fe8504810aef2f08b26c",
-      "issue9-authority.sqlite3": "4ce644bd9a49e6e1c65e43e5b5e20bc56a72fd1eb48ba7690fcd57fbe4bd01c2",
+      "issue9-authority.sqlite3": "933c52e0a7d16d8300320ccbd78a1650b1d42c59c9e91098cb20c50bfd551243",
       "issue9-layout.txt": "a216fe199bd6e9c77fc743dfe6dc081ee5f245adcb115ed6ca1aa45ee50fa3f5",
-      "manifest.json": "1f62a73944d20a446250ad061bf5d5ddb2670ed452fad31f23ff5c67b2eb349e"
+      "manifest.json": "ff9ee9233905a3d51a6a4c4477d2af89bfeed3d0470b67acab8a9cd4dedadeac"
     }
   },
-  "discrepancies": [
-    {
-      "subject": "approved word cardinality",
-      "source_statement": 875,
-      "structural_extraction": 877,
-      "status": "unreconciled",
-      "policy": "do not coerce; retain evidence and reconcile before claiming exact coverage"
-    },
-    {
-      "subject": "unapproved word cardinality",
-      "source_statement": 1274,
-      "structural_extraction": 1319,
-      "status": "unreconciled",
-      "policy": "do not coerce; retain evidence and reconcile before claiming exact coverage"
-    }
-  ],
+  "cardinality_notes": {
+    "status": "reconciled_as_distinct_measures",
+    "source_basis": "The publication states counts of approved and unapproved words.",
+    "projection_basis": "The ingest counts structural dictionary headword records, including expression records and distinct part-of-speech records.",
+    "policy": "Do not assert equality between source-declared word counts and structural headword-record counts. Verify both independently.",
+    "parser_regression": "Mixed-case connectors inside an otherwise uppercase approved headword, such as MATT (or MATTE), do not make the headword unapproved."
+  },
   "redistribution": {
     "public_repo_contains_source_derived_text": false,
     "private_bundle_required_for_full_source_derived_content": true

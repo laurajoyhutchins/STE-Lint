@@ -35,6 +35,16 @@ python tools/authority-ingest/ingest_issue9.py \
 
 The command writes complete page-level text, 53 structured writing rules, eight general recommendations, raw dictionary rows, normalized dictionary entries, a SQLite projection, and a manifest with hashes and validation evidence.
 
+Run the maintenance regression tests separately from the source-dependent ingest:
+
+```bash
+python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
+```
+
 ## Verification boundary
 
-The ingest verifies source identity and structural invariants. It does not silently repair discrepancies. In the verified January 2025 Issue 9 source, the introduction states that the dictionary contains 875 approved words and 1274 unapproved words. The current structural extraction identifies 877 approved and 1319 unapproved headword records. Those are parsing/modeling discrepancies, not values to normalize away. They remain explicit evidence until the dictionary reconstruction is reconciled against the source semantics.
+The ingest verifies source identity, rule and recommendation counts, table coverage, and deterministic artifacts. Dictionary pages that contain no extracted table must be literal blank pages; every nonblank dictionary page must yield table evidence.
+
+The Issue 9 introduction states 875 approved words and 1274 unapproved words. The normalized projection contains 878 approved and 1318 unapproved structural headword records. These are intentionally different measures. The publication states a word count, while the projection counts dictionary records, including expression records and distinct part-of-speech records. The ingest records and verifies both measures independently instead of forcing equality.
+
+Approval classification follows the source's uppercase convention without treating a lowercase connector inside an approved alternative spelling as lexical content. The regression case `MATT (or MATTE)` prevents that defect from returning.

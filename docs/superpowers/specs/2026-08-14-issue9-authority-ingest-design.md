@@ -36,7 +36,9 @@ The raw row and page derivatives are retained alongside normalized projections s
 
 Part 2 dictionary pages alternate left and right page margins. The parser uses the observed Word table geometry for odd and even physical pages and reads the explicit cell borders rather than guessing column boundaries from whitespace.
 
-Rows with an empty word cell belong to the preceding dictionary entry. A non-empty word cell starts a new entry when it contains a recognized part-of-speech marker, with explicit handling for dictionary phrases that have no part-of-speech marker. Verb-form rows such as `PREVENTS` and `PREVENTED` are retained as continuation material instead of being counted as independent words.
+Rows with an empty word cell belong to the preceding dictionary entry. A non-empty word cell starts a new entry when it contains a recognized part-of-speech marker, with explicit handling for dictionary expressions that have no part-of-speech marker. Verb-form rows such as `PREVENTS` and `PREVENTED` are retained as continuation material instead of being counted as independent records.
+
+Approval status follows the source's uppercase convention. Lowercase grammatical connectors inside an otherwise uppercase alternative spelling do not make the record unapproved. This behavior is regression-tested with `MATT (or MATTE)`.
 
 Each normalized entry retains the original cell fragments and physical page numbers. Normalization never destroys the source-oriented representation.
 
@@ -47,14 +49,15 @@ A successful ingest must establish:
 - 434 physical PDF pages.
 - 53 writing rules.
 - 8 general recommendations.
-- a non-empty raw dictionary-row corpus and normalized dictionary corpus.
-- artifact SHA-256 hashes.
+- 3,052 raw dictionary rows and 2,196 reconstructed headword records for the pinned source.
+- all dictionary pages without tables are literal blank pages and every nonblank dictionary page yields table evidence.
+- artifact SHA-256 hashes and deterministic replay.
 - exact source SHA-256 and byte size.
 
-The Issue 9 introduction says the dictionary contains 875 approved words. The current structural extraction finds 877 approved headword records. This discrepancy is evidence, not a value to coerce. STE-Lint must not claim exact approved-word cardinality until that discrepancy is reconciled against the source semantics.
+The source states 875 approved words and 1,274 unapproved words. The current structural projection contains 878 approved and 1,318 unapproved headword records. These counts use different cardinality bases, so equality is not a validation condition. Both measures are retained as evidence, and STE-Lint must not relabel structural records as source-declared words.
 
 ## Redistribution boundary
 
-The PDF states that ASD owns the copyright and limits reproduction/publication. The public repository therefore receives the parser, safe source identity, counts, hashes, and verification notes, but not the full extracted rules, definitions, examples, page text, SQLite database, or source PDF.
+The PDF states that ASD owns the copyright and limits reproduction/publication. The public repository therefore receives the parser, safe source identity, counts, hashes, tests, and verification notes, but not the full extracted rules, definitions, examples, page text, SQLite database, or source PDF.
 
 Private generated authority bundles may be retained in private storage for authorized use.

@@ -136,8 +136,17 @@ def normalize_headword(raw):
     return head,pos,forms
 
 def approved_from_headword(head):
-    letters=''.join(ch for ch in head if ch.isalpha())
-    return bool(letters and letters.upper()==letters)
+    tokens=re.findall(r"[A-Za-z]+", head)
+    lexical_tokens=[token for token in tokens if token != 'or']
+    return bool(lexical_tokens and all(token.upper()==token for token in lexical_tokens))
+
+def extract_declared_dictionary_counts(pages):
+    text='\n'.join(pages)
+    approved=re.search(r"\((\d+) approved words\)", text)
+    unapproved=re.search(r"not approved \((\d+) words\)", text)
+    if not approved or not unapproved:
+        raise ValueError('could not find source-declared dictionary word counts')
+    return {'approved_words':int(approved.group(1)), 'unapproved_words':int(unapproved.group(1))}
 
 def extract_dictionary(pdf: Path):
     raw_rows=[]; entries=[]; current=None
@@ -167,6 +176,14 @@ def extract_dictionary(pdf: Path):
                 if c: cols[i].append(c)
         e['word_cell']='\n'.join(cols[0]); e['meaning_or_alternatives']='\n'.join(cols[1]); e['ste_example']='\n'.join(cols[2]); e['non_ste_example']='\n'.join(cols[3])
     return raw_rows,entries
+
+def validate_dictionary_table_coverage(pages, raw_rows, start_page=149, end_page=434):
+    table_pages={row['pdf_page'] for row in raw_rows}
+    missing=[pn for pn in range(start_page,end_page+1) if pn not in table_pages]
+    unexpected=[pn for pn in missing if 'Blank Page' not in pages[pn-1]]
+    if unexpected:
+        raise ValueError(f'nonblank dictionary page without table: {unexpected}')
+    return missing
 
 def write_json(path,obj):
     path.write_text(json.dumps(obj,ensure_ascii=False,indent=2)+"\n")
@@ -200,6 +217,8 @@ def main():
     if source['sha256'] != EXPECTED_SHA256 or source['byte_size'] != EXPECTED_BYTES or source['pdf_pages'] != EXPECTED_PAGES:
         raise SystemExit('source identity mismatch: refusing Issue 9 ingest')
     rules=extract_rules(pages); grs=extract_grs(pages); raw_rows,entries=extract_dictionary(args.pdf)
+    declared_counts=extract_declared_dictionary_counts(pages)
+    blank_dictionary_pages=validate_dictionary_table_coverage(pages,raw_rows)
     page_records=[{'pdf_page':i+1,'logical_page':logical_page_label(t),'text':t,'text_sha256':hashlib.sha256(t.encode()).hexdigest()} for i,t in enumerate(pages)]
     write_json(out/'source.json',source); write_json(out/'rules.json',rules); write_json(out/'general-recommendations.json',grs); write_json(out/'dictionary.json',entries)
     with (out/'pages.jsonl').open('w') as f:
@@ -214,13 +233,15 @@ def main():
         'rules_count_53':len(rules)==53,
         'general_recommendations_count_8':len(grs)==8,
         'dictionary_entries':len(entries),
-        'approved_entry_count':len(approved),
-        'standard_states_875_approved_words':875,
-        'standard_states_1274_unapproved_words':1274,
+        'approved_headword_record_count':len(approved),
+        'unapproved_headword_record_count':len(entries)-len(approved),
+        'source_declared_word_counts':declared_counts,
+        'cardinality_basis':'headword records and source-declared word counts are distinct measures; equality is not asserted',
         'raw_dictionary_rows':len(raw_rows),
-        'dictionary_pages_without_table':[pn for pn in range(149,435) if not any(r['pdf_page']==pn for r in raw_rows)],
+        'blank_dictionary_pages_without_table':blank_dictionary_pages,
+        'all_nonblank_dictionary_pages_have_tables':True,
     }
-    manifest={'source':source,'counts':{'pages':len(pages),'rules':len(rules),'general_recommendations':len(grs),'dictionary_entries':len(entries),'approved_entries':len(approved),'unapproved_entries':len(entries)-len(approved),'dictionary_rows':len(raw_rows)},'validations':validations,'artifacts':{}}
+    manifest={'source':source,'counts':{'pages':len(pages),'rules':len(rules),'general_recommendations':len(grs),'dictionary_entries':len(entries),'approved_headword_records':len(approved),'unapproved_headword_records':len(entries)-len(approved),'source_declared_approved_words':declared_counts['approved_words'],'source_declared_unapproved_words':declared_counts['unapproved_words'],'dictionary_rows':len(raw_rows)},'validations':validations,'artifacts':{}}
     for name in ['source.json','rules.json','general-recommendations.json','dictionary.json','pages.jsonl','dictionary-rows.jsonl','issue9-authority.sqlite3','issue9-layout.txt']:
         p=out/name; manifest['artifacts'][name]={'bytes':p.stat().st_size,'sha256':sha256_file(p)}
     write_json(out/'manifest.json',manifest)
