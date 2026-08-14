@@ -1,5 +1,7 @@
 mod passes;
 
+use std::cmp::Reverse;
+
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};
 use ste_data::RuntimeLexicon;
@@ -40,7 +42,7 @@ pub fn lint_text(
             .iter()
             .filter_map(|diagnostic| diagnostic.autofix.clone())
             .collect::<Vec<_>>();
-        fixes.sort_by(|left, right| right.span.start.cmp(&left.span.start));
+        fixes.sort_by_key(|fix| Reverse(fix.span.start));
         for fix in fixes {
             output.replace_range(fix.span.start..fix.span.end, &fix.replacement);
             fixed_any = true;
