@@ -9,10 +9,12 @@ mod tests {
             target_diagnostics: Vec::new(),
         });
         assert!(!result.accepted);
-        assert!(result
-            .diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == code));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == code)
+        );
     }
 
     #[test]
