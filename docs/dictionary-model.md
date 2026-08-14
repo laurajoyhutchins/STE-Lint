@@ -18,7 +18,9 @@ The first slice does not yet perform full POS or sense disambiguation during lin
 
 ## Explicit forms
 
-`RuntimeLexicon::lookup_form` only resolves forms listed in the dataset. It does not invent morphology. This matters for controlled-language verbs where an otherwise normal English form can be disallowed.
+`RuntimeLexicon` only indexes forms listed in the dataset. It does not invent morphology. This matters for controlled-language verbs where an otherwise normal English form can be disallowed.
+
+A spelling is not necessarily a unique dictionary identity. The full Issue 9 structural projection contains spellings shared by multiple records, including records with different parts of speech or approval states. `lookup_form_candidates` therefore returns every structural candidate for an explicit form in source-record order. The compatibility `lookup_form` API returns one entry only when the spelling has exactly one candidate; it returns `None` for an ambiguous spelling instead of silently selecting an arbitrary record.
 
 The private Issue 9 compiler cleans formatting/help text out of source-listed verb forms and removes exact duplicates while preserving order. It does not synthesize an English conjugation that is absent from the authority record.
 
