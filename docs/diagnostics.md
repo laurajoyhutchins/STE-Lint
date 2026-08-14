@@ -26,7 +26,7 @@ This is not yet the complete ASD-STE100 word-count algorithm.
 
 ### Lexical token handling
 
-The current lexical pass ignores tokens containing `_`, `/`, `\\`, `-`, `.`, or a digit. This avoids treating common identifiers, paths, versions, and similar machine tokens as ordinary prose before a richer tokenizer exists.
+The lexical pass strips surrounding sentence punctuation before it classifies a token. It then ignores tokens that still contain `_`, `/`, `\\`, `-`, `.`, or a digit. This keeps normal sentence-final words such as `acceptable.` visible to the lexicon while avoiding false prose diagnostics for identifiers, paths, versions, and similar machine tokens such as `occurrence_id`, `path/to/file`, or `1.2`.
 
 A token ignored by this pass is not therefore declared STE-compliant. It is simply outside this first lexical check.
 
