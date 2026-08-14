@@ -51,7 +51,10 @@ fn lint_fix_applies_only_safe_fix_and_exits_clean() {
         .assert()
         .success();
 
-    assert_eq!(fs::read_to_string(file.path()).unwrap(), "USE THIS. USE THIS.\n");
+    assert_eq!(
+        fs::read_to_string(file.path()).unwrap(),
+        "USE THIS. USE THIS.\n"
+    );
 }
 
 #[test]
@@ -87,8 +90,8 @@ fn dictionary_lookup_exposes_structured_alternatives() {
 
 #[test]
 fn glossary_check_accepts_valid_project_terms() {
-    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/glossary/valid.json");
+    let fixture =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/glossary/valid.json");
     let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
     command
         .args([
