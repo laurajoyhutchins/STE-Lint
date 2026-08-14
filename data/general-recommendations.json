@@ -1,0 +1,14 @@
+{
+  "standard": "ASD-STE100",
+  "issue": 9,
+  "recommendations": [
+    {"id": "GR-1", "title": "The conjunction that"},
+    {"id": "GR-2", "title": "The preposition with"},
+    {"id": "GR-3", "title": "How to use pronouns"},
+    {"id": "GR-4", "title": "The pronoun this"},
+    {"id": "GR-5", "title": "False friends"},
+    {"id": "GR-6", "title": "Latin abbreviations"},
+    {"id": "GR-7", "title": "Inclusive language"},
+    {"id": "GR-8", "title": "Possessive form"}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "standard": "ASD-STE100",
+  "issue": 9,
+  "rules": [
+    {"id": "1.1", "title": "Approved words and technical terms"},
+    {"id": "1.2", "title": "Approved part of speech"},
+    {"id": "1.3", "title": "Approved meaning"},
+    {"id": "5.1", "title": "Procedural sentence length"},
+    {"id": "6.3", "title": "Descriptive sentence length"},
+    {"id": "8.1", "title": "Punctuation"}
+  ]
+}

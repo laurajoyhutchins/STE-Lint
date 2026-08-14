@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.dev/schemas/proposed-change.schema.json",
+  "title": "STE-Lint Proposed Change",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["original", "proposed", "target_diagnostics"],
+  "properties": {
+    "original": {"type": "string"},
+    "proposed": {"type": "string"},
+    "target_diagnostics": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

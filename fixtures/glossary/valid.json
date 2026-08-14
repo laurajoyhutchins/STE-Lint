@@ -1,0 +1,15 @@
+{
+  "terms": [
+    {
+      "term": "busway",
+      "kind": "technical_noun",
+      "definition": "A project term for an electrical distribution assembly.",
+      "domain": "electrical",
+      "preferred": true,
+      "aliases": [],
+      "examples": ["Inspect the busway."],
+      "provenance": ["project glossary fixture"],
+      "status": "approved"
+    }
+  ]
+}

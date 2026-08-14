@@ -1,0 +1,5 @@
+{
+  "original": "Keep the pressure below 10 psi.",
+  "proposed": "Keep the pressure below 20 psi.",
+  "expected": "SEM-QUANTITY-001"
+}

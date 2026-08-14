@@ -1,0 +1,26 @@
+{
+  "terms": [
+    {
+      "term": "busway",
+      "kind": "technical_noun",
+      "definition": "First definition.",
+      "domain": "electrical",
+      "preferred": true,
+      "aliases": [],
+      "examples": [],
+      "provenance": ["fixture A"],
+      "status": "approved"
+    },
+    {
+      "term": "BUSWAY",
+      "kind": "technical_noun",
+      "definition": "Second definition.",
+      "domain": "electrical",
+      "preferred": false,
+      "aliases": [],
+      "examples": [],
+      "provenance": ["fixture B"],
+      "status": "approved"
+    }
+  ]
+}

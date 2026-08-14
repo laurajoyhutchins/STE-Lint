@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "standard": "ASD-STE100",
+    "issue": 9,
+    "date": "2025-01-15",
+    "scope": "first_slice_test_lexicon"
+  },
+  "entries": [
+    {
+      "lemma": "PERMITTED",
+      "status": "approved",
+      "part_of_speech": "adjective",
+      "forms": ["PERMITTED"],
+      "senses": [{"meaning": "Allowed by an applicable rule or condition"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "MAKE SURE",
+      "status": "approved",
+      "part_of_speech": "verb",
+      "forms": ["MAKE SURE"],
+      "senses": [{"meaning": "Confirm that a condition is true"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "CAN",
+      "status": "approved",
+      "part_of_speech": "verb",
+      "forms": ["CAN"],
+      "senses": [{"meaning": "Express ability, permission, or possibility in an approved context"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "MUST",
+      "status": "approved",
+      "part_of_speech": "verb",
+      "forms": ["MUST"],
+      "senses": [{"meaning": "Express a mandatory requirement"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "USE",
+      "status": "approved",
+      "part_of_speech": "verb",
+      "forms": ["USE", "USES", "USED"],
+      "senses": [{"meaning": "Employ something for a purpose"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "WITH",
+      "status": "approved",
+      "part_of_speech": "preposition",
+      "forms": ["WITH"],
+      "senses": [{"meaning": "Express an approved relationship, means, or association"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "THIS",
+      "status": "approved",
+      "part_of_speech": "pronoun",
+      "forms": ["THIS"],
+      "senses": [{"meaning": "Refer to an identified thing"}],
+      "alternatives": [],
+      "restrictions": []
+    },
+    {
+      "lemma": "acceptable",
+      "status": "unapproved",
+      "part_of_speech": "adjective",
+      "forms": ["acceptable"],
+      "senses": [],
+      "alternatives": [
+        {
+          "kind": "approved_word",
+          "text": "PERMITTED",
+          "part_of_speech": "adjective",
+          "strategy": "word_replacement"
+        }
+      ],
+      "restrictions": []
+    },
+    {
+      "lemma": "ensure",
+      "status": "unapproved",
+      "part_of_speech": "verb",
+      "forms": ["ensure", "ensures", "ensured"],
+      "senses": [],
+      "alternatives": [
+        {
+          "kind": "approved_phrase",
+          "text": "MAKE SURE",
+          "part_of_speech": "verb",
+          "strategy": "phrase_replacement"
+        }
+      ],
+      "restrictions": []
+    },
+    {
+      "lemma": "may",
+      "status": "unapproved",
+      "part_of_speech": "verb",
+      "forms": ["may"],
+      "senses": [],
+      "alternatives": [
+        {
+          "kind": "approved_word",
+          "text": "CAN",
+          "part_of_speech": "verb",
+          "strategy": "word_replacement"
+        }
+      ],
+      "restrictions": []
+    },
+    {
+      "lemma": "should",
+      "status": "unapproved",
+      "part_of_speech": "verb",
+      "forms": ["should"],
+      "senses": [],
+      "alternatives": [
+        {
+          "kind": "approved_word",
+          "text": "MUST",
+          "part_of_speech": "verb",
+          "strategy": "word_replacement"
+        }
+      ],
+      "restrictions": []
+    },
+    {
+      "lemma": "using",
+      "status": "unapproved",
+      "part_of_speech": "verb",
+      "forms": ["using"],
+      "senses": [],
+      "alternatives": [
+        {
+          "kind": "approved_word",
+          "text": "USE",
+          "part_of_speech": "verb",
+          "strategy": "word_replacement"
+        },
+        {
+          "kind": "approved_word",
+          "text": "WITH",
+          "part_of_speech": "preposition",
+          "strategy": "sentence_reconstruction"
+        }
+      ],
+      "restrictions": []
+    }
+  ]
+}

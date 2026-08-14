@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.dev/schemas/dictionary.schema.json",
+  "title": "STE-Lint Runtime Dictionary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["metadata", "entries"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["standard", "issue", "date", "scope"],
+      "properties": {
+        "standard": {"type": "string"},
+        "issue": {"type": "integer", "minimum": 1},
+        "date": {"type": "string"},
+        "scope": {"type": "string"}
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["lemma", "status", "part_of_speech", "forms", "senses", "alternatives", "restrictions"],
+        "properties": {
+          "lemma": {"type": "string"},
+          "status": {"enum": ["approved", "unapproved"]},
+          "part_of_speech": {"enum": ["noun", "verb", "adjective", "adverb", "pronoun", "article", "preposition", "conjunction"]},
+          "forms": {"type": "array", "items": {"type": "string"}},
+          "senses": {"type": "array", "items": {"type": "object", "required": ["meaning"], "properties": {"meaning": {"type": "string"}}}},
+          "alternatives": {"type": "array"},
+          "restrictions": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

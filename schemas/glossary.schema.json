@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.dev/schemas/glossary.schema.json",
+  "title": "STE-Lint Technical Glossary",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["terms"],
+  "properties": {
+    "terms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "term",
+          "kind",
+          "definition",
+          "domain",
+          "preferred",
+          "aliases",
+          "examples",
+          "provenance",
+          "status"
+        ],
+        "properties": {
+          "term": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["technical_noun", "technical_verb"]},
+          "definition": {"type": "string", "minLength": 1},
+          "domain": {"type": "string", "minLength": 1},
+          "preferred": {"type": "boolean"},
+          "aliases": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "examples": {"type": "array", "items": {"type": "string"}},
+          "provenance": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+          "status": {"enum": ["approved", "deprecated"]}
+        }
+      }
+    }
+  }
+}

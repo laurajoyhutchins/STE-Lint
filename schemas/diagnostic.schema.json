@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.dev/schemas/diagnostic.schema.json",
+  "title": "STE-Lint Diagnostic",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code", "severity", "message", "span", "rules"],
+  "properties": {
+    "code": { "type": "string", "minLength": 1 },
+    "severity": { "enum": ["error", "warning", "blocked"] },
+    "message": { "type": "string", "minLength": 1 },
+    "span": { "$ref": "#/$defs/span" },
+    "rules": { "type": "array", "items": { "type": "string" } },
+    "evidence": {},
+    "autofix": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["span", "replacement"],
+          "properties": {
+            "span": { "$ref": "#/$defs/span" },
+            "replacement": { "type": "string" }
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
