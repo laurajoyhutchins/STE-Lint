@@ -11,10 +11,12 @@ mod tests {
             fix: false,
         };
         let result = lint_text("USE THIS; USE THIS.", &lexicon, None, options);
-        assert!(result
-            .diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "STE-PUNC-001"));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "STE-PUNC-001")
+        );
 
         let fixed = lint_text(
             "USE THIS; USE THIS.",
@@ -26,9 +28,11 @@ mod tests {
             },
         );
         assert_eq!(fixed.text, "USE THIS. USE THIS.");
-        assert!(!fixed
-            .diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == "STE-PUNC-001"));
+        assert!(
+            !fixed
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "STE-PUNC-001")
+        );
     }
 }
