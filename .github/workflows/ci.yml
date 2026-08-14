@@ -6,6 +6,16 @@ on:
   pull_request:
 
 jobs:
+  authority-ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Compile authority ingest tooling
+        run: python -m py_compile tools/authority-ingest/ingest_issue9.py
+
   rust:
     runs-on: ubuntu-latest
     steps:
