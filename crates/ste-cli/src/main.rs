@@ -7,11 +7,14 @@ use serde::Serialize;
 use ste_core::{Diagnostic, Severity};
 use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
-use ste_lint::{lint_text, LintMode, LintOptions, LintResult};
-use ste_rewrite_check::{check_rewrite, ProposedChange, RewriteCheckResult};
+use ste_lint::{LintMode, LintOptions, LintResult, lint_text};
+use ste_rewrite_check::{ProposedChange, RewriteCheckResult, check_rewrite};
 
 #[derive(Debug, Parser)]
-#[command(name = "ste", about = "Lint technical English with structured STE diagnostics")]
+#[command(
+    name = "ste",
+    about = "Lint technical English with structured STE diagnostics"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -160,11 +163,7 @@ fn run_lint(
     Ok(exit_code_for_diagnostics(&result.diagnostics))
 }
 
-fn run_check_rewrite(
-    before: &Path,
-    after: &Path,
-    format: OutputFormat,
-) -> Result<u8, AppFailure> {
+fn run_check_rewrite(before: &Path, after: &Path, format: OutputFormat) -> Result<u8, AppFailure> {
     let result = check_rewrite(&ProposedChange {
         original: read_text(before)?,
         proposed: read_text(after)?,
@@ -304,10 +303,7 @@ fn print_rewrite_result(
     }
 }
 
-fn print_diagnostics(
-    diagnostics: &[Diagnostic],
-    format: OutputFormat,
-) -> Result<(), AppFailure> {
+fn print_diagnostics(diagnostics: &[Diagnostic], format: OutputFormat) -> Result<(), AppFailure> {
     match format {
         OutputFormat::Json => print_json(diagnostics),
         OutputFormat::Human => {
