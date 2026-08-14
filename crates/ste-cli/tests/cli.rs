@@ -1,4 +1,6 @@
+use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
 
 use predicates::prelude::*;
 
@@ -30,4 +32,73 @@ fn lint_json_reports_stable_diagnostic_and_exit_code() {
         .assert()
         .code(1)
         .stdout(predicate::str::contains("STE-PUNC-001"));
+}
+
+#[test]
+fn lint_fix_applies_only_safe_fix_and_exits_clean() {
+    let mut file = tempfile::NamedTempFile::new().unwrap();
+    writeln!(file, "USE THIS; USE THIS.").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "lint",
+            file.path().to_str().unwrap(),
+            "--fix",
+            "--mode",
+            "procedural",
+        ])
+        .assert()
+        .success();
+
+    assert_eq!(fs::read_to_string(file.path()).unwrap(), "USE THIS. USE THIS.\n");
+}
+
+#[test]
+fn check_rewrite_rejects_modality_change() {
+    let mut before = tempfile::NamedTempFile::new().unwrap();
+    let mut after = tempfile::NamedTempFile::new().unwrap();
+    writeln!(before, "The request may fail.").unwrap();
+    writeln!(after, "The request fails.").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "check-rewrite",
+            before.path().to_str().unwrap(),
+            after.path().to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(1)
+        .stdout(predicate::str::contains("SEM-MODALITY-001"));
+}
+
+#[test]
+fn dictionary_lookup_exposes_structured_alternatives() {
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args(["dictionary", "lookup", "acceptable", "--format", "json"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("PERMITTED"));
+}
+
+#[test]
+fn glossary_check_accepts_valid_project_terms() {
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../fixtures/glossary/valid.json");
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "glossary",
+            "check",
+            fixture.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("[]"));
 }
