@@ -1,0 +1,51 @@
+{
+  "standard": "ASD-STE100",
+  "issue": 9,
+  "publication_date": "2025-01-15",
+  "retained_source": {
+    "provider": "google_drive",
+    "file_id": "1GfSldRfzXs91pG1BbgLjbzJFJML_wifP",
+    "title": "ASD-STE100_ISSUE9.pdf",
+    "mime_type": "application/pdf",
+    "byte_size": 3316157,
+    "sha256": "d1f4ea9e7cd6e46b47aa9057209f99e78c0e9cfc4e27a5b07895b05c1a166431",
+    "physical_pages": 434,
+    "encrypted": true
+  },
+  "verified_ingest": {
+    "rules": 53,
+    "general_recommendations": 8,
+    "dictionary_entries": 2196,
+    "approved_headword_records": 878,
+    "unapproved_headword_records": 1318,
+    "source_declared_approved_words": 875,
+    "source_declared_unapproved_words": 1274,
+    "raw_dictionary_rows": 3052,
+    "blank_dictionary_pages_without_table": [226, 274, 292, 294, 328, 348, 366, 412, 432, 434],
+    "all_nonblank_dictionary_pages_have_tables": true,
+    "deterministic_replay": true,
+    "private_bundle_sha256": "3d6a51c59c5b90fbdc288aca68f78b4c19f8bae3ee4bcdf8ac25027eef6eba34",
+    "artifact_sha256": {
+      "source.json": "e9e7f8076748c9e910f74c4f38e62ba2c9640e482dee52bc747997543659a06a",
+      "rules.json": "19e94ae86e6bd78d191454df1fdd0da809a3ae3e06ae40da9bd6db869970848a",
+      "general-recommendations.json": "5cee33d7679db2e9631f716ea28c2a38381d434dd413519a5ee8467154e307f2",
+      "dictionary.json": "f1ee9adbf965e0dc8f031ce5668ff69b07076e0db4953ebc4ee5eab5a43d68c7",
+      "pages.jsonl": "75765c8c3991b1cb037feb6f039ec39c2c42b64c935ef3b67e148ecd49e3fe6d",
+      "dictionary-rows.jsonl": "3f93f9501c14a2a7edbd366357615dc475c1bf58f102fe8504810aef2f08b26c",
+      "issue9-authority.sqlite3": "933c52e0a7d16d8300320ccbd78a1650b1d42c59c9e91098cb20c50bfd551243",
+      "issue9-layout.txt": "a216fe199bd6e9c77fc743dfe6dc081ee5f245adcb115ed6ca1aa45ee50fa3f5",
+      "manifest.json": "ff9ee9233905a3d51a6a4c4477d2af89bfeed3d0470b67acab8a9cd4dedadeac"
+    }
+  },
+  "cardinality_notes": {
+    "status": "reconciled_as_distinct_measures",
+    "source_basis": "The publication states counts of approved and unapproved words.",
+    "projection_basis": "The ingest counts structural dictionary headword records, including expression records and distinct part-of-speech records.",
+    "policy": "Do not assert equality between source-declared word counts and structural headword-record counts. Verify both independently.",
+    "parser_regression": "Mixed-case connectors inside an otherwise uppercase approved headword, such as MATT (or MATTE), do not make the headword unapproved."
+  },
+  "redistribution": {
+    "public_repo_contains_source_derived_text": false,
+    "private_bundle_required_for_full_source_derived_content": true
+  }
+}
