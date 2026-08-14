@@ -24,7 +24,7 @@
     "blank_dictionary_pages_without_table": [226, 274, 292, 294, 328, 348, 366, 412, 432, 434],
     "all_nonblank_dictionary_pages_have_tables": true,
     "deterministic_replay": true,
-    "private_bundle_sha256": "cafaf654900bfae5cb7d8cb69fbf039b8516d7ac3269b2e0821696bcc29d5eda",
+    "private_bundle_sha256": "3d6a51c59c5b90fbdc288aca68f78b4c19f8bae3ee4bcdf8ac25027eef6eba34",
     "artifact_sha256": {
       "source.json": "e9e7f8076748c9e910f74c4f38e62ba2c9640e482dee52bc747997543659a06a",
       "rules.json": "19e94ae86e6bd78d191454df1fdd0da809a3ae3e06ae40da9bd6db869970848a",

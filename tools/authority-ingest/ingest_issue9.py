@@ -2,8 +2,6 @@
 from __future__ import annotations
 import argparse, hashlib, json, re, sqlite3, subprocess
 from pathlib import Path
-import pdfplumber
-from pypdf import PdfReader
 
 POS_RE = re.compile(r"\((adj|adv|art|conj|n|prep|pron|v)\)", re.I)
 RULE_RE = re.compile(r"^\s*Rule\s+(\d+\.\d+)\s+(.*)$", re.I)
@@ -30,8 +28,7 @@ def sha256_file(path: Path) -> str:
 def clean_lines(lines):
     out=[]
     for line in lines:
-        s=line.rstrip()
-        st=s.strip()
+        s=line.rstrip(); st=s.strip()
         if not st: out.append(""); continue
         if st == "ASD-STE100 Simplified Technical English": continue
         if re.match(r"^(Issue 9|2025-01-15)$", st): continue
@@ -78,19 +75,14 @@ def extract_rules(pages):
         ep,ei = (starts[i+1][1][0], starts[i+1][1][1]) if i+1<len(starts) else (123,0)
         chunks=[]
         for pn in range(sp,ep+1):
-            lines=pages[pn-1].splitlines()
-            a=si if pn==sp else 0
-            b=ei if pn==ep else len(lines)
+            lines=pages[pn-1].splitlines(); a=si if pn==sp else 0; b=ei if pn==ep else len(lines)
             chunks.extend(clean_lines(lines[a:b]))
-        title_parts=[title0]
-        lines=pages[sp-1].splitlines(); j=si+1
+        title_parts=[title0]; lines=pages[sp-1].splitlines(); j=si+1
         while j<len(lines) and lines[j].strip() and not lines[j].lstrip().startswith(('Examples:', 'Example:', 'A ', 'The ', 'In ', 'You ', 'Use ', 'Do ', 'This ', 'If ', 'When ', 'STE ')):
             t=lines[j].strip()
             if len(t)>110: break
             title_parts.append(t); j+=1
-        title=' '.join(x for x in title_parts if x).strip()
-        body='\n'.join(chunks).strip()
-        rules.append({'id':rid,'section':int(rid.split('.')[0]),'title':title,'start_pdf_page':sp,'end_pdf_page':ep if ei>0 else ep-1,'logical_page_start':logical_page_label(pages[sp-1]),'text':body})
+        rules.append({'id':rid,'section':int(rid.split('.')[0]),'title':' '.join(x for x in title_parts if x).strip(),'start_pdf_page':sp,'end_pdf_page':ep if ei>0 else ep-1,'logical_page_start':logical_page_label(pages[sp-1]),'text':'\n'.join(chunks).strip()})
     return rules
 
 def extract_grs(pages):
@@ -121,18 +113,13 @@ def normalize_headword(raw):
     raw=' '.join(raw.replace('\n',' ').split())
     if raw in SPECIAL_HEADWORDS: return raw, None, []
     m=POS_RE.search(raw); pos=m.group(1).lower() if m else None
-    if m:
-        head=raw[:m.start()].strip().rstrip(',')
-    else:
-        head=raw
-    head=head.split(',')[0].strip()
-    forms=[]
+    head=raw[:m.start()].strip().rstrip(',') if m else raw
+    head=head.split(',')[0].strip(); forms=[]
     if pos=='v':
         pieces=[p.strip(' ,.') for p in re.split(r'[,\n]+', raw) if p.strip()]
         for p in pieces:
             p=POS_RE.sub('',p).strip()
-            if p and p.lower() not in {'no other verb forms'} and not p.startswith('No other'):
-                forms.append(p)
+            if p and p.lower() not in {'no other verb forms'} and not p.startswith('No other'): forms.append(p)
     return head,pos,forms
 
 def approved_from_headword(head):
@@ -144,11 +131,12 @@ def extract_declared_dictionary_counts(pages):
     text='\n'.join(pages)
     approved=re.search(r"\((\d+) approved words\)", text)
     unapproved=re.search(r"not approved \((\d+) words\)", text)
-    if not approved or not unapproved:
-        raise ValueError('could not find source-declared dictionary word counts')
+    if not approved or not unapproved: raise ValueError('could not find source-declared dictionary word counts')
     return {'approved_words':int(approved.group(1)), 'unapproved_words':int(unapproved.group(1))}
 
 def extract_dictionary(pdf: Path):
+    import pdfplumber
+
     raw_rows=[]; entries=[]; current=None
     with pdfplumber.open(pdf) as doc:
         for pn in range(149,435):
@@ -156,20 +144,17 @@ def extract_dictionary(pdf: Path):
             if not table: continue
             for ri,row in enumerate(table):
                 row=[(x or '').strip() if x is not None else None for x in row]
-                raw_rows.append({'pdf_page':pn,'row_index':ri,'cells':row})
-                c0=(row[0] or '').strip()
+                raw_rows.append({'pdf_page':pn,'row_index':ri,'cells':row}); c0=(row[0] or '').strip()
                 if is_new_headword(c0):
                     if current: entries.append(current)
                     current={'headword_raw':c0,'fragments':[],'source_pages':[]}
-                elif c0 and current:
-                    current['headword_raw'] += '\n' + c0
+                elif c0 and current: current['headword_raw'] += '\n' + c0
                 if current:
                     current['fragments'].append({'pdf_page':pn,'row_index':ri,'cells':row})
                     if pn not in current['source_pages']: current['source_pages'].append(pn)
     if current: entries.append(current)
     for e in entries:
-        head,pos,forms=normalize_headword(e['headword_raw'])
-        e['headword']=head; e['part_of_speech']=pos; e['forms']=forms; e['approved']=approved_from_headword(head)
+        head,pos,forms=normalize_headword(e['headword_raw']); e['headword']=head; e['part_of_speech']=pos; e['forms']=forms; e['approved']=approved_from_headword(head)
         cols=[[],[],[],[]]
         for f in e['fragments']:
             for i,c in enumerate(f['cells']):
@@ -178,15 +163,12 @@ def extract_dictionary(pdf: Path):
     return raw_rows,entries
 
 def validate_dictionary_table_coverage(pages, raw_rows, start_page=149, end_page=434):
-    table_pages={row['pdf_page'] for row in raw_rows}
-    missing=[pn for pn in range(start_page,end_page+1) if pn not in table_pages]
+    table_pages={row['pdf_page'] for row in raw_rows}; missing=[pn for pn in range(start_page,end_page+1) if pn not in table_pages]
     unexpected=[pn for pn in missing if 'Blank Page' not in pages[pn-1]]
-    if unexpected:
-        raise ValueError(f'nonblank dictionary page without table: {unexpected}')
+    if unexpected: raise ValueError(f'nonblank dictionary page without table: {unexpected}')
     return missing
 
-def write_json(path,obj):
-    path.write_text(json.dumps(obj,ensure_ascii=False,indent=2)+"\n")
+def write_json(path,obj): path.write_text(json.dumps(obj,ensure_ascii=False,indent=2)+"\n")
 
 def build_sqlite(path, source, pages, rules, grs, entries, raw_rows):
     if path.exists(): path.unlink()
@@ -204,46 +186,27 @@ def build_sqlite(path, source, pages, rules, grs, entries, raw_rows):
     con.executemany('insert into rules values (?,?,?,?,?,?)',[(r['id'],r['section'],r['title'],r['start_pdf_page'],r['end_pdf_page'],r['text']) for r in rules])
     con.executemany('insert into recommendations values (?,?,?,?,?)',[(r['id'],r['title'],r['start_pdf_page'],r['end_pdf_page'],r['text']) for r in grs])
     con.executemany('insert into dictionary_entries values (?,?,?,?,?,?,?,?,?,?)',[(i+1,e['headword'],e['headword_raw'],e['part_of_speech'],int(e['approved']),json.dumps(e['forms'],ensure_ascii=False),e['meaning_or_alternatives'],e['ste_example'],e['non_ste_example'],json.dumps(e['source_pages'])) for i,e in enumerate(entries)])
-    con.executemany('insert into dictionary_rows values (?,?,?)',[(r['pdf_page'],r['row_index'],json.dumps(r['cells'],ensure_ascii=False)) for r in raw_rows])
-    con.commit(); con.close()
+    con.executemany('insert into dictionary_rows values (?,?,?)',[(r['pdf_page'],r['row_index'],json.dumps(r['cells'],ensure_ascii=False)) for r in raw_rows]); con.commit(); con.close()
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('pdf',type=Path); ap.add_argument('--out',type=Path,required=True); args=ap.parse_args()
-    out=args.out; out.mkdir(parents=True,exist_ok=True)
+    ap=argparse.ArgumentParser(); ap.add_argument('pdf',type=Path); ap.add_argument('--out',type=Path,required=True); args=ap.parse_args(); out=args.out; out.mkdir(parents=True,exist_ok=True)
     pages=extract_pages(args.pdf,out)
-    reader=PdfReader(str(args.pdf))
-    meta={str(k).lstrip('/'):str(v) for k,v in (reader.metadata or {}).items()}
+    from pypdf import PdfReader
+
+    reader=PdfReader(str(args.pdf)); meta={str(k).lstrip('/'):str(v) for k,v in (reader.metadata or {}).items()}
     source={'title':'ASD-STE100 Simplified Technical English','issue':9,'publication_date':'2025-01-15','drive_file_id':'1GfSldRfzXs91pG1BbgLjbzJFJML_wifP','mime_type':'application/pdf','byte_size':args.pdf.stat().st_size,'sha256':sha256_file(args.pdf),'pdf_pages':len(reader.pages),'encrypted':bool(reader.is_encrypted),'metadata':meta}
-    if source['sha256'] != EXPECTED_SHA256 or source['byte_size'] != EXPECTED_BYTES or source['pdf_pages'] != EXPECTED_PAGES:
-        raise SystemExit('source identity mismatch: refusing Issue 9 ingest')
-    rules=extract_rules(pages); grs=extract_grs(pages); raw_rows,entries=extract_dictionary(args.pdf)
-    declared_counts=extract_declared_dictionary_counts(pages)
-    blank_dictionary_pages=validate_dictionary_table_coverage(pages,raw_rows)
+    if source['sha256'] != EXPECTED_SHA256 or source['byte_size'] != EXPECTED_BYTES or source['pdf_pages'] != EXPECTED_PAGES: raise SystemExit('source identity mismatch: refusing Issue 9 ingest')
+    rules=extract_rules(pages); grs=extract_grs(pages); raw_rows,entries=extract_dictionary(args.pdf); declared_counts=extract_declared_dictionary_counts(pages); blank_dictionary_pages=validate_dictionary_table_coverage(pages,raw_rows)
     page_records=[{'pdf_page':i+1,'logical_page':logical_page_label(t),'text':t,'text_sha256':hashlib.sha256(t.encode()).hexdigest()} for i,t in enumerate(pages)]
     write_json(out/'source.json',source); write_json(out/'rules.json',rules); write_json(out/'general-recommendations.json',grs); write_json(out/'dictionary.json',entries)
     with (out/'pages.jsonl').open('w') as f:
         for r in page_records: f.write(json.dumps(r,ensure_ascii=False)+'\n')
     with (out/'dictionary-rows.jsonl').open('w') as f:
         for r in raw_rows: f.write(json.dumps(r,ensure_ascii=False)+'\n')
-    build_sqlite(out/'issue9-authority.sqlite3',source,pages,rules,grs,entries,raw_rows)
-    approved=[e for e in entries if e['approved']]
-    validations={
-        'source_identity_matches':source['sha256']==EXPECTED_SHA256 and source['byte_size']==EXPECTED_BYTES and source['pdf_pages']==EXPECTED_PAGES,
-        'pdf_page_count_434':len(reader.pages)==434,
-        'rules_count_53':len(rules)==53,
-        'general_recommendations_count_8':len(grs)==8,
-        'dictionary_entries':len(entries),
-        'approved_headword_record_count':len(approved),
-        'unapproved_headword_record_count':len(entries)-len(approved),
-        'source_declared_word_counts':declared_counts,
-        'cardinality_basis':'headword records and source-declared word counts are distinct measures; equality is not asserted',
-        'raw_dictionary_rows':len(raw_rows),
-        'blank_dictionary_pages_without_table':blank_dictionary_pages,
-        'all_nonblank_dictionary_pages_have_tables':True,
-    }
+    build_sqlite(out/'issue9-authority.sqlite3',source,pages,rules,grs,entries,raw_rows); approved=[e for e in entries if e['approved']]
+    validations={'source_identity_matches':source['sha256']==EXPECTED_SHA256 and source['byte_size']==EXPECTED_BYTES and source['pdf_pages']==EXPECTED_PAGES,'pdf_page_count_434':len(reader.pages)==434,'rules_count_53':len(rules)==53,'general_recommendations_count_8':len(grs)==8,'dictionary_entries':len(entries),'approved_headword_record_count':len(approved),'unapproved_headword_record_count':len(entries)-len(approved),'source_declared_word_counts':declared_counts,'cardinality_basis':'headword records and source-declared word counts are distinct measures; equality is not asserted','raw_dictionary_rows':len(raw_rows),'blank_dictionary_pages_without_table':blank_dictionary_pages,'all_nonblank_dictionary_pages_have_tables':True}
     manifest={'source':source,'counts':{'pages':len(pages),'rules':len(rules),'general_recommendations':len(grs),'dictionary_entries':len(entries),'approved_headword_records':len(approved),'unapproved_headword_records':len(entries)-len(approved),'source_declared_approved_words':declared_counts['approved_words'],'source_declared_unapproved_words':declared_counts['unapproved_words'],'dictionary_rows':len(raw_rows)},'validations':validations,'artifacts':{}}
     for name in ['source.json','rules.json','general-recommendations.json','dictionary.json','pages.jsonl','dictionary-rows.jsonl','issue9-authority.sqlite3','issue9-layout.txt']:
         p=out/name; manifest['artifacts'][name]={'bytes':p.stat().st_size,'sha256':sha256_file(p)}
-    write_json(out/'manifest.json',manifest)
-    print(json.dumps(manifest,indent=2))
+    write_json(out/'manifest.json',manifest); print(json.dumps(manifest,indent=2))
 if __name__=='__main__': main()
