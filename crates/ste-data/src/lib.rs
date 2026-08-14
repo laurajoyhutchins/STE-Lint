@@ -130,7 +130,7 @@ pub struct LexiconDocument {
 #[derive(Debug, Clone)]
 pub struct RuntimeLexicon {
     document: LexiconDocument,
-    by_form: HashMap<String, usize>,
+    by_form: HashMap<String, Vec<usize>>,
     by_lemma: HashMap<String, Vec<usize>>,
 }
 
@@ -141,7 +141,7 @@ impl RuntimeLexicon {
 
     pub fn from_json(json: &str) -> Result<Self, serde_json::Error> {
         let document: LexiconDocument = serde_json::from_str(json)?;
-        let mut by_form = HashMap::new();
+        let mut by_form: HashMap<String, Vec<usize>> = HashMap::new();
         let mut by_lemma: HashMap<String, Vec<usize>> = HashMap::new();
 
         for (index, entry) in document.entries.iter().enumerate() {
@@ -150,7 +150,7 @@ impl RuntimeLexicon {
                 .or_default()
                 .push(index);
             for form in &entry.forms {
-                by_form.insert(normalize(form), index);
+                by_form.entry(normalize(form)).or_default().push(index);
             }
         }
 
@@ -170,9 +170,20 @@ impl RuntimeLexicon {
     }
 
     pub fn lookup_form(&self, form: &str) -> Option<&LexiconEntry> {
+        let candidates = self.by_form.get(&normalize(form))?;
+        if candidates.len() != 1 {
+            return None;
+        }
+        Some(&self.document.entries[candidates[0]])
+    }
+
+    pub fn lookup_form_candidates(&self, form: &str) -> Vec<&LexiconEntry> {
         self.by_form
             .get(&normalize(form))
+            .into_iter()
+            .flatten()
             .map(|index| &self.document.entries[*index])
+            .collect()
     }
 
     pub fn lookup_lemma(&self, lemma: &str) -> Vec<&LexiconEntry> {
