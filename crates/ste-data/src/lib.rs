@@ -40,6 +40,14 @@ pub enum RepairStrategy {
     SentenceReconstruction,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum InterpretationState {
+    Structural,
+    #[default]
+    Interpreted,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Sense {
     pub meaning: String,
@@ -54,14 +62,51 @@ pub struct Alternative {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AuthorityProvenance {
+    pub drive_file_id: String,
+    pub source_sha256: String,
+    pub source_byte_size: u64,
+    pub physical_pages: u32,
+    pub private_bundle_sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DictionaryCardinalities {
+    pub source_declared_approved_words: u32,
+    pub source_declared_unapproved_words: u32,
+    pub structural_approved_records: u32,
+    pub structural_unapproved_records: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EntryProvenance {
+    pub structural_record_index: u32,
+    pub source_pages: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceSemantics {
+    pub word_cell: String,
+    pub meaning_or_alternatives: String,
+    pub ste_example: String,
+    pub non_ste_example: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LexiconEntry {
     pub lemma: String,
     pub status: ApprovalStatus,
-    pub part_of_speech: PartOfSpeech,
+    pub part_of_speech: Option<PartOfSpeech>,
     pub forms: Vec<String>,
     pub senses: Vec<Sense>,
     pub alternatives: Vec<Alternative>,
     pub restrictions: Vec<String>,
+    #[serde(default)]
+    pub interpretation_state: InterpretationState,
+    #[serde(default)]
+    pub provenance: Option<EntryProvenance>,
+    #[serde(default)]
+    pub source_semantics: Option<SourceSemantics>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -70,6 +115,10 @@ pub struct LexiconMetadata {
     pub issue: u8,
     pub date: String,
     pub scope: String,
+    #[serde(default)]
+    pub authority: Option<AuthorityProvenance>,
+    #[serde(default)]
+    pub dictionary_cardinalities: Option<DictionaryCardinalities>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -164,7 +213,15 @@ mod tests {
         let lexicon = RuntimeLexicon::embedded().unwrap();
         assert_eq!(lexicon.metadata().issue, 9);
         assert_eq!(lexicon.metadata().scope, "first_slice_test_lexicon");
+        assert!(lexicon.metadata().authority.is_none());
+        assert!(lexicon.metadata().dictionary_cardinalities.is_none());
         assert!(!lexicon.entries().is_empty());
+        assert!(
+            lexicon
+                .entries()
+                .iter()
+                .all(|entry| entry.interpretation_state == InterpretationState::Interpreted)
+        );
 
         let encoded = serde_json::to_string(&lexicon.document).unwrap();
         let decoded: LexiconDocument = serde_json::from_str(&encoded).unwrap();
