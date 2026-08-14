@@ -170,4 +170,69 @@ mod tests {
         let decoded: LexiconDocument = serde_json::from_str(&encoded).unwrap();
         assert_eq!(decoded, lexicon.document);
     }
+
+    #[test]
+    fn enriched_runtime_document_preserves_authority_and_source_semantics() {
+        let json = r#"{
+          "metadata": {
+            "standard": "ASD-STE100",
+            "issue": 9,
+            "date": "2025-01-15",
+            "scope": "synthetic_authority_mapping",
+            "authority": {
+              "drive_file_id": "synthetic-drive-object",
+              "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "source_byte_size": 123,
+              "physical_pages": 4,
+              "private_bundle_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "dictionary_cardinalities": {
+              "source_declared_approved_words": 2,
+              "source_declared_unapproved_words": 2,
+              "structural_approved_records": 3,
+              "structural_unapproved_records": 2
+            }
+          },
+          "entries": [{
+            "lemma": "CHECK AGAIN",
+            "status": "approved",
+            "part_of_speech": null,
+            "forms": ["CHECK AGAIN"],
+            "senses": [],
+            "alternatives": [],
+            "restrictions": [],
+            "interpretation_state": "structural",
+            "provenance": {"structural_record_index": 3, "source_pages": [7, 8]},
+            "source_semantics": {
+              "word_cell": "CHECK AGAIN",
+              "meaning_or_alternatives": "synthetic source meaning",
+              "ste_example": "CHECK AGAIN.",
+              "non_ste_example": ""
+            }
+          }]
+        }"#;
+
+        let lexicon = RuntimeLexicon::from_json(json).unwrap();
+        let entry = lexicon.lookup_form("check again").unwrap();
+        assert_eq!(entry.part_of_speech, None);
+        assert_eq!(entry.interpretation_state, InterpretationState::Structural);
+        assert_eq!(entry.provenance.as_ref().unwrap().source_pages, vec![7, 8]);
+        assert_eq!(
+            lexicon
+                .metadata()
+                .dictionary_cardinalities
+                .as_ref()
+                .unwrap()
+                .structural_approved_records,
+            3
+        );
+        assert_eq!(
+            entry
+                .source_semantics
+                .as_ref()
+                .unwrap()
+                .meaning_or_alternatives,
+            "synthetic source meaning"
+        );
+    }
 }
