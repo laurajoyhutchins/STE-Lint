@@ -14,7 +14,30 @@
         "standard": {"type": "string"},
         "issue": {"type": "integer", "minimum": 1},
         "date": {"type": "string"},
-        "scope": {"type": "string"}
+        "scope": {"type": "string"},
+        "authority": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["drive_file_id", "source_sha256", "source_byte_size", "physical_pages", "private_bundle_sha256"],
+          "properties": {
+            "drive_file_id": {"type": "string"},
+            "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "source_byte_size": {"type": "integer", "minimum": 0},
+            "physical_pages": {"type": "integer", "minimum": 1},
+            "private_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
+        },
+        "dictionary_cardinalities": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["source_declared_approved_words", "source_declared_unapproved_words", "structural_approved_records", "structural_unapproved_records"],
+          "properties": {
+            "source_declared_approved_words": {"type": "integer", "minimum": 0},
+            "source_declared_unapproved_words": {"type": "integer", "minimum": 0},
+            "structural_approved_records": {"type": "integer", "minimum": 0},
+            "structural_unapproved_records": {"type": "integer", "minimum": 0}
+          }
+        }
       }
     },
     "entries": {
@@ -26,11 +49,59 @@
         "properties": {
           "lemma": {"type": "string"},
           "status": {"enum": ["approved", "unapproved"]},
-          "part_of_speech": {"enum": ["noun", "verb", "adjective", "adverb", "pronoun", "article", "preposition", "conjunction"]},
+          "part_of_speech": {
+            "type": ["string", "null"],
+            "enum": ["noun", "verb", "adjective", "adverb", "pronoun", "article", "preposition", "conjunction", null]
+          },
           "forms": {"type": "array", "items": {"type": "string"}},
-          "senses": {"type": "array", "items": {"type": "object", "required": ["meaning"], "properties": {"meaning": {"type": "string"}}}},
-          "alternatives": {"type": "array"},
-          "restrictions": {"type": "array", "items": {"type": "string"}}
+          "senses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["meaning"],
+              "properties": {"meaning": {"type": "string"}}
+            }
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "text", "part_of_speech", "strategy"],
+              "properties": {
+                "kind": {"enum": ["approved_word", "approved_phrase", "technical_noun", "technical_verb", "no_direct_alternative"]},
+                "text": {"type": "string"},
+                "part_of_speech": {
+                  "type": ["string", "null"],
+                  "enum": ["noun", "verb", "adjective", "adverb", "pronoun", "article", "preposition", "conjunction", null]
+                },
+                "strategy": {"enum": ["word_replacement", "phrase_replacement", "sentence_reconstruction"]}
+              }
+            }
+          },
+          "restrictions": {"type": "array", "items": {"type": "string"}},
+          "interpretation_state": {"enum": ["structural", "interpreted"]},
+          "provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["structural_record_index", "source_pages"],
+            "properties": {
+              "structural_record_index": {"type": "integer", "minimum": 0},
+              "source_pages": {"type": "array", "items": {"type": "integer", "minimum": 1}}
+            }
+          },
+          "source_semantics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["word_cell", "meaning_or_alternatives", "ste_example", "non_ste_example"],
+            "properties": {
+              "word_cell": {"type": "string"},
+              "meaning_or_alternatives": {"type": "string"},
+              "ste_example": {"type": "string"},
+              "non_ste_example": {"type": "string"}
+            }
+          }
         }
       }
     }
