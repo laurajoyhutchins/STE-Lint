@@ -21,7 +21,10 @@ pub(crate) fn check(
                     ApprovalStatus::Unapproved => Some(Diagnostic {
                         code: "STE-LEX-001".into(),
                         severity: Severity::Error,
-                        message: format!("'{}' is not approved in the runtime STE lexicon.", token.text),
+                        message: format!(
+                            "'{}' is not approved in the runtime STE lexicon.",
+                            token.text
+                        ),
                         span: Span {
                             start: token.start,
                             end: token.end,
