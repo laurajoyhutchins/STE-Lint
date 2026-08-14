@@ -1,0 +1,83 @@
+[
+  {
+    "headword": "CHECK",
+    "headword_raw": "CHECK (v),\nCHECKS,\nCHECKED\nNo other verb forms.",
+    "part_of_speech": "v",
+    "forms": ["CHECK", "CHECKS", "CHECKED No other verb forms"],
+    "approved": true,
+    "word_cell": "CHECK (v),\nCHECKS,\nCHECKED\nNo other verb forms.",
+    "meaning_or_alternatives": "Synthetic approved meaning.",
+    "ste_example": "CHECK THE ITEM.",
+    "non_ste_example": "",
+    "source_pages": [1]
+  },
+  {
+    "headword": "simplebad",
+    "headword_raw": "simplebad (adj)",
+    "part_of_speech": "adj",
+    "forms": [],
+    "approved": false,
+    "word_cell": "simplebad (adj)",
+    "meaning_or_alternatives": "GOOD (adj)",
+    "ste_example": "THE ITEM IS GOOD.",
+    "non_ste_example": "The item is simplebad.",
+    "source_pages": [2],
+    "senses": [],
+    "alternatives": [
+      {
+        "kind": "approved_word",
+        "text": "GOOD",
+        "part_of_speech": "adjective",
+        "strategy": "word_replacement"
+      }
+    ],
+    "restrictions": [],
+    "interpretation_state": "interpreted"
+  },
+  {
+    "headword": "domainthing",
+    "headword_raw": "domainthing (n)",
+    "part_of_speech": "n",
+    "forms": [],
+    "approved": false,
+    "word_cell": "domainthing (n)",
+    "meaning_or_alternatives": "PROJECT TERM (TN)",
+    "ste_example": "INSPECT THE PROJECT TERM.",
+    "non_ste_example": "Inspect the domainthing.",
+    "source_pages": [3],
+    "alternatives": [
+      {
+        "kind": "technical_noun",
+        "text": "PROJECT TERM",
+        "part_of_speech": null,
+        "strategy": "sentence_reconstruction"
+      }
+    ],
+    "restrictions": [],
+    "interpretation_state": "interpreted"
+  },
+  {
+    "headword": "CHECK AGAIN",
+    "headword_raw": "CHECK AGAIN",
+    "part_of_speech": null,
+    "forms": [],
+    "approved": true,
+    "word_cell": "CHECK AGAIN",
+    "meaning_or_alternatives": "Synthetic expression meaning.",
+    "ste_example": "CHECK AGAIN.",
+    "non_ste_example": "",
+    "source_pages": [4]
+  },
+  {
+    "headword": "contextual",
+    "headword_raw": "contextual (adj)",
+    "part_of_speech": "adj",
+    "forms": [],
+    "approved": true,
+    "word_cell": "contextual (adj)",
+    "meaning_or_alternatives": "Synthetic meaning plus source help that is not yet interpreted.",
+    "ste_example": "THE VALUE IS CONTEXTUAL.",
+    "non_ste_example": "",
+    "source_pages": [4]
+  }
+]
