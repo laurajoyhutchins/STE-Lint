@@ -37,4 +37,4 @@ The command writes complete page-level text, 53 structured writing rules, eight 
 
 ## Verification boundary
 
-The ingest verifies source identity and structural invariants. It does not silently repair discrepancies. In the verified January 2025 Issue 9 source, the introduction states that the dictionary contains 875 approved words, while the current structural extraction identifies 877 approved headword records. That discrepancy is retained in the evidence manifest and must be reconciled before STE-Lint claims exact approved-word cardinality.
+The ingest verifies source identity and structural invariants. It does not silently repair discrepancies. In the verified January 2025 Issue 9 source, the introduction states that the dictionary contains 875 approved words and 1274 unapproved words. The current structural extraction identifies 877 approved and 1319 unapproved headword records. Those are parsing/modeling discrepancies, not values to normalize away. They remain explicit evidence until the dictionary reconstruction is reconciled against the source semantics.
