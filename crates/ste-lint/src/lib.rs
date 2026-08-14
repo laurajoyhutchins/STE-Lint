@@ -85,6 +85,14 @@ fn classify_outcome(diagnostics: &[Diagnostic], fixed_any: bool) -> Outcome {
 mod tests {
     use super::*;
     use ste_data::RuntimeLexicon;
+    use ste_glossary::Glossary;
+
+    fn has_code(result: &LintResult, code: &str) -> bool {
+        result
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == code)
+    }
 
     #[test]
     fn semicolon_is_reported_and_can_be_safely_fixed() {
@@ -94,12 +102,7 @@ mod tests {
             fix: false,
         };
         let result = lint_text("USE THIS; USE THIS.", &lexicon, None, options);
-        assert!(
-            result
-                .diagnostics
-                .iter()
-                .any(|diagnostic| diagnostic.code == "STE-PUNC-001")
-        );
+        assert!(has_code(&result, "STE-PUNC-001"));
 
         let fixed = lint_text(
             "USE THIS; USE THIS.",
@@ -111,12 +114,7 @@ mod tests {
             },
         );
         assert_eq!(fixed.text, "USE THIS. USE THIS.");
-        assert!(
-            !fixed
-                .diagnostics
-                .iter()
-                .any(|diagnostic| diagnostic.code == "STE-PUNC-001")
-        );
+        assert!(!has_code(&fixed, "STE-PUNC-001"));
     }
 
     #[test]
@@ -142,5 +140,101 @@ mod tests {
         );
         assert_eq!(first.text, second.text);
         assert_eq!(second.outcome, Outcome::Clean);
+    }
+
+    #[test]
+    fn procedural_sentences_over_twenty_words_are_errors() {
+        let lexicon = RuntimeLexicon::embedded().unwrap();
+        let text = vec!["USE"; 21].join(" ");
+        let result = lint_text(
+            &text,
+            &lexicon,
+            None,
+            LintOptions {
+                mode: LintMode::Procedural,
+                fix: false,
+            },
+        );
+        assert!(has_code(&result, "STE-LEN-001"));
+    }
+
+    #[test]
+    fn descriptive_sentences_over_twenty_five_words_are_errors() {
+        let lexicon = RuntimeLexicon::embedded().unwrap();
+        let text = vec!["USE"; 26].join(" ");
+        let result = lint_text(
+            &text,
+            &lexicon,
+            None,
+            LintOptions {
+                mode: LintMode::Descriptive,
+                fix: false,
+            },
+        );
+        assert!(has_code(&result, "STE-LEN-002"));
+    }
+
+    #[test]
+    fn known_unapproved_word_emits_lexical_diagnostic_without_autofix() {
+        let lexicon = RuntimeLexicon::embedded().unwrap();
+        let result = lint_text(
+            "acceptable",
+            &lexicon,
+            None,
+            LintOptions {
+                mode: LintMode::Descriptive,
+                fix: true,
+            },
+        );
+        assert!(has_code(&result, "STE-LEX-001"));
+        assert_eq!(result.text, "acceptable");
+    }
+
+    #[test]
+    fn project_glossary_resolves_a_technical_term() {
+        let lexicon = RuntimeLexicon::embedded().unwrap();
+        let glossary =
+            Glossary::from_json(include_str!("../../../fixtures/glossary/valid.json")).unwrap();
+        let result = lint_text(
+            "busway",
+            &lexicon,
+            Some(&glossary),
+            LintOptions {
+                mode: LintMode::Descriptive,
+                fix: false,
+            },
+        );
+        assert!(!has_code(&result, "STE-TERM-001"));
+    }
+
+    #[test]
+    fn unknown_prose_word_is_blocked_for_term_classification() {
+        let lexicon = RuntimeLexicon::embedded().unwrap();
+        let result = lint_text(
+            "fluxcapacitor",
+            &lexicon,
+            None,
+            LintOptions {
+                mode: LintMode::Descriptive,
+                fix: false,
+            },
+        );
+        assert!(has_code(&result, "STE-TERM-001"));
+        assert_eq!(result.outcome, Outcome::Blocked);
+    }
+
+    #[test]
+    fn machine_like_tokens_are_not_treated_as_unknown_prose_terms() {
+        let lexicon = RuntimeLexicon::embedded().unwrap();
+        let result = lint_text(
+            "occurrence_id path/to/file foo-bar 1.2",
+            &lexicon,
+            None,
+            LintOptions {
+                mode: LintMode::Descriptive,
+                fix: false,
+            },
+        );
+        assert!(!has_code(&result, "STE-TERM-001"));
     }
 }
