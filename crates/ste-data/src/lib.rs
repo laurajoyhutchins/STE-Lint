@@ -292,4 +292,43 @@ mod tests {
             "synthetic source meaning"
         );
     }
+
+    #[test]
+    fn ambiguous_forms_preserve_all_candidates_without_arbitrary_resolution() {
+        let json = r#"{
+          "metadata": {
+            "standard": "ASD-STE100",
+            "issue": 9,
+            "date": "2025-01-15",
+            "scope": "synthetic_collision"
+          },
+          "entries": [
+            {
+              "lemma": "CHECK",
+              "status": "approved",
+              "part_of_speech": "noun",
+              "forms": ["CHECK"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
+            },
+            {
+              "lemma": "check",
+              "status": "unapproved",
+              "part_of_speech": "verb",
+              "forms": ["check"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
+            }
+          ]
+        }"#;
+
+        let lexicon = RuntimeLexicon::from_json(json).unwrap();
+        let candidates = lexicon.lookup_form_candidates("check");
+        assert_eq!(candidates.len(), 2);
+        assert_eq!(candidates[0].part_of_speech, Some(PartOfSpeech::Noun));
+        assert_eq!(candidates[1].part_of_speech, Some(PartOfSpeech::Verb));
+        assert!(lexicon.lookup_form("check").is_none());
+    }
 }
