@@ -84,13 +84,13 @@ fn tokens(text: &str) -> Vec<Token<'_>> {
 
         let leading = raw
             .char_indices()
-            .take_while(|(_, c)| c.is_ascii_punctuation() && !is_machine_marker(*c))
+            .take_while(|(_, c)| is_boundary_punctuation(*c))
             .map(|(_, c)| c.len_utf8())
             .sum::<usize>();
         let trailing = raw
             .char_indices()
             .rev()
-            .take_while(|(_, c)| c.is_ascii_punctuation() && !is_machine_marker(*c))
+            .take_while(|(_, c)| is_boundary_punctuation(*c))
             .map(|(_, c)| c.len_utf8())
             .sum::<usize>();
 
@@ -112,6 +112,11 @@ fn tokens(text: &str) -> Vec<Token<'_>> {
     }
 
     tokens
+}
+
+fn is_boundary_punctuation(character: char) -> bool {
+    character.is_ascii_punctuation()
+        && !matches!(character, '_' | '/' | '\\' | '-')
 }
 
 fn is_machine_marker(character: char) -> bool {
