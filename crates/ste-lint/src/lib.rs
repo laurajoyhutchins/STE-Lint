@@ -29,11 +29,11 @@ pub struct LintResult {
 
 pub fn lint_text(
     text: &str,
-    _lexicon: &RuntimeLexicon,
-    _glossary: Option<&Glossary>,
+    lexicon: &RuntimeLexicon,
+    glossary: Option<&Glossary>,
     options: LintOptions,
 ) -> LintResult {
-    let initial = passes::punctuation::check(text);
+    let initial = collect_diagnostics(text, lexicon, glossary, options.mode);
     let mut output = text.to_owned();
     let mut fixed_any = false;
 
@@ -49,8 +49,8 @@ pub fn lint_text(
         }
     }
 
-    let diagnostics = if options.fix {
-        passes::punctuation::check(&output)
+    let diagnostics = if options.fix && fixed_any {
+        collect_diagnostics(&output, lexicon, glossary, options.mode)
     } else {
         initial
     };
@@ -61,6 +61,19 @@ pub fn lint_text(
         diagnostics,
         outcome,
     }
+}
+
+fn collect_diagnostics(
+    text: &str,
+    lexicon: &RuntimeLexicon,
+    glossary: Option<&Glossary>,
+    mode: LintMode,
+) -> Vec<Diagnostic> {
+    let mut diagnostics = passes::punctuation::check(text);
+    diagnostics.extend(passes::length::check(text, mode));
+    diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
+    diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
+    diagnostics
 }
 
 fn classify_outcome(diagnostics: &[Diagnostic], fixed_any: bool) -> Outcome {
