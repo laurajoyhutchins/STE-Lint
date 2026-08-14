@@ -1,7 +1,7 @@
 # STE-Lint design
 
 Date: 2026-08-14
-Status: approved conversational design, implementation in progress
+Status: approved conversational design, pending implementation
 
 ## Purpose
 
@@ -396,6 +396,6 @@ A repo-local technical glossary affects lint results without modifying built-in 
 
 A proposed rewrite that strengthens modality, drops negation, or changes a numeric literal is rejected with an exact semantic diagnostic.
 
-All committed fixtures and tests pass locally or in the repository CI environment when the local chat VM lacks Rust.
+All committed fixtures and tests pass locally.
 
 The README explains that the LLM is a repair backend and the linter is the compliance authority.
