@@ -19,7 +19,19 @@
     "approved_headword_records": 877,
     "unapproved_headword_records": 1319,
     "raw_dictionary_rows": 3052,
-    "private_bundle_sha256": "0370b1ce24dd4884052b5b33fe63c9892cb3649750c3f2508e8c36c78f83e425"
+    "deterministic_replay": true,
+    "private_bundle_sha256": "c5d15f0ba90965550ffa623f7b57f88137caa96b81fbdc9e6307f31bbdf41019",
+    "artifact_sha256": {
+      "source.json": "e9e7f8076748c9e910f74c4f38e62ba2c9640e482dee52bc747997543659a06a",
+      "rules.json": "19e94ae86e6bd78d191454df1fdd0da809a3ae3e06ae40da9bd6db869970848a",
+      "general-recommendations.json": "5cee33d7679db2e9631f716ea28c2a38381d434dd413519a5ee8467154e307f2",
+      "dictionary.json": "a4a22fdb3a52705a2bf3b07a0f0d09e9614773402527f00bf178905542918b05",
+      "pages.jsonl": "75765c8c3991b1cb037feb6f039ec39c2c42b64c935ef3b67e148ecd49e3fe6d",
+      "dictionary-rows.jsonl": "3f93f9501c14a2a7edbd366357615dc475c1bf58f102fe8504810aef2f08b26c",
+      "issue9-authority.sqlite3": "4ce644bd9a49e6e1c65e43e5b5e20bc56a72fd1eb48ba7690fcd57fbe4bd01c2",
+      "issue9-layout.txt": "a216fe199bd6e9c77fc743dfe6dc081ee5f245adcb115ed6ca1aa45ee50fa3f5",
+      "manifest.json": "1f62a73944d20a446250ad061bf5d5ddb2670ed452fad31f23ff5c67b2eb349e"
+    }
   },
   "discrepancies": [
     {
