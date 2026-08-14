@@ -1,0 +1,29 @@
+{
+  "source": {
+    "title": "Synthetic controlled-language source",
+    "issue": 9,
+    "publication_date": "2025-01-15",
+    "drive_file_id": "synthetic-drive-object",
+    "mime_type": "application/pdf",
+    "byte_size": 123,
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "pdf_pages": 4,
+    "encrypted": false,
+    "metadata": {}
+  },
+  "counts": {
+    "pages": 4,
+    "rules": 0,
+    "general_recommendations": 0,
+    "dictionary_entries": 5,
+    "approved_headword_records": 3,
+    "unapproved_headword_records": 2,
+    "source_declared_approved_words": 2,
+    "source_declared_unapproved_words": 2,
+    "dictionary_rows": 5
+  },
+  "validations": {
+    "source_identity_matches": true
+  },
+  "artifacts": {}
+}
