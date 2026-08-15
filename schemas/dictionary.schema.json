@@ -16,7 +16,7 @@
         "date": {"type": "string"},
         "scope": {"type": "string"},
         "authority": {
-          "type": "object",
+          "type": ["object", "null"],
           "additionalProperties": false,
           "required": ["drive_file_id", "source_sha256", "source_byte_size", "physical_pages", "private_bundle_sha256"],
           "properties": {
@@ -28,7 +28,7 @@
           }
         },
         "dictionary_cardinalities": {
-          "type": "object",
+          "type": ["object", "null"],
           "additionalProperties": false,
           "required": ["source_declared_approved_words", "source_declared_unapproved_words", "structural_approved_records", "structural_unapproved_records"],
           "properties": {
@@ -83,7 +83,7 @@
           "restrictions": {"type": "array", "items": {"type": "string"}},
           "interpretation_state": {"enum": ["structural", "interpreted"]},
           "provenance": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": false,
             "required": ["structural_record_index", "source_pages"],
             "properties": {
@@ -92,7 +92,7 @@
             }
           },
           "source_semantics": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": false,
             "required": ["word_cell", "meaning_or_alternatives", "ste_example", "non_ste_example"],
             "properties": {
