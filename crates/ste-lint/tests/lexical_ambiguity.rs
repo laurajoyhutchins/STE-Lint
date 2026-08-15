@@ -1,5 +1,6 @@
 use ste_core::Severity;
 use ste_data::RuntimeLexicon;
+use ste_glossary::Glossary;
 use ste_lint::{LintMode, LintOptions, lint_text};
 
 fn collision(statuses: &[&str]) -> RuntimeLexicon {
@@ -33,6 +34,21 @@ fn collision(statuses: &[&str]) -> RuntimeLexicon {
         }}"#
     );
     RuntimeLexicon::from_json(&json).unwrap()
+}
+
+fn empty_lexicon() -> RuntimeLexicon {
+    RuntimeLexicon::from_json(
+        r#"{
+          "metadata": {
+            "standard": "ASD-STE100",
+            "issue": 9,
+            "date": "2025-01-15",
+            "scope": "synthetic_empty"
+          },
+          "entries": []
+        }"#,
+    )
+    .unwrap()
 }
 
 fn phrase_lexicon() -> RuntimeLexicon {
@@ -96,17 +112,44 @@ fn phrase_lexicon() -> RuntimeLexicon {
     .unwrap()
 }
 
-fn diagnostics_for(text: &str, lexicon: &RuntimeLexicon) -> Vec<ste_core::Diagnostic> {
+fn glossary(status: &str) -> Glossary {
+    Glossary::from_json(&format!(
+        r#"{{
+          "terms": [{{
+            "term": "bus duct",
+            "kind": "technical_noun",
+            "definition": "Synthetic project term.",
+            "domain": "electrical",
+            "preferred": true,
+            "aliases": [],
+            "examples": [],
+            "provenance": ["fixture"],
+            "status": "{status}"
+          }}]
+        }}"#
+    ))
+    .unwrap()
+}
+
+fn diagnostics_with_glossary(
+    text: &str,
+    lexicon: &RuntimeLexicon,
+    glossary: Option<&Glossary>,
+) -> Vec<ste_core::Diagnostic> {
     lint_text(
         text,
         lexicon,
-        None,
+        glossary,
         LintOptions {
             mode: LintMode::Descriptive,
             fix: false,
         },
     )
     .diagnostics
+}
+
+fn diagnostics_for(text: &str, lexicon: &RuntimeLexicon) -> Vec<ste_core::Diagnostic> {
+    diagnostics_with_glossary(text, lexicon, None)
 }
 
 fn diagnostics(lexicon: &RuntimeLexicon) -> Vec<ste_core::Diagnostic> {
@@ -172,4 +215,27 @@ fn phrase_matching_does_not_cross_sentence_punctuation() {
     let lexicon = phrase_lexicon();
     let diagnostics = diagnostics_for("have. to", &lexicon);
     assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn approved_multiword_glossary_term_suppresses_component_unknowns() {
+    let lexicon = empty_lexicon();
+    let glossary = glossary("approved");
+    let diagnostics = diagnostics_with_glossary("bus duct", &lexicon, Some(&glossary));
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn deprecated_multiword_glossary_term_is_rejected_as_one_phrase() {
+    let lexicon = empty_lexicon();
+    let glossary = glossary("deprecated");
+    let diagnostics = diagnostics_with_glossary("bus duct", &lexicon, Some(&glossary));
+    let diagnostic = diagnostics
+        .iter()
+        .find(|item| item.code == "STE-TERM-002")
+        .unwrap();
+    assert_eq!(diagnostic.severity, Severity::Error);
+    assert_eq!(diagnostic.span.start, 0);
+    assert_eq!(diagnostic.span.end, 8);
+    assert_eq!(diagnostics.len(), 1);
 }
