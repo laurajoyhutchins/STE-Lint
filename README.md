@@ -36,8 +36,11 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - a versioned runtime lexicon model;
 - exact identity verification for the authorized private Issue 9 runtime corpus;
 - explicit runtime selection with `--lexicon` or `STE_LINT_LEXICON`;
+- fail-closed lint and dictionary commands when no verified runtime is configured;
 - ambiguity-preserving, longest-match dictionary and glossary phrase lookup;
-- repo-local technical terminology in `.ste/terms.json`;
+- governed project technical terminology in `.ste/terms.json`, including terms that are technical nouns, technical verbs, or both;
+- project technical-term authority over general dictionary status for exact governed identities;
+- deprecated project terminology diagnostics;
 - semicolon detection with a whitelisted deterministic autofix;
 - procedural sentence length diagnostics over 20 words;
 - descriptive sentence length diagnostics over 25 words;
@@ -90,7 +93,7 @@ $env:STE_LINT_LEXICON = "C:\private\runtime-lexicon.json"
 
 An explicit `--lexicon` path takes precedence over `STE_LINT_LEXICON`. If a configured file is missing or does not exactly match `data/issue9-runtime.manifest.json`, STE-Lint exits with code `3`. It does **not** silently fall back to test data.
 
-If neither selector is present, STE-Lint uses `crates/ste-data/data/test-lexicon.json`. `ste version` reports the active runtime source so that embedded test data cannot be mistaken for the verified Issue 9 dictionary.
+For commands whose result depends on the dictionary, absence of a verified runtime also exits with code `3`. This prevents an accidental production run against the small public fixture. Development and public-fixture tests can explicitly opt in with `--allow-test-lexicon`. `ste version` may inspect the embedded test lexicon without that flag and reports the active runtime source.
 
 The verified private runtime identity is metadata-only in Git: 2,196 structural dictionary records, 1,538,351 bytes, SHA-256 `1e8e016bbdebce02483c95743183d479fa19e23214edcd3524817a66f3e08c22`. Populated source-derived prose remains outside the public repository.
 
@@ -136,12 +139,12 @@ Exit codes:
 | `0` | Clean, accepted, or all applicable errors safely fixed |
 | `1` | Error diagnostics remain or a rewrite was rejected |
 | `2` | Lint result is blocked by unresolved terminology, grammar, or sense |
-| `3` | Runtime language or glossary data is invalid |
+| `3` | Required runtime language or glossary data is missing or invalid |
 | `4` | I/O or internal failure |
 
 ## Repo-local technical terminology
 
-A repository can extend the effective lexicon with `.ste/terms.json` without changing built-in language data.
+A repository can extend the effective lexicon with `.ste/terms.json` without changing built-in language data. Exact governed terminology is evaluated before general dictionary approval status because a valid technical noun or technical verb can use a spelling that is not approved for general dictionary use.
 
 ```json
 {
@@ -161,7 +164,9 @@ A repository can extend the effective lexicon with `.ste/terms.json` without cha
 }
 ```
 
-Unknown words are not added automatically. `STE-TERM-001` means the term needs classification, not that it is necessarily wrong.
+`kind` can be `technical_noun`, `technical_verb`, or `technical_noun_and_verb` when project or subject-field authority establishes both grammatical uses. The current linter does not yet prove noun-versus-verb use from sentence grammar, so the combined classification must come from terminology authority rather than inference.
+
+Unknown words are not added automatically. `STE-TERM-001` means the term needs classification, not that it is necessarily wrong. A governed term with `status: deprecated` produces `STE-TERM-002`.
 
 ## Agent use
 
@@ -171,7 +176,7 @@ Unknown words are not added automatically. `STE-TERM-001` means the term needs c
 
 `data/issue9-runtime.manifest.json` is the public identity contract for the authorized private runtime dictionary. It contains hashes and cardinalities, not dictionary prose.
 
-`crates/ste-data/data/test-lexicon.json` remains a small public test dataset. It is not the complete ASD dictionary.
+`crates/ste-data/data/test-lexicon.json` remains a small public test dataset. It is not the complete ASD dictionary and requires explicit `--allow-test-lexicon` opt-in for lint or dictionary commands.
 
 `tools/authority-ingest/` contains maintenance tooling that builds and verifies versioned runtime data from authorized source material. The runtime compiler recovers source-listed verb forms from the source word-cell line structure instead of trusting layout-collapsed intermediate form groups. Populated source-derived datasets must not be committed to this public repository without an explicit redistribution basis.
 
