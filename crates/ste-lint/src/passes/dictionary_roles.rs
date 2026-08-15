@@ -114,13 +114,16 @@ fn role_diagnostic(
 }
 
 fn role_has_compatible_candidate(role: &str, candidates: &[&LexiconEntry]) -> bool {
-    candidates
-        .iter()
-        .any(|entry| match (role, entry.part_of_speech) {
-            ("verbal", Some(PartOfSpeech::Verb)) => true,
-            ("nominal", Some(PartOfSpeech::Noun | PartOfSpeech::Pronoun)) => true,
-            _ => false,
-        })
+    candidates.iter().any(|entry| {
+        matches!(
+            (role, entry.part_of_speech),
+            ("verbal", Some(PartOfSpeech::Verb))
+                | (
+                    "nominal",
+                    Some(PartOfSpeech::Noun | PartOfSpeech::Pronoun)
+                )
+        )
+    })
 }
 
 fn observed_role(
