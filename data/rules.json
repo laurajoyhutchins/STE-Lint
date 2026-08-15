@@ -6,7 +6,7 @@
   "coverage_model": "implemented=complete for current executable text-level scope; partial=bounded executable slice; context_required=needs grammar, document, identity, or domain context; not_implemented=no executable check",
   "rules": [
     {"id":"1.1","status":"partial","diagnostic_codes":["STE-LEX-001","STE-LEX-002","STE-TERM-001","STE-TERM-002"]},
-    {"id":"1.2","status":"not_implemented","diagnostic_codes":[]},
+    {"id":"1.2","status":"partial","diagnostic_codes":["STE-GRAM-001"]},
     {"id":"1.3","status":"not_implemented","diagnostic_codes":[]},
     {"id":"1.4","status":"partial","diagnostic_codes":["STE-LEX-001","STE-LEX-002","STE-VERB-001","STE-VERB-002"]},
     {"id":"1.5","status":"context_required","diagnostic_codes":[]},
@@ -27,7 +27,7 @@
     {"id":"3.4","status":"partial","diagnostic_codes":["STE-VERB-001","STE-VERB-002"]},
     {"id":"3.5","status":"context_required","diagnostic_codes":[]},
     {"id":"3.6","status":"context_required","diagnostic_codes":[]},
-    {"id":"3.7","status":"context_required","diagnostic_codes":[]},
+    {"id":"3.7","status":"partial","diagnostic_codes":["STE-GRAM-001"]},
     {"id":"4.1","status":"partial","diagnostic_codes":["STE-LEN-001","STE-LEN-002"]},
     {"id":"4.2","status":"partial","diagnostic_codes":["STE-SYN-001"]},
     {"id":"4.3","status":"partial","diagnostic_codes":["STE-LIST-001","STE-LIST-002","STE-LIST-003","STE-LIST-004"]},
@@ -56,7 +56,7 @@
     {"id":"8.7","status":"implemented","diagnostic_codes":["STE-LEN-001","STE-LEN-002"]},
     {"id":"9.1","status":"context_required","diagnostic_codes":[]},
     {"id":"9.2","status":"context_required","diagnostic_codes":["STE-LEX-001","STE-LEX-002"]},
-    {"id":"9.3","status":"not_implemented","diagnostic_codes":[]},
+    {"id":"9.3","status":"partial","diagnostic_codes":["STE-LEX-001"]},
     {"id":"9.4","status":"context_required","diagnostic_codes":[]}
   ]
 }
