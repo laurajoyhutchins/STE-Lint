@@ -82,16 +82,21 @@ fn non_base_approved_verb_at_instruction_start_is_rejected() {
         .expect("non-base instruction verb must be diagnosed");
     assert_eq!(diagnostic.rules, vec!["5.3"]);
     assert_eq!(diagnostic.evidence.as_ref().unwrap()["base_form"], "REMOVE");
-    assert_eq!(diagnostic.evidence.as_ref().unwrap()["observed_form"], "Removes");
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["observed_form"],
+        "Removes"
+    );
 }
 
 #[test]
 fn base_form_imperative_is_accepted() {
     let result = lint("Remove the panel.");
-    assert!(!result
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-PROC-001"));
+    assert!(
+        !result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-PROC-001")
+    );
 }
 
 #[test]
@@ -105,10 +110,12 @@ fn leading_if_condition_requires_comma_before_command() {
     assert_eq!(diagnostic.rules, vec!["5.4"]);
 
     let valid = lint("If the valve is open, remove the panel.");
-    assert!(!valid
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-PROC-002"));
+    assert!(
+        !valid
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-PROC-002")
+    );
 }
 
 #[test]
@@ -129,10 +136,12 @@ fn safety_block_accepts_source_backed_command_or_condition() {
         "CAUTION: When the motor operates, remove the cover. Damage can occur.",
     ] {
         let result = lint(text);
-        assert!(!result
-            .diagnostics
-            .iter()
-            .any(|item| item.code == "STE-SAFE-001" || item.code == "STE-SAFE-002"));
+        assert!(
+            !result
+                .diagnostics
+                .iter()
+                .any(|item| item.code == "STE-SAFE-001" || item.code == "STE-SAFE-002")
+        );
     }
 }
 
