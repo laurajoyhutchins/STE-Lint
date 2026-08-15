@@ -30,11 +30,9 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon, mode: LintMode) -> Vec
         for unit in word_limit_units(content) {
             let sentence_start = note.content_start + unit.start;
             let sentence_end = note.content_start + unit.end;
-            let Some((verb_end, ambiguous)) = imperative_prefix(
-                &text[sentence_start..sentence_end],
-                lexicon,
-                max_base_words,
-            ) else {
+            let Some((verb_end, ambiguous)) =
+                imperative_prefix(&text[sentence_start..sentence_end], lexicon, max_base_words)
+            else {
                 continue;
             };
             let verb = &text[sentence_start..sentence_start + verb_end];
