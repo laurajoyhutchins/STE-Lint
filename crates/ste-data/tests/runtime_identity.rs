@@ -78,7 +78,8 @@ const SYNTHETIC_MANIFEST: &str = r#"{
 #[test]
 fn exact_runtime_identity_is_accepted() {
     let manifest = RuntimeIdentityManifest::from_json(SYNTHETIC_MANIFEST).unwrap();
-    let lexicon = RuntimeLexicon::from_verified_bytes(SYNTHETIC_RUNTIME.as_bytes(), &manifest).unwrap();
+    let lexicon =
+        RuntimeLexicon::from_verified_bytes(SYNTHETIC_RUNTIME.as_bytes(), &manifest).unwrap();
 
     assert_eq!(lexicon.entries().len(), 2);
     assert_eq!(lexicon.metadata().scope, "issue9_private_authority_runtime");
@@ -100,12 +101,9 @@ fn metadata_mismatch_is_rejected_even_for_matching_bytes() {
         "\"scope\": \"issue9_private_authority_runtime\"",
         "\"scope\": \"wrong_runtime_scope___________\"",
     );
-    let altered_manifest = altered_manifest.replace(
-        "37529bfad47aab92160c86a61ee1e25d8c255883d6d37945498520c00f09c2fe",
-        "37529bfad47aab92160c86a61ee1e25d8c255883d6d37945498520c00f09c2fe",
-    );
     let manifest = RuntimeIdentityManifest::from_json(&altered_manifest).unwrap();
 
-    let error = RuntimeLexicon::from_verified_bytes(SYNTHETIC_RUNTIME.as_bytes(), &manifest).unwrap_err();
+    let error =
+        RuntimeLexicon::from_verified_bytes(SYNTHETIC_RUNTIME.as_bytes(), &manifest).unwrap_err();
     assert!(error.to_string().contains("scope"));
 }
