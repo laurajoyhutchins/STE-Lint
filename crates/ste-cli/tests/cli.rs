@@ -18,6 +18,20 @@ fn version_identifies_issue_nine_runtime() {
 }
 
 #[test]
+fn lint_without_verified_runtime_fails_closed() {
+    let mut file = tempfile::NamedTempFile::new().unwrap();
+    writeln!(file, "USE THIS.").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args(["lint", file.path().to_str().unwrap()])
+        .assert()
+        .code(3)
+        .stderr(predicate::str::contains("no verified runtime lexicon"))
+        .stderr(predicate::str::contains("--allow-test-lexicon"));
+}
+
+#[test]
 fn explicit_missing_runtime_path_is_invalid_data_without_fallback() {
     let missing = tempfile::tempdir()
         .unwrap()
@@ -54,6 +68,7 @@ fn lint_json_reports_stable_diagnostic_and_exit_code() {
     let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
     command
         .args([
+            "--allow-test-lexicon",
             "lint",
             file.path().to_str().unwrap(),
             "--format",
@@ -74,6 +89,7 @@ fn lint_fix_applies_only_safe_fix_and_exits_clean() {
     let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
     command
         .args([
+            "--allow-test-lexicon",
             "lint",
             file.path().to_str().unwrap(),
             "--fix",
@@ -114,7 +130,14 @@ fn check_rewrite_rejects_modality_change() {
 fn dictionary_lookup_exposes_structured_alternatives() {
     let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
     command
-        .args(["dictionary", "lookup", "acceptable", "--format", "json"])
+        .args([
+            "--allow-test-lexicon",
+            "dictionary",
+            "lookup",
+            "acceptable",
+            "--format",
+            "json",
+        ])
         .assert()
         .success()
         .stdout(predicate::str::contains("PERMITTED"));
