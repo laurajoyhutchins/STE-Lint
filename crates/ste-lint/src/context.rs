@@ -74,7 +74,9 @@ impl LintContext {
                 ));
             }
             if occurrence.source.trim().is_empty() {
-                return Err(format!("context occurrence {index} source must be non-empty"));
+                return Err(format!(
+                    "context occurrence {index} source must be non-empty"
+                ));
             }
             if occurrence.dictionary_meaning.is_none()
                 && occurrence.technical_noun_scope.is_none()
