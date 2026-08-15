@@ -19,10 +19,44 @@ fn parenthetical_group_counts_as_one_outer_word() {
 }
 
 #[test]
+fn parenthetical_text_is_checked_as_its_own_word_limit_unit() {
+    let inner = vec!["USE"; 21].join(" ");
+    let text = format!("USE ({inner}).");
+    let codes = codes(&text, LintMode::Procedural);
+    assert_eq!(
+        codes
+            .iter()
+            .filter(|code| code.as_str() == "STE-LEN-001")
+            .count(),
+        1
+    );
+}
+
+#[test]
 fn hyphenated_group_counts_as_one_word() {
     let mut words = vec!["USE"; 19];
     words.push("soap-and-water");
     let text = words.join(" ");
+    assert!(!codes(&text, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
+}
+
+#[test]
+fn number_and_unit_count_as_one_word_at_sentence_limit() {
+    let at_limit = format!("{} 10 kg.", vec!["USE"; 19].join(" "));
+    let over_limit = format!("{} 10 kg.", vec!["USE"; 20].join(" "));
+    assert!(!codes(&at_limit, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
+    assert!(codes(&over_limit, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
+}
+
+#[test]
+fn quoted_text_counts_as_one_word_at_sentence_limit() {
+    let text = format!("{} \"Service Overview Page\".", vec!["USE"; 19].join(" "));
+    assert!(!codes(&text, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
+}
+
+#[test]
+fn alphanumeric_identifier_with_number_marker_counts_as_one_word() {
+    let text = format!("{} No. 1.", vec!["USE"; 19].join(" "));
     assert!(!codes(&text, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
 }
 
@@ -62,8 +96,19 @@ fn six_sentence_descriptive_paragraph_is_allowed() {
 }
 
 #[test]
+fn vertical_list_items_do_not_inflate_paragraph_sentence_count() {
+    let items = (1..=7)
+        .map(|index| format!("- USE ITEM {index}."))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let text = format!("USE THESE ITEMS:\n{items}");
+    assert!(!codes(&text, LintMode::Descriptive).contains(&"STE-PARA-001".to_string()));
+}
+
+#[test]
 fn contraction_is_reported_but_possessive_is_not() {
     assert!(codes("IT'S READY.", LintMode::Descriptive).contains(&"STE-SYN-001".to_string()));
+    assert!(codes("WE’RE READY.", LintMode::Descriptive).contains(&"STE-SYN-001".to_string()));
     assert!(
         !codes("THE ENGINE'S COVER IS OPEN.", LintMode::Descriptive)
             .contains(&"STE-SYN-001".to_string())
