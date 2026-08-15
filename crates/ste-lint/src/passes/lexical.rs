@@ -66,15 +66,15 @@ pub(crate) fn check(
                 continue;
             }
 
-            if !candidates.is_empty() {
-                if let Some(diagnostic) = dictionary_diagnostic(
+            if !candidates.is_empty()
+                && let Some(diagnostic) = dictionary_diagnostic(
                     &phrase,
                     window[0].start,
                     window[width - 1].end,
                     &candidates,
-                ) {
-                    diagnostics.push(diagnostic);
-                }
+                )
+            {
+                diagnostics.push(diagnostic);
             }
 
             index += width;
