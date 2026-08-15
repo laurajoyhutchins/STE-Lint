@@ -118,10 +118,7 @@ fn role_has_compatible_candidate(role: &str, candidates: &[&LexiconEntry]) -> bo
         matches!(
             (role, entry.part_of_speech),
             ("verbal", Some(PartOfSpeech::Verb))
-                | (
-                    "nominal",
-                    Some(PartOfSpeech::Noun | PartOfSpeech::Pronoun)
-                )
+                | ("nominal", Some(PartOfSpeech::Noun | PartOfSpeech::Pronoun))
         )
     })
 }
