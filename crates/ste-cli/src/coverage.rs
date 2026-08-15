@@ -60,7 +60,10 @@ impl RuleCoverageManifest {
             return Err("rule coverage manifest must describe ASD-STE100 Issue 9".into());
         }
         if self.full_compliance_claimed {
-            return Err("rule coverage manifest must not claim full compliance while rules remain incomplete".into());
+            return Err(
+                "rule coverage manifest must not claim full compliance while rules remain incomplete"
+                    .into(),
+            );
         }
         if self.total_rules != 53 || self.rules.len() != self.total_rules {
             return Err(format!(
@@ -69,12 +72,17 @@ impl RuleCoverageManifest {
                 self.rules.len()
             ));
         }
-        let ids = self.rules.iter().map(|rule| rule.id.as_str()).collect::<HashSet<_>>();
+        let ids = self
+            .rules
+            .iter()
+            .map(|rule| rule.id.as_str())
+            .collect::<HashSet<_>>();
         if ids.len() != self.rules.len() {
             return Err("rule coverage manifest contains duplicate rule ids".into());
         }
         for expected in [
-            "1.1", "1.14", "2.1", "2.2", "3.1", "3.7", "4.1", "4.5", "5.1", "5.5", "6.1", "6.6", "7.1", "7.3", "8.1", "8.7", "9.1", "9.4",
+            "1.1", "1.14", "2.1", "2.2", "3.1", "3.7", "4.1", "4.5", "5.1", "5.5", "6.1", "6.6",
+            "7.1", "7.3", "8.1", "8.7", "9.1", "9.4",
         ] {
             if !ids.contains(expected) {
                 return Err(format!("rule coverage manifest is missing rule {expected}"));
