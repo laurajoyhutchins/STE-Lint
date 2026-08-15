@@ -85,7 +85,10 @@ fn approved_noun_in_strong_action_position_is_rejected() {
     assert_eq!(diagnostic.rules, vec!["1.2", "3.7"]);
     let evidence = diagnostic.evidence.as_ref().unwrap();
     assert_eq!(evidence["observed_role"], "verbal");
-    assert_eq!(evidence["possible_parts_of_speech"], serde_json::json!(["noun"]));
+    assert_eq!(
+        evidence["possible_parts_of_speech"],
+        serde_json::json!(["noun"])
+    );
 }
 
 #[test]
@@ -105,7 +108,10 @@ fn approved_verb_in_determiner_governed_noun_position_is_rejected() {
         .find(|item| item.code == "STE-GRAM-001")
         .expect("approved verb used as a noun must be diagnosed in a determiner frame");
     assert_eq!(diagnostic.rules, vec!["1.2"]);
-    assert_eq!(diagnostic.evidence.as_ref().unwrap()["observed_role"], "nominal");
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["observed_role"],
+        "nominal"
+    );
 }
 
 #[test]
@@ -119,10 +125,12 @@ fn compatible_approved_candidate_prevents_false_role_error() {
             fix: false,
         },
     );
-    assert!(!result
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-GRAM-001"));
+    assert!(
+        !result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-GRAM-001")
+    );
 }
 
 #[test]
@@ -155,8 +163,10 @@ fn approved_multiword_verb_is_not_treated_as_prohibited_phrasal_verb() {
             fix: false,
         },
     );
-    assert!(!result
-        .diagnostics
-        .iter()
-        .any(|item| item.rules.contains(&"9.3".to_string())));
+    assert!(
+        !result
+            .diagnostics
+            .iter()
+            .any(|item| item.rules.contains(&"9.3".to_string()))
+    );
 }
