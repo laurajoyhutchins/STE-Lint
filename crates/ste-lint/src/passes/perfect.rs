@@ -16,17 +16,16 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
 
     for (index, &(aux_start, aux_end)) in words.iter().enumerate() {
         let auxiliary = &text[aux_start..aux_end];
-        if !matches!(auxiliary.to_ascii_lowercase().as_str(), "have" | "has" | "had") {
+        if !matches!(
+            auxiliary.to_ascii_lowercase().as_str(),
+            "have" | "has" | "had"
+        ) {
             continue;
         }
 
-        let Some((participle_start, participle_end, ambiguous)) = find_participle(
-            text,
-            &words,
-            index + 1,
-            max_participle_words,
-            lexicon,
-        ) else {
+        let Some((participle_start, participle_end, ambiguous)) =
+            find_participle(text, &words, index + 1, max_participle_words, lexicon)
+        else {
             continue;
         };
         let participle = &text[participle_start..participle_end];
