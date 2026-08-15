@@ -6,3 +6,4 @@ pub(crate) mod notes;
 pub(crate) mod paragraph;
 pub(crate) mod perfect;
 pub(crate) mod punctuation;
+pub(crate) mod semantic;

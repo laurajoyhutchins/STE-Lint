@@ -3,6 +3,8 @@ use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
 use ste_glossary::{Glossary, TechnicalTerm, TermStatus};
 
+use super::semantic::dictionary_evidence;
+
 pub(crate) fn check(
     text: &str,
     lexicon: &RuntimeLexicon,
@@ -147,19 +149,10 @@ fn dictionary_diagnostic(
     let has_unapproved = candidates
         .iter()
         .any(|entry| entry.status == ApprovalStatus::Unapproved);
-    let evidence_candidates = candidates
-        .iter()
-        .map(|entry| {
-            json!({
-                "lemma": entry.lemma,
-                "part_of_speech": entry.part_of_speech,
-                "status": entry.status,
-                "alternatives": entry.alternatives,
-            })
-        })
-        .collect::<Vec<_>>();
 
     if has_approved && has_unapproved {
+        let mut evidence = dictionary_evidence(candidates, true);
+        evidence["required_resolution"] = json!(["part_of_speech", "approved_sense"]);
         return Some(Diagnostic {
             code: "STE-LEX-002".into(),
             severity: Severity::Blocked,
@@ -168,10 +161,7 @@ fn dictionary_diagnostic(
             ),
             span: Span { start, end },
             rules: vec!["1.1".into(), "9.2".into()],
-            evidence: Some(json!({
-                "candidates": evidence_candidates,
-                "required_resolution": ["part_of_speech", "approved_sense"]
-            })),
+            evidence: Some(evidence),
             autofix: None,
         });
     }
@@ -183,9 +173,7 @@ fn dictionary_diagnostic(
             message: format!("'{matched_text}' is not approved in the runtime STE lexicon."),
             span: Span { start, end },
             rules: vec!["1.1".into(), "9.2".into()],
-            evidence: Some(json!({
-                "candidates": evidence_candidates,
-            })),
+            evidence: Some(dictionary_evidence(candidates, candidates.len() > 1)),
             autofix: None,
         });
     }
