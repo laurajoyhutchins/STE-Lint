@@ -46,7 +46,10 @@ fn nonapproved_meaning_evidence_enforces_rule_1_3() {
         .find(|item| item.code == "STE-CTX-001")
         .expect("explicit non-approved meaning evidence must be enforced");
     assert_eq!(diagnostic.rules, vec!["1.3"]);
-    assert_eq!(diagnostic.evidence.as_ref().unwrap()["source"], "human-sense-review");
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["source"],
+        "human-sense-review"
+    );
 }
 
 #[test]
@@ -73,10 +76,12 @@ fn regional_slang_or_jargon_evidence_enforces_rule_1_10() {
                 fix: false,
             },
         );
-        assert!(result
-            .diagnostics
-            .iter()
-            .any(|item| item.code == "STE-CTX-002" && item.rules == vec!["1.10"]));
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|item| item.code == "STE-CTX-002" && item.rules == vec!["1.10"])
+        );
     }
 }
 
@@ -103,10 +108,12 @@ fn nonamerican_spelling_requires_official_name_exception() {
             fix: false,
         },
     );
-    assert!(bad_result
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-CTX-003" && item.rules == vec!["1.14"]));
+    assert!(
+        bad_result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-CTX-003" && item.rules == vec!["1.14"])
+    );
 
     let exception = LintContext::from_json(
         r#"{
@@ -130,10 +137,12 @@ fn nonamerican_spelling_requires_official_name_exception() {
             fix: false,
         },
     );
-    assert!(!exception_result
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-CTX-003"));
+    assert!(
+        !exception_result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-CTX-003")
+    );
 }
 
 #[test]
@@ -144,8 +153,10 @@ fn context_validation_rejects_invalid_spans_and_missing_source() {
     .unwrap();
     assert!(invalid_span.validate(10).is_err());
 
-    assert!(LintContext::from_json(
-        r#"{"occurrences":[{"start":0,"end":2,"source":"","dictionary_meaning":"approved"}]}"#
-    )
-    .is_err());
+    assert!(
+        LintContext::from_json(
+            r#"{"occurrences":[{"start":0,"end":2,"source":"","dictionary_meaning":"approved"}]}"#
+        )
+        .is_err()
+    );
 }
