@@ -59,23 +59,21 @@ pub(crate) fn check(
                 .map(|token| token.text)
                 .collect::<Vec<_>>()
                 .join(" ");
-            let candidates = lexicon.lookup_form_candidates(&phrase);
             let glossary_term = glossary.and_then(|glossary| glossary.lookup_term(&phrase));
+            let candidates = lexicon.lookup_form_candidates(&phrase);
 
-            if candidates.is_empty() && glossary_term.is_none() {
+            if glossary_term.is_none() && candidates.is_empty() {
                 continue;
             }
 
             let start = window[0].start;
             let end = window[width - 1].end;
-            if !candidates.is_empty()
-                && let Some(diagnostic) =
-                    dictionary_diagnostic(&phrase, start, end, &candidates)
-            {
-                diagnostics.push(diagnostic);
-            } else if candidates.is_empty()
-                && let Some(term) = glossary_term
-                && let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, term)
+            if let Some(term) = glossary_term {
+                if let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, term) {
+                    diagnostics.push(diagnostic);
+                }
+            } else if let Some(diagnostic) =
+                dictionary_diagnostic(&phrase, start, end, &candidates)
             {
                 diagnostics.push(diagnostic);
             }
@@ -89,19 +87,19 @@ pub(crate) fn check(
             continue;
         }
 
-        let candidates = lexicon.lookup_form_candidates(token.text);
-        if !candidates.is_empty() {
-            if let Some(diagnostic) =
-                dictionary_diagnostic(token.text, token.start, token.end, &candidates)
-            {
+        if let Some(term) = glossary.and_then(|glossary| glossary.lookup_term(token.text)) {
+            if let Some(diagnostic) = glossary_diagnostic(token.text, token.start, token.end, term) {
                 diagnostics.push(diagnostic);
             }
             index += 1;
             continue;
         }
 
-        if let Some(term) = glossary.and_then(|glossary| glossary.lookup_term(token.text)) {
-            if let Some(diagnostic) = glossary_diagnostic(token.text, token.start, token.end, term) {
+        let candidates = lexicon.lookup_form_candidates(token.text);
+        if !candidates.is_empty() {
+            if let Some(diagnostic) =
+                dictionary_diagnostic(token.text, token.start, token.end, &candidates)
+            {
                 diagnostics.push(diagnostic);
             }
             index += 1;
@@ -122,7 +120,12 @@ pub(crate) fn check(
             rules: vec!["1.1".into()],
             evidence: Some(json!({
                 "term": token.text,
-                "required_classification": ["technical_noun", "technical_verb", "not_a_term"]
+                "required_classification": [
+                    "technical_noun",
+                    "technical_verb",
+                    "technical_noun_and_verb",
+                    "not_a_term"
+                ]
             })),
             autofix: None,
         });
@@ -203,9 +206,7 @@ fn glossary_diagnostic(
     Some(Diagnostic {
         code: "STE-TERM-002".into(),
         severity: Severity::Error,
-        message: format!(
-            "'{matched_text}' is deprecated in the project technical glossary."
-        ),
+        message: format!("'{matched_text}' is deprecated in the project technical glossary."),
         span: Span { start, end },
         rules: Vec::new(),
         evidence: Some(json!({
