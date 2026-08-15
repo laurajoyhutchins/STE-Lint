@@ -82,6 +82,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::dictionary_roles::check(
         text, lexicon, glossary, mode,
     ));
+    diagnostics.extend(passes::procedural::check(text, lexicon, mode));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
     diagnostics
