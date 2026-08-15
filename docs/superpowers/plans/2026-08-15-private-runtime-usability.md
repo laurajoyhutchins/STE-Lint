@@ -8,29 +8,31 @@
 
 `ste-cli` owns selection. `--lexicon <PATH>` takes precedence over `STE_LINT_LEXICON`. A configured file that is missing or fails verification returns exit code 3 and never falls back. With no selector, the small embedded public lexicon remains available as explicitly identified test/development data.
 
-The lexical pass and dictionary command use multi-candidate form lookup. When all records for a spelling are approved, the lexical approval check passes. When all are unapproved, `STE-LEX-001` is emitted. When approved and unapproved records share the spelling, `STE-LEX-002` blocks pending grammatical or sense resolution rather than guessing.
+The runtime compiler recovers source-listed verb forms from the retained source word-cell line structure. Private corpus review found five records where the earlier normalized intermediate form array had collapsed adjacent inflections or removed a meaningful parenthesis. The compiler now reconstructs those explicit forms without inventing morphology.
+
+The lexical pass and dictionary command use multi-candidate form lookup. The lexical pass performs longest-match phrase lookup over adjacent prose tokens before component classification, including project glossary phrases. When all records for a matched form are approved, the lexical approval check passes. When all are unapproved, `STE-LEX-001` is emitted. When approved and unapproved records share the form, `STE-LEX-002` blocks pending grammatical or sense resolution rather than guessing. Phrase matching does not cross punctuation.
 
 ## Verification
 
-Repository-owned verification passes:
+Repository-owned verification passes on the coherent implementation candidate:
 
-- authority/compiler Python tests;
+- authority/compiler Python tests, including source-cell verb form recovery;
 - `cargo fmt --all -- --check`;
 - `cargo clippy --workspace --all-targets -- -D warnings`;
-- `cargo test --workspace`.
+- `cargo test --workspace`, including approved/unapproved phrase and punctuation-boundary cases.
 
-Private acceptance against the retained runtime artifact confirms:
+Independent private recompilation from the retained authority inputs is byte-identical across runs and confirms:
 
-- 1,538,305 bytes;
-- SHA-256 `55251f20bb8c361d3849df1ea4797a756f7195753d715ffb6e4a74616adb3c6f`;
+- 1,538,351 bytes;
+- SHA-256 `1e8e016bbdebce02483c95743183d479fa19e23214edcd3524817a66f3e08c22`;
 - 2,196 structural records;
 - 878 approved structural records;
 - 1,318 unapproved structural records;
-- 192 normalized spellings with multiple structural candidates;
-- 397 candidate record instances in those collisions;
-- 70 ambiguous spellings that cross approved/unapproved status.
+- 193 normalized forms with multiple structural candidates;
+- 399 candidate record instances in those collisions;
+- 70 ambiguous forms that cross approved/unapproved status.
 
-No populated source-derived Issue 9 dictionary data is committed publicly.
+The corrected private runtime replaces the previous derivative in the private Library. No populated source-derived Issue 9 dictionary data is committed publicly.
 
 ## Remaining Issue #3 gates
 
