@@ -23,7 +23,9 @@
     "raw_dictionary_rows": 5,
     "deterministic_replay": true,
     "private_bundle_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "artifact_sha256": {}
+    "artifact_sha256": {
+      "dictionary.json": "6505b5781126be4a5bbbee2b5d846d20dd513ca6ef4a1a03833eeb397c4b9060"
+    }
   },
   "cardinality_notes": {
     "status": "reconciled_as_distinct_measures"
