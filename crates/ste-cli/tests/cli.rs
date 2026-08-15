@@ -19,7 +19,10 @@ fn version_identifies_issue_nine_runtime() {
 
 #[test]
 fn explicit_missing_runtime_path_is_invalid_data_without_fallback() {
-    let missing = tempfile::tempdir().unwrap().path().join("missing-runtime.json");
+    let missing = tempfile::tempdir()
+        .unwrap()
+        .path()
+        .join("missing-runtime.json");
     let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
     command
         .args(["--lexicon", missing.to_str().unwrap(), "version"])
