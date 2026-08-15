@@ -25,5 +25,10 @@
   "validations": {
     "source_identity_matches": true
   },
-  "artifacts": {}
+  "artifacts": {
+    "dictionary.json": {
+      "bytes": 2369,
+      "sha256": "6505b5781126be4a5bbbee2b5d846d20dd513ca6ef4a1a03833eeb397c4b9060"
+    }
+  }
 }
