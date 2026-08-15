@@ -45,6 +45,24 @@ fn imperative_at_start_of_note_is_an_error() {
 }
 
 #[test]
+fn note_is_recognized_without_a_blank_line_before_it() {
+    let diagnostics = lint("REMOVE THE COVER.\nNOTE: REMOVE THE SEAL.");
+    assert!(has_code(&diagnostics, "STE-NOTE-001"));
+}
+
+#[test]
+fn indented_note_continuation_stays_inside_note_block() {
+    let diagnostics = lint("NOTE: THE UNIT IS STABLE.\n  REMOVE THE SEAL.\nREMOVE THE COVER.");
+    assert_eq!(
+        diagnostics
+            .iter()
+            .filter(|diagnostic| diagnostic.code == "STE-NOTE-001")
+            .count(),
+        1
+    );
+}
+
+#[test]
 fn ambiguous_note_initial_form_blocks_instead_of_guessing() {
     let diagnostics = lint("NOTE: CHECK THE INDICATION.");
     let diagnostic = diagnostics
