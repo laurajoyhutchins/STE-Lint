@@ -54,7 +54,7 @@ pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
     while index < lines.len() {
         let line = lines[index];
         let raw = line_text(text, line);
-        let Some((indent, content_offset)) = list_item_layout(raw) else {
+        let Some((indent, _)) = list_item_layout(raw) else {
             index += 1;
             continue;
         };
@@ -88,7 +88,6 @@ pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
         }
 
         if !items.is_empty() {
-            let _ = content_offset;
             blocks.push(SimpleListBlock {
                 introduced_by_colon,
                 items,
@@ -206,7 +205,10 @@ mod tests {
         let text = "NOTE: REMOVE THIS.\nCONTINUATION.\n\nREMOVE THAT.";
         let notes = note_blocks(text);
         assert_eq!(notes.len(), 1);
-        assert_eq!(&text[notes[0].content_start..notes[0].end], "REMOVE THIS.\nCONTINUATION.\n");
+        assert_eq!(
+            &text[notes[0].content_start..notes[0].end],
+            "REMOVE THIS.\nCONTINUATION.\n"
+        );
     }
 
     #[test]
