@@ -16,6 +16,8 @@ use ste_rewrite_check::{ProposedChange, RewriteCheckResult, check_rewrite};
     about = "Lint technical English with structured STE diagnostics"
 )]
 struct Cli {
+    #[arg(long, global = true, value_name = "PATH")]
+    lexicon: Option<PathBuf>,
     #[command(subcommand)]
     command: Commands,
 }
@@ -119,21 +121,22 @@ fn main() -> ExitCode {
 }
 
 fn run(cli: Cli) -> Result<u8, AppFailure> {
-    match cli.command {
+    let Cli { lexicon, command } = cli;
+    match command {
         Commands::Lint {
             path,
             fix,
             format,
             mode,
-        } => run_lint(&path, fix, format, mode.into()),
+        } => run_lint(&path, fix, format, mode.into(), lexicon.as_deref()),
         Commands::CheckRewrite {
             before,
             after,
             format,
         } => run_check_rewrite(&before, &after, format),
-        Commands::Dictionary { command } => run_dictionary(command),
+        Commands::Dictionary { command } => run_dictionary(command, lexicon.as_deref()),
         Commands::Glossary { command } => run_glossary(command),
-        Commands::Version => run_version(),
+        Commands::Version => run_version(lexicon.as_deref()),
     }
 }
 
@@ -142,8 +145,9 @@ fn run_lint(
     fix: bool,
     format: OutputFormat,
     mode: LintMode,
+    lexicon_path: Option<&Path>,
 ) -> Result<u8, AppFailure> {
-    let lexicon = runtime_lexicon()?;
+    let (lexicon, _) = runtime_lexicon(lexicon_path)?;
     let original = read_text(path)?;
     let glossary = find_project_glossary(path)?;
     let result = lint_text(
@@ -173,15 +177,17 @@ fn run_check_rewrite(before: &Path, after: &Path, format: OutputFormat) -> Resul
     Ok(if result.accepted { 0 } else { 1 })
 }
 
-fn run_dictionary(command: DictionaryCommands) -> Result<u8, AppFailure> {
-    let lexicon = runtime_lexicon()?;
+fn run_dictionary(
+    command: DictionaryCommands,
+    lexicon_path: Option<&Path>,
+) -> Result<u8, AppFailure> {
+    let (lexicon, _) = runtime_lexicon(lexicon_path)?;
     match command {
         DictionaryCommands::Lookup { word, format } => {
-            let entries = if let Some(entry) = lexicon.lookup_form(&word) {
-                vec![entry]
-            } else {
-                lexicon.lookup_lemma(&word)
-            };
+            let mut entries = lexicon.lookup_form_candidates(&word);
+            if entries.is_empty() {
+                entries = lexicon.lookup_lemma(&word);
+            }
 
             match format {
                 OutputFormat::Json => print_json(&entries)?,
@@ -215,8 +221,8 @@ fn run_glossary(command: GlossaryCommands) -> Result<u8, AppFailure> {
     }
 }
 
-fn run_version() -> Result<u8, AppFailure> {
-    let lexicon = runtime_lexicon()?;
+fn run_version(lexicon_path: Option<&Path>) -> Result<u8, AppFailure> {
+    let (lexicon, source) = runtime_lexicon(lexicon_path)?;
     println!("ste {}", env!("CARGO_PKG_VERSION"));
     println!(
         "language: {} Issue {}",
@@ -224,13 +230,39 @@ fn run_version() -> Result<u8, AppFailure> {
         lexicon.metadata().issue
     );
     println!("runtime data: {}", lexicon.metadata().scope);
+    println!("runtime source: {source}");
     Ok(0)
 }
 
-fn runtime_lexicon() -> Result<RuntimeLexicon, AppFailure> {
-    RuntimeLexicon::embedded().map_err(|error| {
-        AppFailure::invalid_data(format!("embedded runtime lexicon is invalid: {error}"))
-    })
+fn runtime_lexicon(explicit_path: Option<&Path>) -> Result<(RuntimeLexicon, String), AppFailure> {
+    let configured_path = explicit_path
+        .map(Path::to_path_buf)
+        .or_else(|| std::env::var_os("STE_LINT_LEXICON").map(PathBuf::from));
+
+    if let Some(path) = configured_path {
+        let bytes = fs::read(&path).map_err(|error| {
+            AppFailure::invalid_data(format!(
+                "configured runtime lexicon {} could not be read: {error}",
+                path.display()
+            ))
+        })?;
+        let lexicon = RuntimeLexicon::verified_issue9_from_bytes(&bytes).map_err(|error| {
+            AppFailure::invalid_data(format!(
+                "configured runtime lexicon {} failed verification: {error}",
+                path.display()
+            ))
+        })?;
+        return Ok((
+            lexicon,
+            format!("verified external Issue 9 lexicon ({})", path.display()),
+        ));
+    }
+
+    RuntimeLexicon::embedded()
+        .map(|lexicon| (lexicon, "embedded test lexicon".to_string()))
+        .map_err(|error| {
+            AppFailure::invalid_data(format!("embedded runtime lexicon is invalid: {error}"))
+        })
 }
 
 fn read_text(path: &Path) -> Result<String, AppFailure> {
