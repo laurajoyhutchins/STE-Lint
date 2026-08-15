@@ -1,7 +1,7 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
-use ste_glossary::Glossary;
+use ste_glossary::{Glossary, TechnicalTerm, TermStatus};
 
 pub(crate) fn check(
     text: &str,
@@ -60,19 +60,22 @@ pub(crate) fn check(
                 .collect::<Vec<_>>()
                 .join(" ");
             let candidates = lexicon.lookup_form_candidates(&phrase);
-            let glossary_match = glossary.is_some_and(|glossary| glossary.contains_term(&phrase));
+            let glossary_term = glossary.and_then(|glossary| glossary.lookup_term(&phrase));
 
-            if candidates.is_empty() && !glossary_match {
+            if candidates.is_empty() && glossary_term.is_none() {
                 continue;
             }
 
+            let start = window[0].start;
+            let end = window[width - 1].end;
             if !candidates.is_empty()
-                && let Some(diagnostic) = dictionary_diagnostic(
-                    &phrase,
-                    window[0].start,
-                    window[width - 1].end,
-                    &candidates,
-                )
+                && let Some(diagnostic) =
+                    dictionary_diagnostic(&phrase, start, end, &candidates)
+            {
+                diagnostics.push(diagnostic);
+            } else if candidates.is_empty()
+                && let Some(term) = glossary_term
+                && let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, term)
             {
                 diagnostics.push(diagnostic);
             }
@@ -97,7 +100,10 @@ pub(crate) fn check(
             continue;
         }
 
-        if glossary.is_some_and(|glossary| glossary.contains_term(token.text)) {
+        if let Some(term) = glossary.and_then(|glossary| glossary.lookup_term(token.text)) {
+            if let Some(diagnostic) = glossary_diagnostic(token.text, token.start, token.end, term) {
+                diagnostics.push(diagnostic);
+            }
             index += 1;
             continue;
         }
@@ -182,6 +188,35 @@ fn dictionary_diagnostic(
     }
 
     None
+}
+
+fn glossary_diagnostic(
+    matched_text: &str,
+    start: usize,
+    end: usize,
+    term: &TechnicalTerm,
+) -> Option<Diagnostic> {
+    if term.status != TermStatus::Deprecated {
+        return None;
+    }
+
+    Some(Diagnostic {
+        code: "STE-TERM-002".into(),
+        severity: Severity::Error,
+        message: format!(
+            "'{matched_text}' is deprecated in the project technical glossary."
+        ),
+        span: Span { start, end },
+        rules: Vec::new(),
+        evidence: Some(json!({
+            "canonical_term": term.term,
+            "kind": term.kind,
+            "domain": term.domain,
+            "preferred": term.preferred,
+            "status": term.status,
+        })),
+        autofix: None,
+    })
 }
 
 struct Token<'a> {
