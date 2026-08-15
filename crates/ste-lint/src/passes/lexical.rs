@@ -1,6 +1,6 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_data::{ApprovalStatus, RuntimeLexicon};
+use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
 use ste_glossary::Glossary;
 
 pub(crate) fn check(
@@ -8,101 +8,180 @@ pub(crate) fn check(
     lexicon: &RuntimeLexicon,
     glossary: Option<&Glossary>,
 ) -> Vec<Diagnostic> {
-    tokens(text)
-        .into_iter()
-        .filter_map(|token| {
-            if is_machine_like(token.text) {
-                return None;
+    let tokens = tokens(text);
+    let max_dictionary_words = lexicon
+        .entries()
+        .iter()
+        .flat_map(|entry| &entry.forms)
+        .map(|form| form.split_whitespace().count())
+        .max()
+        .unwrap_or(1);
+    let max_glossary_words = glossary
+        .map(|glossary| {
+            glossary
+                .terms
+                .iter()
+                .flat_map(|term| std::iter::once(&term.term).chain(term.aliases.iter()))
+                .map(|term| term.split_whitespace().count())
+                .max()
+                .unwrap_or(1)
+        })
+        .unwrap_or(1);
+    let max_phrase_words = max_dictionary_words.max(max_glossary_words);
+
+    let mut diagnostics = Vec::new();
+    let mut index = 0;
+
+    while index < tokens.len() {
+        let token = &tokens[index];
+        if is_machine_like(token.text) {
+            index += 1;
+            continue;
+        }
+
+        let max_window = max_phrase_words.min(tokens.len() - index);
+        let mut matched_phrase = false;
+
+        for width in (2..=max_window).rev() {
+            let window = &tokens[index..index + width];
+            if window.iter().any(|token| is_machine_like(token.text))
+                || !window.windows(2).all(|pair| {
+                    text[pair[0].end..pair[1].start]
+                        .chars()
+                        .all(char::is_whitespace)
+                })
+            {
+                continue;
             }
 
-            let candidates = lexicon.lookup_form_candidates(token.text);
+            let phrase = window
+                .iter()
+                .map(|token| token.text)
+                .collect::<Vec<_>>()
+                .join(" ");
+            let candidates = lexicon.lookup_form_candidates(&phrase);
+            let glossary_match = glossary.is_some_and(|glossary| glossary.contains_term(&phrase));
+
+            if candidates.is_empty() && !glossary_match {
+                continue;
+            }
+
             if !candidates.is_empty() {
-                let has_approved = candidates
-                    .iter()
-                    .any(|entry| entry.status == ApprovalStatus::Approved);
-                let has_unapproved = candidates
-                    .iter()
-                    .any(|entry| entry.status == ApprovalStatus::Unapproved);
-                let evidence_candidates = candidates
-                    .iter()
-                    .map(|entry| {
-                        json!({
-                            "lemma": entry.lemma,
-                            "part_of_speech": entry.part_of_speech,
-                            "status": entry.status,
-                            "alternatives": entry.alternatives,
-                        })
-                    })
-                    .collect::<Vec<_>>();
-
-                if has_approved && has_unapproved {
-                    return Some(Diagnostic {
-                        code: "STE-LEX-002".into(),
-                        severity: Severity::Blocked,
-                        message: format!(
-                            "'{}' has both approved and unapproved runtime dictionary records; grammatical or sense disambiguation is required.",
-                            token.text
-                        ),
-                        span: Span {
-                            start: token.start,
-                            end: token.end,
-                        },
-                        rules: vec!["1.1".into(), "9.2".into()],
-                        evidence: Some(json!({
-                            "candidates": evidence_candidates,
-                            "required_resolution": ["part_of_speech", "approved_sense"]
-                        })),
-                        autofix: None,
-                    });
+                if let Some(diagnostic) = dictionary_diagnostic(
+                    &phrase,
+                    window[0].start,
+                    window[width - 1].end,
+                    &candidates,
+                ) {
+                    diagnostics.push(diagnostic);
                 }
-
-                if has_unapproved {
-                    return Some(Diagnostic {
-                        code: "STE-LEX-001".into(),
-                        severity: Severity::Error,
-                        message: format!(
-                            "'{}' is not approved in the runtime STE lexicon.",
-                            token.text
-                        ),
-                        span: Span {
-                            start: token.start,
-                            end: token.end,
-                        },
-                        rules: vec!["1.1".into(), "9.2".into()],
-                        evidence: Some(json!({
-                            "candidates": evidence_candidates,
-                        })),
-                        autofix: None,
-                    });
-                }
-
-                return None;
             }
 
-            if glossary.is_some_and(|glossary| glossary.contains_term(token.text)) {
-                return None;
-            }
+            index += width;
+            matched_phrase = true;
+            break;
+        }
 
-            Some(Diagnostic {
-                code: "STE-TERM-001".into(),
-                severity: Severity::Blocked,
-                message: format!(
-                    "'{}' is not in the runtime lexicon or project technical glossary.",
-                    token.text
-                ),
-                span: Span {
-                    start: token.start,
-                    end: token.end,
-                },
-                rules: vec!["1.1".into()],
-                evidence: Some(json!({
-                    "term": token.text,
-                    "required_classification": ["technical_noun", "technical_verb", "not_a_term"]
-                })),
-                autofix: None,
+        if matched_phrase {
+            continue;
+        }
+
+        let candidates = lexicon.lookup_form_candidates(token.text);
+        if !candidates.is_empty() {
+            if let Some(diagnostic) =
+                dictionary_diagnostic(token.text, token.start, token.end, &candidates)
+            {
+                diagnostics.push(diagnostic);
+            }
+            index += 1;
+            continue;
+        }
+
+        if glossary.is_some_and(|glossary| glossary.contains_term(token.text)) {
+            index += 1;
+            continue;
+        }
+
+        diagnostics.push(Diagnostic {
+            code: "STE-TERM-001".into(),
+            severity: Severity::Blocked,
+            message: format!(
+                "'{}' is not in the runtime lexicon or project technical glossary.",
+                token.text
+            ),
+            span: Span {
+                start: token.start,
+                end: token.end,
+            },
+            rules: vec!["1.1".into()],
+            evidence: Some(json!({
+                "term": token.text,
+                "required_classification": ["technical_noun", "technical_verb", "not_a_term"]
+            })),
+            autofix: None,
+        });
+        index += 1;
+    }
+
+    diagnostics
+}
+
+fn dictionary_diagnostic(
+    matched_text: &str,
+    start: usize,
+    end: usize,
+    candidates: &[&LexiconEntry],
+) -> Option<Diagnostic> {
+    let has_approved = candidates
+        .iter()
+        .any(|entry| entry.status == ApprovalStatus::Approved);
+    let has_unapproved = candidates
+        .iter()
+        .any(|entry| entry.status == ApprovalStatus::Unapproved);
+    let evidence_candidates = candidates
+        .iter()
+        .map(|entry| {
+            json!({
+                "lemma": entry.lemma,
+                "part_of_speech": entry.part_of_speech,
+                "status": entry.status,
+                "alternatives": entry.alternatives,
             })
         })
-        .collect()
+        .collect::<Vec<_>>();
+
+    if has_approved && has_unapproved {
+        return Some(Diagnostic {
+            code: "STE-LEX-002".into(),
+            severity: Severity::Blocked,
+            message: format!(
+                "'{matched_text}' has both approved and unapproved runtime dictionary records; grammatical or sense disambiguation is required."
+            ),
+            span: Span { start, end },
+            rules: vec!["1.1".into(), "9.2".into()],
+            evidence: Some(json!({
+                "candidates": evidence_candidates,
+                "required_resolution": ["part_of_speech", "approved_sense"]
+            })),
+            autofix: None,
+        });
+    }
+
+    if has_unapproved {
+        return Some(Diagnostic {
+            code: "STE-LEX-001".into(),
+            severity: Severity::Error,
+            message: format!("'{matched_text}' is not approved in the runtime STE lexicon."),
+            span: Span { start, end },
+            rules: vec!["1.1".into(), "9.2".into()],
+            evidence: Some(json!({
+                "candidates": evidence_candidates,
+            })),
+            autofix: None,
+        });
+    }
+
+    None
 }
 
 struct Token<'a> {
