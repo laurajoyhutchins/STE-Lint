@@ -480,7 +480,11 @@ fn list_item_content_offset(line: &str) -> Option<usize> {
     while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
         index += 1;
     }
-    if index > 0
+    let label = &trimmed[..index];
+    let valid_label = label.chars().all(|character| character.is_ascii_digit())
+        || (label.len() == 1 && label.as_bytes()[0].is_ascii_alphabetic());
+    if valid_label
+        && index > 0
         && index + 1 < bytes.len()
         && matches!(bytes[index], b'.' | b')')
         && bytes[index + 1].is_ascii_whitespace()
@@ -536,5 +540,12 @@ mod tests {
     #[test]
     fn time_abbreviation_counts_with_number() {
         assert_eq!(count_issue9_words("TEST at 10 a.m."), 3);
+    }
+
+    #[test]
+    fn prose_word_followed_by_period_is_not_a_list_label() {
+        assert_eq!(list_item_content_offset("USE. USE THIS."), None);
+        assert_eq!(list_item_content_offset("1. USE THIS."), Some(3));
+        assert_eq!(list_item_content_offset("A) USE THIS."), Some(3));
     }
 }
