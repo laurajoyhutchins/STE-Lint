@@ -44,15 +44,57 @@ def _clean_form(raw: str) -> str:
     text = re.sub(
         r"\s*No other verb forms\.?\s*$", "", text, flags=re.IGNORECASE
     ).strip()
-    text = re.sub(r"^\(\s*also\s+", "", text, flags=re.IGNORECASE).strip()
-    if text.startswith("("):
-        text = text[1:].strip()
-    if text.endswith(")"):
-        text = text[:-1].strip()
+    if re.match(r"^\(\s*also\s+", text, flags=re.IGNORECASE):
+        text = re.sub(r"^\(\s*also\s+", "", text, flags=re.IGNORECASE).strip()
+        if text.endswith(")"):
+            text = text[:-1].strip()
     return text.strip(" ,.")
 
 
+def _verb_forms_from_word_cell(entry: dict) -> list[str] | None:
+    if str(entry.get("part_of_speech") or "").lower() != "v":
+        return None
+
+    word_cell = str(entry.get("word_cell") or "")
+    if not word_cell.strip():
+        return None
+
+    text = re.sub(
+        r"\bNo\s+other\s+verb\s+forms\.?",
+        "",
+        word_cell,
+        flags=re.IGNORECASE,
+    )
+    normalized: list[str] = []
+    seen: set[str] = set()
+
+    for raw_line in text.splitlines():
+        line = re.sub(r"\s*\(v\)\s*", "", raw_line, flags=re.IGNORECASE).strip()
+        if not line:
+            continue
+
+        if re.match(r"^\(\s*also\s+", line, flags=re.IGNORECASE):
+            line = re.sub(r"^\(\s*also\s+", "", line, flags=re.IGNORECASE).strip()
+            if line.endswith(")"):
+                line = line[:-1].rstrip()
+
+        for segment in line.split(","):
+            form = " ".join(segment.split()).strip(" ,.")
+            if form.lower().startswith("also "):
+                form = form[5:].strip()
+            if not form or form in seen:
+                continue
+            seen.add(form)
+            normalized.append(form)
+
+    return normalized or None
+
+
 def normalize_forms(entry: dict) -> list[str]:
+    source_verb_forms = _verb_forms_from_word_cell(entry)
+    if source_verb_forms is not None:
+        return source_verb_forms
+
     forms = entry.get("forms") or []
     if not forms:
         return [entry["headword"]]
