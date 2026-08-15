@@ -1,0 +1,37 @@
+{
+  "standard": "ASD-STE100",
+  "issue": 9,
+  "publication_date": "2025-01-15",
+  "retained_source": {
+    "provider": "google_drive",
+    "file_id": "synthetic-drive-object",
+    "title": "Synthetic controlled-language source",
+    "mime_type": "application/pdf",
+    "byte_size": 123,
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "physical_pages": 4,
+    "encrypted": false
+  },
+  "verified_ingest": {
+    "rules": 0,
+    "general_recommendations": 0,
+    "dictionary_entries": 5,
+    "approved_headword_records": 3,
+    "unapproved_headword_records": 2,
+    "source_declared_approved_words": 2,
+    "source_declared_unapproved_words": 2,
+    "raw_dictionary_rows": 5,
+    "deterministic_replay": true,
+    "private_bundle_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "artifact_sha256": {
+      "dictionary.json": "6505b5781126be4a5bbbee2b5d846d20dd513ca6ef4a1a03833eeb397c4b9060"
+    }
+  },
+  "cardinality_notes": {
+    "status": "reconciled_as_distinct_measures"
+  },
+  "redistribution": {
+    "public_repo_contains_source_derived_text": false,
+    "private_bundle_required_for_full_source_derived_content": true
+  }
+}
