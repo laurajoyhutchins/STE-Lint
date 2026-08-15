@@ -24,7 +24,7 @@
         ],
         "properties": {
           "term": {"type": "string", "minLength": 1},
-          "kind": {"enum": ["technical_noun", "technical_verb"]},
+          "kind": {"enum": ["technical_noun", "technical_verb", "technical_noun_and_verb"]},
           "definition": {"type": "string", "minLength": 1},
           "domain": {"type": "string", "minLength": 1},
           "preferred": {"type": "boolean"},
