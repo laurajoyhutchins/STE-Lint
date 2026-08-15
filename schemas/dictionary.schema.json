@@ -16,27 +16,37 @@
         "date": {"type": "string"},
         "scope": {"type": "string"},
         "authority": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "required": ["drive_file_id", "source_sha256", "source_byte_size", "physical_pages", "private_bundle_sha256"],
-          "properties": {
-            "drive_file_id": {"type": "string"},
-            "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-            "source_byte_size": {"type": "integer", "minimum": 0},
-            "physical_pages": {"type": "integer", "minimum": 1},
-            "private_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
-          }
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["drive_file_id", "source_sha256", "source_byte_size", "physical_pages", "private_bundle_sha256"],
+              "properties": {
+                "drive_file_id": {"type": "string"},
+                "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+                "source_byte_size": {"type": "integer", "minimum": 0},
+                "physical_pages": {"type": "integer", "minimum": 1},
+                "private_bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+              }
+            },
+            {"type": "null"}
+          ]
         },
         "dictionary_cardinalities": {
-          "type": ["object", "null"],
-          "additionalProperties": false,
-          "required": ["source_declared_approved_words", "source_declared_unapproved_words", "structural_approved_records", "structural_unapproved_records"],
-          "properties": {
-            "source_declared_approved_words": {"type": "integer", "minimum": 0},
-            "source_declared_unapproved_words": {"type": "integer", "minimum": 0},
-            "structural_approved_records": {"type": "integer", "minimum": 0},
-            "structural_unapproved_records": {"type": "integer", "minimum": 0}
-          }
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source_declared_approved_words", "source_declared_unapproved_words", "structural_approved_records", "structural_unapproved_records"],
+              "properties": {
+                "source_declared_approved_words": {"type": "integer", "minimum": 0},
+                "source_declared_unapproved_words": {"type": "integer", "minimum": 0},
+                "structural_approved_records": {"type": "integer", "minimum": 0},
+                "structural_unapproved_records": {"type": "integer", "minimum": 0}
+              }
+            },
+            {"type": "null"}
+          ]
         }
       }
     },
@@ -54,6 +64,22 @@
             "enum": ["noun", "verb", "adjective", "adverb", "pronoun", "article", "preposition", "conjunction", null]
           },
           "forms": {"type": "array", "items": {"type": "string"}},
+          "verb_paradigm": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["base_form", "simple_present_variants", "simple_past_variants", "past_participle"],
+                "properties": {
+                  "base_form": {"type": "string", "minLength": 1},
+                  "simple_present_variants": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                  "simple_past_variants": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                  "past_participle": {"type": ["string", "null"]}
+                }
+              },
+              {"type": "null"}
+            ]
+          },
           "senses": {
             "type": "array",
             "items": {
@@ -83,24 +109,34 @@
           "restrictions": {"type": "array", "items": {"type": "string"}},
           "interpretation_state": {"enum": ["structural", "interpreted"]},
           "provenance": {
-            "type": ["object", "null"],
-            "additionalProperties": false,
-            "required": ["structural_record_index", "source_pages"],
-            "properties": {
-              "structural_record_index": {"type": "integer", "minimum": 0},
-              "source_pages": {"type": "array", "items": {"type": "integer", "minimum": 1}}
-            }
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["structural_record_index", "source_pages"],
+                "properties": {
+                  "structural_record_index": {"type": "integer", "minimum": 0},
+                  "source_pages": {"type": "array", "items": {"type": "integer", "minimum": 1}}
+                }
+              },
+              {"type": "null"}
+            ]
           },
           "source_semantics": {
-            "type": ["object", "null"],
-            "additionalProperties": false,
-            "required": ["word_cell", "meaning_or_alternatives", "ste_example", "non_ste_example"],
-            "properties": {
-              "word_cell": {"type": "string"},
-              "meaning_or_alternatives": {"type": "string"},
-              "ste_example": {"type": "string"},
-              "non_ste_example": {"type": "string"}
-            }
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["word_cell", "meaning_or_alternatives", "ste_example", "non_ste_example"],
+                "properties": {
+                  "word_cell": {"type": "string"},
+                  "meaning_or_alternatives": {"type": "string"},
+                  "ste_example": {"type": "string"},
+                  "non_ste_example": {"type": "string"}
+                }
+              },
+              {"type": "null"}
+            ]
           }
         }
       }
