@@ -270,7 +270,10 @@ fn print_human_dictionary_entry(entry: &LexiconEntry) {
 
     if let Some(source) = &entry.source_semantics {
         if entry.senses.is_empty() && !source.meaning_or_alternatives.trim().is_empty() {
-            println!("source meaning/help: {}", source.meaning_or_alternatives.trim());
+            println!(
+                "source meaning/help: {}",
+                source.meaning_or_alternatives.trim()
+            );
         }
         if !source.ste_example.trim().is_empty() {
             println!("STE example: {}", source.ste_example.trim());
