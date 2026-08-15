@@ -50,6 +50,32 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
             ["CHECK AGAIN"],
         )
 
+    def test_recovers_verb_forms_from_source_cell_line_structure(self):
+        entry = {
+            "headword": "CHECK ON",
+            "part_of_speech": "v",
+            "word_cell": (
+                "CHECK ON (v),\n"
+                "CHECKS ON\n"
+                "CHECKED ON\n"
+                "No other verb\n"
+                "forms."
+            ),
+            "forms": ["CHECK ON CHECKS ON", "CHECKED ON"],
+        }
+        self.assertEqual(
+            normalize_forms(entry),
+            ["CHECK ON", "CHECKS ON", "CHECKED ON"],
+        )
+
+        parenthesized_headword = {
+            "headword": "zorb (from)",
+            "part_of_speech": "v",
+            "word_cell": "zorb (from) (v)",
+            "forms": ["zorb (from)"],
+        }
+        self.assertEqual(normalize_forms(parenthesized_headword), ["zorb (from)"])
+
     def test_rejects_source_identity_mismatch(self):
         source = load("source.json")
         private_manifest = load("manifest.json")
