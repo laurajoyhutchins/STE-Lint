@@ -28,6 +28,12 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
         else {
             continue;
         };
+        if !text[aux_end..participle_start]
+            .chars()
+            .all(char::is_whitespace)
+        {
+            continue;
+        }
         let participle = &text[participle_start..participle_end];
         let (code, severity, message) = if ambiguous {
             (
