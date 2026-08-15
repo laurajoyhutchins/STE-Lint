@@ -26,22 +26,46 @@ struct LineSpan {
 }
 
 pub(crate) fn note_blocks(text: &str) -> Vec<NoteBlock> {
+    let lines = line_spans(text);
     let mut blocks = Vec::new();
-    for (start, end) in paragraph_ranges(text) {
-        let paragraph = &text[start..end];
-        let leading = paragraph.len() - paragraph.trim_start().len();
-        let label_start = start + leading;
-        let remaining = &text[label_start..end];
-        if remaining.len() < 5 || !remaining[..5].eq_ignore_ascii_case("NOTE:") {
+    let mut index = 0;
+
+    while index < lines.len() {
+        let line = lines[index];
+        let raw = line_text(text, line);
+        let trimmed = raw.trim_start();
+        let indent = raw.len() - trimmed.len();
+        if trimmed.len() < 5 || !trimmed[..5].eq_ignore_ascii_case("NOTE:") {
+            index += 1;
             continue;
         }
+
+        let label_start = line.start + indent;
         let after_label = label_start + 5;
-        let content_ws = text[after_label..end].len() - text[after_label..end].trim_start().len();
+        let content_ws = text[after_label..line.start + raw.len()].len()
+            - text[after_label..line.start + raw.len()].trim_start().len();
+        let mut end = line.end;
+        let mut continuation = index + 1;
+        while continuation < lines.len() {
+            let next_line = lines[continuation];
+            let next_raw = line_text(text, next_line);
+            if next_raw.trim().is_empty() {
+                break;
+            }
+            let next_indent = next_raw.len() - next_raw.trim_start().len();
+            if next_indent <= indent {
+                break;
+            }
+            end = next_line.end;
+            continuation += 1;
+        }
+
         blocks.push(NoteBlock {
-            start,
+            start: line.start,
             end,
             content_start: after_label + content_ws,
         });
+        index = continuation.max(index + 1);
     }
     blocks
 }
@@ -102,29 +126,6 @@ pub(crate) fn overlaps_note(start: usize, end: usize, notes: &[NoteBlock]) -> bo
     notes
         .iter()
         .any(|note| start < note.end && note.start < end)
-}
-
-fn paragraph_ranges(text: &str) -> Vec<(usize, usize)> {
-    let lines = line_spans(text);
-    let mut ranges = Vec::new();
-    let mut paragraph_start = None;
-    let mut paragraph_end = 0;
-
-    for line in lines {
-        let raw = line_text(text, line);
-        if raw.trim().is_empty() {
-            if let Some(start) = paragraph_start.take() {
-                ranges.push((start, paragraph_end));
-            }
-            continue;
-        }
-        paragraph_start.get_or_insert(line.start);
-        paragraph_end = line.end;
-    }
-    if let Some(start) = paragraph_start {
-        ranges.push((start, paragraph_end));
-    }
-    ranges
 }
 
 fn list_item_layout(line: &str) -> Option<(usize, usize)> {
@@ -202,12 +203,12 @@ mod tests {
 
     #[test]
     fn note_block_excludes_label_from_content() {
-        let text = "NOTE: REMOVE THIS.\nCONTINUATION.\n\nREMOVE THAT.";
+        let text = "REMOVE THAT.\nNOTE: REMOVE THIS.\n  CONTINUATION.\nREMOVE THAT.";
         let notes = note_blocks(text);
         assert_eq!(notes.len(), 1);
         assert_eq!(
             &text[notes[0].content_start..notes[0].end],
-            "REMOVE THIS.\nCONTINUATION.\n"
+            "REMOVE THIS.\n  CONTINUATION.\n"
         );
     }
 
