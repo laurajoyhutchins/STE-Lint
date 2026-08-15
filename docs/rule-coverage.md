@@ -29,11 +29,11 @@ The status vocabulary deliberately separates “not implemented” from “canno
 At this gate the 53 rules classify as:
 
 - 2 `implemented`;
-- 15 `partial`;
-- 31 `context_required`;
+- 17 `partial`;
+- 29 `context_required`;
 - 5 `not_implemented`.
 
-Only Rules 8.5 and 8.7 are marked `implemented`. This is intentionally strict. For example, sentence-length enforcement is executable, but Rules 5.1 and 6.3 remain `partial` because some Issue 9 one-word categories need document or identity context. Rule 3.4 remains `partial` because direct perfect-tense constructions are checked while other auxiliary constructions need deeper grammar.
+Only Rules 8.5 and 8.7 are marked `implemented`. This is intentionally strict. Rules 4.3 and 5.5 are now `partial`: simple vertical-list mechanics and bounded note behavior are executable, but nested/wrapped lists, sentence-versus-fragment classification, article choice, and non-imperative ways of expressing note requirements still need deeper structure or grammar. Sentence-length enforcement remains partial for Rules 5.1 and 6.3 because some Issue 9 one-word categories need document or identity context. Rule 3.4 remains partial because direct perfect-tense constructions are checked while other auxiliary constructions need deeper grammar.
 
 ## Claim boundary
 

@@ -1,3 +1,4 @@
+mod document_structure;
 mod passes;
 mod structure;
 
@@ -73,6 +74,8 @@ fn collect_diagnostics(
     let mut diagnostics = passes::punctuation::check(text);
     diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(text, mode));
+    diagnostics.extend(passes::lists::check(text));
+    diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode));
     diagnostics.extend(passes::perfect::check(text, lexicon));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
