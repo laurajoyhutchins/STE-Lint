@@ -80,7 +80,6 @@ def _verb_form_sequence_from_word_cell(entry: dict) -> list[str] | None:
             form = " ".join(segment.split()).strip(" ,.")
             if form.lower().startswith("also "):
                 form = form[5:].strip()
-            form = form.rstrip(")").strip()
             if form:
                 sequence.append(form)
 
