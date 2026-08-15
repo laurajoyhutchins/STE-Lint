@@ -8,6 +8,7 @@ use ste_core::{Diagnostic, Severity, Span};
 pub enum TechnicalTermKind {
     TechnicalNoun,
     TechnicalVerb,
+    TechnicalNounAndVerb,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -101,7 +102,10 @@ mod tests {
         let glossary =
             Glossary::from_json(include_str!("../../../fixtures/glossary/valid.json")).unwrap();
         assert!(glossary.contains_term("busway"));
-        assert_eq!(glossary.lookup_term("busway").unwrap().status, TermStatus::Approved);
+        assert_eq!(
+            glossary.lookup_term("busway").unwrap().status,
+            TermStatus::Approved
+        );
         assert!(glossary.validate().is_empty());
     }
 
@@ -128,6 +132,31 @@ mod tests {
         assert_eq!(term.term, "busway");
         assert_eq!(term.status, TermStatus::Deprecated);
         assert!(glossary.contains_term("BUS   DUCT"));
+    }
+
+    #[test]
+    fn same_term_can_be_governed_as_noun_and_verb() {
+        let glossary = Glossary::from_json(
+            r#"{
+              "terms": [{
+                "term": "plate",
+                "kind": "technical_noun_and_verb",
+                "definition": "A synthetic term with both grammatical uses.",
+                "domain": "manufacturing",
+                "preferred": true,
+                "aliases": [],
+                "examples": [],
+                "provenance": ["fixture"],
+                "status": "approved"
+              }]
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(
+            glossary.lookup_term("plate").unwrap().kind,
+            TechnicalTermKind::TechnicalNounAndVerb
+        );
     }
 
     #[test]
