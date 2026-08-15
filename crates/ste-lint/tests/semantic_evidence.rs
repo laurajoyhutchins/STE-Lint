@@ -65,8 +65,14 @@ fn mixed_dictionary_identity_exposes_pos_role_and_semantic_evidence() {
     let evidence = diagnostic.evidence.as_ref().unwrap();
 
     assert_eq!(evidence["requires_disambiguation"], true);
-    assert_eq!(evidence["possible_parts_of_speech"], serde_json::json!(["noun", "verb"]));
-    assert_eq!(evidence["role_evidence"], serde_json::json!(["nominal", "verbal"]));
+    assert_eq!(
+        evidence["possible_parts_of_speech"],
+        serde_json::json!(["noun", "verb"])
+    );
+    assert_eq!(
+        evidence["role_evidence"],
+        serde_json::json!(["nominal", "verbal"])
+    );
 
     let candidates = evidence["candidates"].as_array().unwrap();
     assert_eq!(candidates.len(), 2);
@@ -76,10 +82,19 @@ fn mixed_dictionary_identity_exposes_pos_role_and_semantic_evidence() {
         "Use only for the inspection sense."
     );
     assert_eq!(candidates[0]["interpretation_state"], "interpreted");
-    assert_eq!(candidates[0]["provenance"]["source_pages"], serde_json::json!([150]));
+    assert_eq!(
+        candidates[0]["provenance"]["source_pages"],
+        serde_json::json!([150])
+    );
 
     assert_eq!(candidates[1]["alternatives"][0]["text"], "INSPECT");
-    assert_eq!(candidates[1]["alternatives"][0]["strategy"], "word_replacement");
+    assert_eq!(
+        candidates[1]["alternatives"][0]["strategy"],
+        "word_replacement"
+    );
     assert_eq!(candidates[1]["interpretation_state"], "structural");
-    assert_eq!(candidates[1]["provenance"]["source_pages"], serde_json::json!([151]));
+    assert_eq!(
+        candidates[1]["provenance"]["source_pages"],
+        serde_json::json!([151])
+    );
 }
