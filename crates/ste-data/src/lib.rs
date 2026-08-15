@@ -278,12 +278,12 @@ impl RuntimeLexicon {
         &self,
         manifest: &RuntimeIdentityManifest,
     ) -> Result<(), RuntimeDataError> {
-        require_contract("standard", &self.document.metadata.standard, &manifest.standard)?;
         require_contract(
-            "issue",
-            self.document.metadata.issue,
-            manifest.issue,
+            "standard",
+            &self.document.metadata.standard,
+            &manifest.standard,
         )?;
+        require_contract("issue", self.document.metadata.issue, manifest.issue)?;
         require_contract("scope", &self.document.metadata.scope, &manifest.scope)?;
 
         let authority = self
@@ -362,11 +362,7 @@ impl RuntimeLexicon {
     }
 }
 
-fn require_contract<T>(
-    field: &'static str,
-    actual: T,
-    expected: T,
-) -> Result<(), RuntimeDataError>
+fn require_contract<T>(field: &'static str, actual: T, expected: T) -> Result<(), RuntimeDataError>
 where
     T: PartialEq + ToString,
 {
