@@ -4,11 +4,7 @@ use ste_glossary::{Glossary, TechnicalTerm, TechnicalTermKind, TermStatus};
 
 use crate::LintMode;
 
-pub(crate) fn check(
-    text: &str,
-    glossary: Option<&Glossary>,
-    mode: LintMode,
-) -> Vec<Diagnostic> {
+pub(crate) fn check(text: &str, glossary: Option<&Glossary>, mode: LintMode) -> Vec<Diagnostic> {
     let Some(glossary) = glossary else {
         return Vec::new();
     };
