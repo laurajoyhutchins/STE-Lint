@@ -82,6 +82,7 @@ def _verb_forms_from_word_cell(entry: dict) -> list[str] | None:
             form = " ".join(segment.split()).strip(" ,.")
             if form.lower().startswith("also "):
                 form = form[5:].strip()
+            form = form.rstrip(")").strip()
             if not form or form in seen:
                 continue
             seen.add(form)
@@ -108,6 +109,34 @@ def normalize_forms(entry: dict) -> list[str]:
         seen.add(form)
         normalized.append(form)
     return normalized or [entry["headword"]]
+
+
+def derive_verb_paradigm(entry: dict) -> dict | None:
+    forms = _verb_forms_from_word_cell(entry)
+    if forms is None:
+        return None
+
+    base_form = forms[0]
+    if base_form.upper() == "BE":
+        simple_present_variants = [
+            form for form in forms[1:] if form.upper() in {"IS", "ARE"}
+        ]
+        simple_past_variants = [
+            form for form in forms[1:] if form.upper() in {"WAS", "WERE"}
+        ]
+        return {
+            "base_form": base_form,
+            "simple_present_variants": simple_present_variants,
+            "simple_past_variants": simple_past_variants,
+            "past_participle": None,
+        }
+
+    return {
+        "base_form": base_form,
+        "simple_present_variants": forms[1:2],
+        "simple_past_variants": forms[2:3],
+        "past_participle": forms[3] if len(forms) >= 4 else None,
+    }
 
 
 def _require_equal(label: str, actual, expected) -> None:
@@ -238,7 +267,7 @@ def validate_dictionary_artifact(
 
 
 def compile_entry(index: int, entry: dict) -> dict:
-    return {
+    compiled = {
         "lemma": entry["headword"],
         "status": "approved" if entry["approved"] else "unapproved",
         "part_of_speech": map_part_of_speech(entry.get("part_of_speech")),
@@ -258,6 +287,11 @@ def compile_entry(index: int, entry: dict) -> dict:
             "non_ste_example": entry.get("non_ste_example", ""),
         },
     }
+    if entry.get("approved") is True:
+        paradigm = derive_verb_paradigm(entry)
+        if paradigm is not None:
+            compiled["verb_paradigm"] = paradigm
+    return compiled
 
 
 def compile_document(
