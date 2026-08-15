@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -24,7 +25,7 @@ class AuthorityValidationError(ValueError):
 
 
 def load_json(path: Path):
-    return json.loads(path.read_text())
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def map_part_of_speech(source_pos: str | None) -> str | None:
@@ -164,6 +165,36 @@ def validate_authority(
     )
 
 
+def validate_dictionary_artifact(
+    dictionary_bytes: bytes,
+    private_manifest: dict,
+    verified_manifest: dict,
+) -> None:
+    private_artifact = private_manifest.get("artifacts", {}).get("dictionary.json", {})
+    verified_artifact_sha256 = (
+        verified_manifest.get("verified_ingest", {})
+        .get("artifact_sha256", {})
+        .get("dictionary.json")
+    )
+    actual_sha256 = hashlib.sha256(dictionary_bytes).hexdigest()
+
+    _require_equal(
+        "private manifest dictionary.json bytes",
+        len(dictionary_bytes),
+        private_artifact.get("bytes"),
+    )
+    _require_equal(
+        "private manifest dictionary.json sha256",
+        actual_sha256,
+        private_artifact.get("sha256"),
+    )
+    _require_equal(
+        "verified manifest dictionary.json sha256",
+        actual_sha256,
+        verified_artifact_sha256,
+    )
+
+
 def compile_entry(index: int, entry: dict) -> dict:
     return {
         "lemma": entry["headword"],
@@ -194,9 +225,16 @@ def compile_document(
 ) -> dict:
     source = load_json(authority_dir / "source.json")
     private_manifest = load_json(authority_dir / "manifest.json")
-    dictionary = load_json(authority_dir / "dictionary.json")
+    dictionary_path = authority_dir / "dictionary.json"
+    dictionary_bytes = dictionary_path.read_bytes()
+    dictionary = json.loads(dictionary_bytes.decode("utf-8"))
     verified_manifest = load_json(verified_manifest_path)
 
+    validate_dictionary_artifact(
+        dictionary_bytes,
+        private_manifest,
+        verified_manifest,
+    )
     validate_authority(
         source,
         private_manifest,
@@ -246,7 +284,7 @@ def render_document(document: dict) -> str:
 def write_document(document: dict, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(render_document(document))
+    temporary.write_text(render_document(document), encoding="utf-8")
     temporary.replace(path)
 
 
