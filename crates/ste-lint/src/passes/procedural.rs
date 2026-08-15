@@ -38,7 +38,8 @@ fn imperative_forms(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
             continue;
         }
         let entry = candidates[0];
-        if entry.status != ApprovalStatus::Approved || entry.part_of_speech != Some(PartOfSpeech::Verb)
+        if entry.status != ApprovalStatus::Approved
+            || entry.part_of_speech != Some(PartOfSpeech::Verb)
         {
             continue;
         }
@@ -226,7 +227,11 @@ fn first_word(text: &str, start: usize, end: usize) -> Option<(&str, usize, usiz
         } else if let Some(relative_start) = word_start {
             let absolute_start = start + relative_start;
             let absolute_end = start + relative;
-            return Some((&text[absolute_start..absolute_end], absolute_start, absolute_end));
+            return Some((
+                &text[absolute_start..absolute_end],
+                absolute_start,
+                absolute_end,
+            ));
         }
     }
     word_start.map(|relative_start| {
