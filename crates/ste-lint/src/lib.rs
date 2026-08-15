@@ -78,6 +78,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode));
     diagnostics.extend(passes::perfect::check(text, lexicon));
+    diagnostics.extend(passes::technical_roles::check(text, glossary, mode));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
     diagnostics
