@@ -9,9 +9,9 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | `STE-PUNC-001` | error | A semicolon is present. | 8.1 | `;` to `.` |
 | `STE-LEN-001` | error | A procedural sentence exceeds 20 words. | 5.1 | none |
 | `STE-LEN-002` | error | A descriptive sentence exceeds 25 words. | 6.3 | none |
-| `STE-LEX-001` | error | Every runtime dictionary record for a token form is unapproved. | 1.1, 9.2 | none |
-| `STE-LEX-002` | blocked | A token form has both approved and unapproved runtime dictionary records, so grammar or sense must be resolved before approval can be determined. | 1.1, 9.2 | none |
-| `STE-TERM-001` | blocked | A prose token is absent from both the runtime lexicon and project glossary. | 1.1 | none |
+| `STE-LEX-001` | error | Every runtime dictionary record for a matched word or phrase form is unapproved. | 1.1, 9.2 | none |
+| `STE-LEX-002` | blocked | A matched word or phrase form has both approved and unapproved runtime dictionary records, so grammar or sense must be resolved before approval can be determined. | 1.1, 9.2 | none |
+| `STE-TERM-001` | blocked | A prose token is absent from both the runtime lexicon and project glossary after phrase matching. | 1.1 | none |
 | `TERM-DUP-001` | error | Two glossary entries normalize to the same term identity. | project glossary integrity | none |
 | `SEM-MODALITY-001` | error | A proposed rewrite changes protected modality tokens. | STE-Lint repair safety | none |
 | `SEM-NEGATION-001` | error | A proposed rewrite changes protected negation tokens. | STE-Lint repair safety | none |
@@ -25,13 +25,15 @@ The current sentence pass splits on `.`, `?`, and `!`. Word counting splits Unic
 
 This is not yet the complete ASD-STE100 word-count algorithm.
 
-### Lexical token handling
+### Lexical token and phrase handling
 
-The lexical pass strips surrounding sentence punctuation before it classifies a token. It then ignores tokens that still contain `_`, `/`, `\\`, `-`, `.`, or a digit. This keeps normal sentence-final words such as `acceptable.` visible to the lexicon while avoiding false prose diagnostics for identifiers, paths, versions, and similar machine tokens such as `occurrence_id`, `path/to/file`, or `1.2`.
+The lexical pass strips surrounding sentence punctuation before it classifies prose. It ignores tokens that still contain `_`, `/`, `\\`, `-`, `.`, or a digit. This keeps normal sentence-final words such as `acceptable.` visible to the lexicon while avoiding false prose diagnostics for identifiers, paths, versions, and similar machine tokens such as `occurrence_id`, `path/to/file`, or `1.2`.
 
 A token ignored by this pass is not therefore declared STE-compliant. It is simply outside this lexical check.
 
-The full Issue 9 structural dictionary contains spellings shared by multiple records. STE-Lint preserves every candidate rather than selecting the last record. When all candidates are approved, the lexical approval check passes. When all candidates are unapproved, `STE-LEX-001` is emitted. When approval status differs between candidates, `STE-LEX-002` blocks rather than guessing a part of speech or approved sense.
+Before classifying individual tokens, STE-Lint performs longest-match lookup over adjacent alphabetic tokens separated only by whitespace. This lets approved multiword dictionary or glossary forms suppress false component diagnostics and lets unapproved multiword dictionary forms produce one diagnostic over the full phrase. Phrase matching never crosses punctuation.
+
+The full Issue 9 structural dictionary also contains forms shared by multiple records. STE-Lint preserves every candidate rather than selecting the last record. When all candidates are approved, the lexical approval check passes. When all candidates are unapproved, `STE-LEX-001` is emitted. When approval status differs between candidates, `STE-LEX-002` blocks rather than guessing a part of speech or approved sense.
 
 ### Unknown terminology
 
