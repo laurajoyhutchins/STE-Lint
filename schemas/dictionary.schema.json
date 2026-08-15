@@ -69,8 +69,10 @@
               {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["base_form", "simple_present_variants", "simple_past_variants", "past_participle"],
+                "required": ["classification", "source_sequence", "base_form", "simple_present_variants", "simple_past_variants", "past_participle"],
                 "properties": {
+                  "classification": {"enum": ["lexical", "irregular_auxiliary", "defective_modal"]},
+                  "source_sequence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
                   "base_form": {"type": "string", "minLength": 1},
                   "simple_present_variants": {"type": "array", "items": {"type": "string", "minLength": 1}},
                   "simple_past_variants": {"type": "array", "items": {"type": "string", "minLength": 1}},
