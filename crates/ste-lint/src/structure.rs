@@ -121,14 +121,8 @@ fn push_regular_units(
     }
 }
 
-fn push_span_and_parentheticals(
-    text: &str,
-    start: usize,
-    end: usize,
-    units: &mut Vec<CountUnit>,
-) {
-    let slice = &text[start..end];
-    let word_count = count_issue9_words(slice);
+fn push_span_and_parentheticals(text: &str, start: usize, end: usize, units: &mut Vec<CountUnit>) {
+    let word_count = count_issue9_words(&text[start..end]);
     if word_count > 0 {
         units.push(CountUnit {
             start,
@@ -154,9 +148,8 @@ fn sentence_spans(
     let mut sentence_start = start;
     let mut paren_depth = 0usize;
     let mut quote_end: Option<char> = None;
-    let mut chars = text[start..end].char_indices().peekable();
 
-    while let Some((relative, character)) = chars.next() {
+    for (relative, character) in text[start..end].char_indices() {
         let absolute = start + relative;
         if let Some(expected) = quote_end {
             if character == expected {
@@ -192,7 +185,7 @@ fn sentence_spans(
         let boundary = match character {
             '?' | '!' => true,
             '.' => is_sentence_period(text, absolute, end),
-            ':' if colon_terminal => true,
+            ':' if colon_terminal && absolute + 1 == end => true,
             _ => false,
         };
 
@@ -227,8 +220,8 @@ fn is_sentence_period(text: &str, period: usize, range_end: usize) -> bool {
     let token_start = text[..period]
         .rfind(|character: char| character.is_whitespace())
         .map_or(0, |index| index + 1);
-    let token = text[token_start..period]
-        .trim_matches(|character: char| character.is_ascii_punctuation());
+    let token =
+        text[token_start..period].trim_matches(|character: char| character.is_ascii_punctuation());
     if token.eq_ignore_ascii_case("no") && next_nonspace.is_some_and(|c| c.is_ascii_digit()) {
         return false;
     }
@@ -251,29 +244,29 @@ fn count_issue9_words(text: &str) -> usize {
     while index < tokens.len() {
         let token = tokens[index];
         if token.eq_ignore_ascii_case("no")
-            && tokens.get(index + 1).is_some_and(|next| is_identifier(next))
+            && tokens
+                .get(index + 1)
+                .is_some_and(|next| is_identifier(next))
         {
             count += 1;
             index += 2;
             continue;
         }
 
-        if is_numeric(token) {
-            if let Some(next) = tokens.get(index + 1) {
-                if is_clock_abbreviation(next) || is_unit(next) {
-                    count += 1;
-                    index += 2;
-                    continue;
-                }
-                if is_degree_word(next)
-                    && tokens
-                        .get(index + 2)
-                        .is_some_and(|third| is_temperature_scale(third))
-                {
-                    count += 1;
-                    index += 3;
-                    continue;
-                }
+        if is_numeric(token) && let Some(next) = tokens.get(index + 1) {
+            if is_clock_abbreviation(next) || is_unit(next) {
+                count += 1;
+                index += 2;
+                continue;
+            }
+            if is_degree_word(next)
+                && tokens
+                    .get(index + 2)
+                    .is_some_and(|third| is_temperature_scale(third))
+            {
+                count += 1;
+                index += 3;
+                continue;
             }
         }
 
@@ -349,10 +342,11 @@ fn top_level_parenthetical_spans(text: &str, start: usize, end: usize) -> Vec<(u
 }
 
 fn clean_token(token: &str) -> &str {
-    token.trim_matches(|character: char| {
-        character.is_ascii_punctuation() && !matches!(character, '-' | '.')
-    })
-    .trim_end_matches(['.', ',', ':', ';', '?', '!'])
+    token
+        .trim_matches(|character: char| {
+            character.is_ascii_punctuation() && !matches!(character, '-' | '.')
+        })
+        .trim_end_matches(['.', ',', ':', ';', '?', '!'])
 }
 
 fn is_numeric(token: &str) -> bool {
@@ -363,11 +357,14 @@ fn is_numeric(token: &str) -> bool {
 }
 
 fn is_identifier(token: &str) -> bool {
-    token.chars().any(|c| c.is_ascii_digit())
+    token.chars().any(|character| character.is_ascii_digit())
 }
 
 fn is_clock_abbreviation(token: &str) -> bool {
-    matches!(token.to_ascii_lowercase().as_str(), "a.m" | "p.m" | "am" | "pm")
+    matches!(
+        token.to_ascii_lowercase().as_str(),
+        "a.m" | "p.m" | "am" | "pm"
+    )
 }
 
 fn is_degree_word(token: &str) -> bool {
@@ -375,22 +372,95 @@ fn is_degree_word(token: &str) -> bool {
 }
 
 fn is_temperature_scale(token: &str) -> bool {
-    matches!(token.to_ascii_lowercase().as_str(), "celsius" | "fahrenheit")
+    matches!(
+        token.to_ascii_lowercase().as_str(),
+        "celsius" | "fahrenheit"
+    )
 }
 
 fn is_unit(token: &str) -> bool {
-    matches!(
-        token.to_ascii_lowercase().as_str(),
-        "a" | "ma" | "v" | "mv" | "kv" | "w" | "kw" | "n" | "nm" | "hz" | "khz"
-            | "mhz" | "mm" | "cm" | "m" | "km" | "in" | "ft" | "g" | "kg" | "mg"
-            | "l" | "ml" | "pa" | "kpa" | "mpa" | "psi" | "bar" | "s" | "ms" | "min"
-            | "h" | "hr" | "ohm" | "ohms" | "kilogram" | "kilograms" | "gram" | "grams"
-            | "meter" | "meters" | "metre" | "metres" | "millimeter" | "millimeters"
-            | "millimetre" | "millimetres" | "centimeter" | "centimeters" | "centimetre"
-            | "centimetres" | "inch" | "inches" | "foot" | "feet" | "second" | "seconds"
-            | "minute" | "minutes" | "hour" | "hours" | "volt" | "volts" | "ampere"
-            | "amperes" | "watt" | "watts" | "newton" | "newtons"
-    ) || matches!(token, "°C" | "°F" | "Ω" | "Ω")
+    if matches!(
+        token,
+        "A" | "mA"
+            | "V"
+            | "mV"
+            | "kV"
+            | "W"
+            | "kW"
+            | "N"
+            | "Nm"
+            | "Hz"
+            | "kHz"
+            | "MHz"
+            | "°C"
+            | "°F"
+            | "Ω"
+            | "Ω"
+    ) {
+        return true;
+    }
+
+    const LOWER_UNITS: &[&str] = &[
+        "mm",
+        "cm",
+        "m",
+        "km",
+        "in",
+        "ft",
+        "g",
+        "kg",
+        "mg",
+        "l",
+        "ml",
+        "pa",
+        "kpa",
+        "mpa",
+        "psi",
+        "bar",
+        "s",
+        "ms",
+        "min",
+        "h",
+        "hr",
+        "ohm",
+        "ohms",
+        "kilogram",
+        "kilograms",
+        "gram",
+        "grams",
+        "meter",
+        "meters",
+        "metre",
+        "metres",
+        "millimeter",
+        "millimeters",
+        "millimetre",
+        "millimetres",
+        "centimeter",
+        "centimeters",
+        "centimetre",
+        "centimetres",
+        "inch",
+        "inches",
+        "foot",
+        "feet",
+        "second",
+        "seconds",
+        "minute",
+        "minutes",
+        "hour",
+        "hours",
+        "volt",
+        "volts",
+        "ampere",
+        "amperes",
+        "watt",
+        "watts",
+        "newton",
+        "newtons",
+    ];
+    let lower = token.to_ascii_lowercase();
+    LOWER_UNITS.contains(&lower.as_str())
 }
 
 fn list_item_content_offset(line: &str) -> Option<usize> {
