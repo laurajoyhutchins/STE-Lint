@@ -100,10 +100,12 @@ fn dual_role_governed_term_is_valid_in_both_bounded_roles() {
             Some(&glossary),
             LintOptions { mode, fix: false },
         );
-        assert!(!result
-            .diagnostics
-            .iter()
-            .any(|item| item.code == "STE-TERM-003" || item.code == "STE-TERM-004"));
+        assert!(
+            !result
+                .diagnostics
+                .iter()
+                .any(|item| item.code == "STE-TERM-003" || item.code == "STE-TERM-004")
+        );
     }
 }
 
@@ -120,10 +122,12 @@ fn governed_single_role_term_is_not_rejected_when_local_role_is_compatible() {
             fix: false,
         },
     );
-    assert!(!noun_result
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-TERM-003"));
+    assert!(
+        !noun_result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-TERM-003")
+    );
 
     let verb_glossary = glossary("ream", "technical_verb");
     let verb_result = lint_text(
@@ -135,8 +139,10 @@ fn governed_single_role_term_is_not_rejected_when_local_role_is_compatible() {
             fix: false,
         },
     );
-    assert!(!verb_result
-        .diagnostics
-        .iter()
-        .any(|item| item.code == "STE-TERM-004"));
+    assert!(
+        !verb_result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-TERM-004")
+    );
 }
