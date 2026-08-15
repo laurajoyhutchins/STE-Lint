@@ -95,11 +95,21 @@ pub struct SourceSemantics {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VerbParadigm {
+    pub base_form: String,
+    pub simple_present_variants: Vec<String>,
+    pub simple_past_variants: Vec<String>,
+    pub past_participle: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LexiconEntry {
     pub lemma: String,
     pub status: ApprovalStatus,
     pub part_of_speech: Option<PartOfSpeech>,
     pub forms: Vec<String>,
+    #[serde(default)]
+    pub verb_paradigm: Option<VerbParadigm>,
     pub senses: Vec<Sense>,
     pub alternatives: Vec<Alternative>,
     pub restrictions: Vec<String>,
@@ -482,6 +492,41 @@ mod tests {
                 .meaning_or_alternatives,
             "synthetic source meaning"
         );
+    }
+
+    #[test]
+    fn verb_paradigm_round_trips_through_runtime_model() {
+        let json = r#"{
+          "metadata": {
+            "standard": "ASD-STE100",
+            "issue": 9,
+            "date": "2025-01-15",
+            "scope": "synthetic_verb_paradigm"
+          },
+          "entries": [{
+            "lemma": "REMOVE",
+            "status": "approved",
+            "part_of_speech": "verb",
+            "forms": ["REMOVE", "REMOVES", "REMOVED"],
+            "verb_paradigm": {
+              "base_form": "REMOVE",
+              "simple_present_variants": ["REMOVES"],
+              "simple_past_variants": ["REMOVED"],
+              "past_participle": "REMOVED"
+            },
+            "senses": [],
+            "alternatives": [],
+            "restrictions": []
+          }]
+        }"#;
+
+        let lexicon = RuntimeLexicon::from_json(json).unwrap();
+        let entry = lexicon.lookup_form("removed").unwrap();
+        let paradigm = entry.verb_paradigm.as_ref().unwrap();
+        assert_eq!(paradigm.base_form, "REMOVE");
+        assert_eq!(paradigm.simple_present_variants, vec!["REMOVES"]);
+        assert_eq!(paradigm.simple_past_variants, vec!["REMOVED"]);
+        assert_eq!(paradigm.past_participle.as_deref(), Some("REMOVED"));
     }
 
     #[test]
