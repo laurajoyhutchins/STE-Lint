@@ -41,7 +41,7 @@ fn technical_noun_in_clear_command_role_is_rejected() {
     let lexicon = empty_lexicon();
     let glossary = glossary("oil", "technical_noun");
     let result = lint_text(
-        "Oil surface.",
+        "Oil the surface.",
         &lexicon,
         Some(&glossary),
         LintOptions {
@@ -91,7 +91,7 @@ fn dual_role_governed_term_is_valid_in_both_bounded_roles() {
     let lexicon = empty_lexicon();
     let glossary = glossary("drill", "technical_noun_and_verb");
     for (text, mode) in [
-        ("Drill hole.", LintMode::Procedural),
+        ("Drill a hole.", LintMode::Procedural),
         ("The drill is ready.", LintMode::Descriptive),
     ] {
         let result = lint_text(
@@ -131,7 +131,7 @@ fn governed_single_role_term_is_not_rejected_when_local_role_is_compatible() {
 
     let verb_glossary = glossary("ream", "technical_verb");
     let verb_result = lint_text(
-        "Ream hole.",
+        "Ream the hole.",
         &lexicon,
         Some(&verb_glossary),
         LintOptions {
