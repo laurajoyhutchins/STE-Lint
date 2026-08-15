@@ -10,6 +10,7 @@ from pathlib import Path
 from build_runtime_lexicon import (
     AuthorityValidationError,
     compile_document,
+    derive_verb_paradigm,
     map_part_of_speech,
     normalize_forms,
     validate_authority,
@@ -75,6 +76,58 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
             "forms": ["zorb (from)"],
         }
         self.assertEqual(normalize_forms(parenthesized_headword), ["zorb (from)"])
+
+    def test_derives_source_ordered_verb_paradigms_without_inventing_slots(self):
+        restricted = {
+            "headword": "CHECK",
+            "part_of_speech": "v",
+            "word_cell": "CHECK (v),\nCHECKS,\nCHECKED\nNo other verb forms.",
+        }
+        self.assertEqual(
+            derive_verb_paradigm(restricted),
+            {
+                "base_form": "CHECK",
+                "simple_present_variants": ["CHECKS"],
+                "simple_past_variants": ["CHECKED"],
+                "past_participle": None,
+            },
+        )
+
+        regular = {
+            "headword": "REMOVE",
+            "part_of_speech": "v",
+            "word_cell": "REMOVE (v),\nREMOVES,\nREMOVED,\nREMOVED",
+        }
+        self.assertEqual(
+            derive_verb_paradigm(regular),
+            {
+                "base_form": "REMOVE",
+                "simple_present_variants": ["REMOVES"],
+                "simple_past_variants": ["REMOVED"],
+                "past_participle": "REMOVED",
+            },
+        )
+
+        be = {
+            "headword": "BE",
+            "part_of_speech": "v",
+            "word_cell": "BE (v),\nIS,\nWAS\n(also ARE,\nWERE)\nNo other verb forms.",
+        }
+        self.assertEqual(
+            derive_verb_paradigm(be),
+            {
+                "base_form": "BE",
+                "simple_present_variants": ["IS", "ARE"],
+                "simple_past_variants": ["WAS", "WERE"],
+                "past_participle": None,
+            },
+        )
+
+        self.assertIsNone(
+            derive_verb_paradigm(
+                {"headword": "CHECK", "part_of_speech": "n", "word_cell": "CHECK (n)"}
+            )
+        )
 
     def test_rejects_source_identity_mismatch(self):
         source = load("source.json")
@@ -152,6 +205,15 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
 
         check = first["entries"][0]
         self.assertEqual(check["forms"], ["CHECK", "CHECKS", "CHECKED"])
+        self.assertEqual(
+            check["verb_paradigm"],
+            {
+                "base_form": "CHECK",
+                "simple_present_variants": ["CHECKS"],
+                "simple_past_variants": ["CHECKED"],
+                "past_participle": None,
+            },
+        )
         self.assertEqual(check["interpretation_state"], "structural")
         self.assertEqual(check["provenance"]["source_pages"], [1])
         self.assertEqual(
@@ -170,6 +232,7 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
 
         expression = first["entries"][3]
         self.assertIsNone(expression["part_of_speech"])
+        self.assertIsNone(expression["verb_paradigm"])
         self.assertEqual(expression["forms"], ["CHECK AGAIN"])
 
         contextual = first["entries"][4]
