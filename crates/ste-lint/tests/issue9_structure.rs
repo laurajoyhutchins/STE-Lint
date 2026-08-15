@@ -3,16 +3,11 @@ use ste_lint::{LintMode, LintOptions, lint_text};
 
 fn codes(text: &str, mode: LintMode) -> Vec<String> {
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    lint_text(
-        text,
-        &lexicon,
-        None,
-        LintOptions { mode, fix: false },
-    )
-    .diagnostics
-    .into_iter()
-    .map(|diagnostic| diagnostic.code)
-    .collect()
+    lint_text(text, &lexicon, None, LintOptions { mode, fix: false })
+        .diagnostics
+        .into_iter()
+        .map(|diagnostic| diagnostic.code)
+        .collect()
 }
 
 #[test]
@@ -69,8 +64,10 @@ fn six_sentence_descriptive_paragraph_is_allowed() {
 #[test]
 fn contraction_is_reported_but_possessive_is_not() {
     assert!(codes("IT'S READY.", LintMode::Descriptive).contains(&"STE-SYN-001".to_string()));
-    assert!(!codes("THE ENGINE'S COVER IS OPEN.", LintMode::Descriptive)
-        .contains(&"STE-SYN-001".to_string()));
+    assert!(
+        !codes("THE ENGINE'S COVER IS OPEN.", LintMode::Descriptive)
+            .contains(&"STE-SYN-001".to_string())
+    );
 }
 
 #[test]
