@@ -8,6 +8,8 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | --- | --- | --- | --- | --- |
 | `STE-PUNC-001` | error | A semicolon is present. | 8.1 | `;` to `.` |
 | `STE-SYN-001` | error | A clear contraction is present. | 4.2 | none |
+| `STE-VERB-001` | error | Direct `HAVE`/`HAS`/`HAD` plus an unambiguous approved past participle makes a prohibited perfect-tense construction. | 3.2, 3.4 | none |
+| `STE-VERB-002` | blocked | A direct `HAVE`/`HAS`/`HAD` plus participle-looking form has a competing approved dictionary identity, so grammatical use must be resolved before Rule 3.4 can be asserted. | 3.2, 3.4 | none |
 | `STE-LEN-001` | error | A procedural sentence unit exceeds 20 words. | 5.1; counting semantics 8.4–8.7 | none |
 | `STE-LEN-002` | error | A descriptive sentence unit exceeds 25 words. | 6.3; counting semantics 8.4–8.7 | none |
 | `STE-PARA-001` | error | A descriptive paragraph contains more than six prose sentences. | 6.6 | none |
@@ -46,6 +48,14 @@ This does not silently infer document semantics that raw prose cannot establish.
 
 `STE-SYN-001` implements the deterministic part of Rule 4.2 by detecting clear English contractions, including straight and curly apostrophe forms. Generic possessive `'s` is not blanket-flagged. Contractions receive no autofix because forms such as `'d` can expand differently depending on grammar and meaning.
 
+### Approved verb paradigms and direct perfect tense
+
+The verified private runtime preserves source-listed roles for approved verbs. Ordinary lexical verbs can identify a listed past participle; exceptional auxiliaries and defective modal verbs are represented separately rather than forced through ordinary morphology.
+
+`STE-VERB-001` implements one deterministic slice of Rules 3.2 and 3.4. It detects a directly adjacent `HAVE`, `HAS`, or `HAD` followed by a source-backed approved past participle. Multiword participles are matched longest-first and the pattern never crosses punctuation. The diagnostic carries no autofix because converting a perfect construction to an allowed tense without changing meaning requires sentence-level interpretation.
+
+If the matched participle spelling also has another approved dictionary identity, `STE-VERB-002` blocks instead of asserting the grammatical role. This is deliberately narrower than a full Rule 3 grammar engine. Progressive constructions, passive/condition distinctions after `BE`, modal-plus-auxiliary constructions, participle-as-adjective validation, and general POS/sense resolution remain separate work.
+
 ### Lexical token and phrase handling
 
 The lexical pass strips surrounding sentence punctuation before it classifies prose. It ignores tokens that still contain `_`, `/`, `\\`, `-`, `.`, or a digit. This keeps normal sentence-final words such as `acceptable.` visible to the lexicon while avoiding false prose diagnostics for identifiers, paths, versions, and similar machine tokens such as `occurrence_id`, `path/to/file`, or `1.2`.
@@ -72,8 +82,8 @@ The full Issue 9 structural dictionary contains forms shared by multiple records
 
 ### Autofix boundary
 
-Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes semicolons. Contractions and lexical substitutions are intentionally not automatic when expansion or replacement can depend on grammar, sense, or context.
+Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes semicolons. Contractions, verb-construction rewrites, and lexical substitutions are intentionally not automatic when expansion or replacement can depend on grammar, sense, or context.
 
 ## Planned families
 
-The architecture reserves stable families for POS, morphology, approved senses, syntax, references, relationships, context restrictions, style, additional glossary integrity, and semantic repair safety. A reserved family does not imply that its checks are implemented yet.
+The architecture reserves stable families for additional POS and morphology checks, approved senses, syntax, references, relationships, context restrictions, style, additional glossary integrity, and semantic repair safety. A reserved family does not imply that its checks are implemented yet.
