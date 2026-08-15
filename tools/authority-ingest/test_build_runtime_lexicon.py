@@ -86,6 +86,8 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
         self.assertEqual(
             derive_verb_paradigm(restricted),
             {
+                "classification": "lexical",
+                "source_sequence": ["CHECK", "CHECKS", "CHECKED"],
                 "base_form": "CHECK",
                 "simple_present_variants": ["CHECKS"],
                 "simple_past_variants": ["CHECKED"],
@@ -101,6 +103,8 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
         self.assertEqual(
             derive_verb_paradigm(regular),
             {
+                "classification": "lexical",
+                "source_sequence": ["REMOVE", "REMOVES", "REMOVED", "REMOVED"],
                 "base_form": "REMOVE",
                 "simple_present_variants": ["REMOVES"],
                 "simple_past_variants": ["REMOVED"],
@@ -116,9 +120,47 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
         self.assertEqual(
             derive_verb_paradigm(be),
             {
+                "classification": "irregular_auxiliary",
+                "source_sequence": ["BE", "IS", "WAS", "ARE", "WERE"],
                 "base_form": "BE",
                 "simple_present_variants": ["IS", "ARE"],
                 "simple_past_variants": ["WAS", "WERE"],
+                "past_participle": None,
+            },
+        )
+
+        can = {
+            "headword": "CAN",
+            "part_of_speech": "v",
+            "word_cell": "CAN (v),\nCAN,\nCOULD\nNo other verb forms.",
+            "meaning_or_alternatives": "Auxiliary modal verb that means to be possible",
+        }
+        self.assertEqual(
+            derive_verb_paradigm(can),
+            {
+                "classification": "defective_modal",
+                "source_sequence": ["CAN", "CAN", "COULD"],
+                "base_form": "CAN",
+                "simple_present_variants": ["CAN"],
+                "simple_past_variants": ["COULD"],
+                "past_participle": None,
+            },
+        )
+
+        will = {
+            "headword": "WILL",
+            "part_of_speech": "v",
+            "word_cell": "WILL (v)\nNo other verb forms.",
+            "meaning_or_alternatives": "Auxiliary modal verb that shows simple future tense",
+        }
+        self.assertEqual(
+            derive_verb_paradigm(will),
+            {
+                "classification": "defective_modal",
+                "source_sequence": ["WILL"],
+                "base_form": "WILL",
+                "simple_present_variants": [],
+                "simple_past_variants": [],
                 "past_participle": None,
             },
         )
@@ -208,6 +250,8 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
         self.assertEqual(
             check["verb_paradigm"],
             {
+                "classification": "lexical",
+                "source_sequence": ["CHECK", "CHECKS", "CHECKED"],
                 "base_form": "CHECK",
                 "simple_present_variants": ["CHECKS"],
                 "simple_past_variants": ["CHECKED"],
@@ -232,7 +276,7 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
 
         expression = first["entries"][3]
         self.assertIsNone(expression["part_of_speech"])
-        self.assertIsNone(expression["verb_paradigm"])
+        self.assertNotIn("verb_paradigm", expression)
         self.assertEqual(expression["forms"], ["CHECK AGAIN"])
 
         contextual = first["entries"][4]

@@ -74,6 +74,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(text, mode));
     diagnostics.extend(passes::paragraph::check(text, mode));
+    diagnostics.extend(passes::perfect::check(text, lexicon));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
     diagnostics
