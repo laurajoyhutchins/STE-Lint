@@ -253,7 +253,9 @@ fn count_issue9_words(text: &str) -> usize {
             continue;
         }
 
-        if is_numeric(token) && let Some(next) = tokens.get(index + 1) {
+        if is_numeric(token)
+            && let Some(next) = tokens.get(index + 1)
+        {
             if is_clock_abbreviation(next) || is_unit(next) {
                 count += 1;
                 index += 2;
