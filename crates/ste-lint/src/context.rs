@@ -48,13 +48,19 @@ impl LintContext {
     pub fn from_json(source: &str) -> Result<Self, String> {
         let context: Self = serde_json::from_str(source)
             .map_err(|error| format!("invalid STE lint context JSON: {error}"))?;
-        context.validate_structure()?;
+        context.validate_evidence()?;
         Ok(context)
     }
 
     pub fn validate(&self, text_len: usize) -> Result<(), String> {
-        self.validate_structure()?;
+        self.validate_evidence()?;
         for (index, occurrence) in self.occurrences.iter().enumerate() {
+            if occurrence.start >= occurrence.end {
+                return Err(format!(
+                    "context occurrence {index} must have start < end ({}..{})",
+                    occurrence.start, occurrence.end
+                ));
+            }
             if occurrence.end > text_len {
                 return Err(format!(
                     "context occurrence {index} ends at {}, beyond text length {text_len}",
@@ -65,14 +71,8 @@ impl LintContext {
         Ok(())
     }
 
-    fn validate_structure(&self) -> Result<(), String> {
+    fn validate_evidence(&self) -> Result<(), String> {
         for (index, occurrence) in self.occurrences.iter().enumerate() {
-            if occurrence.start >= occurrence.end {
-                return Err(format!(
-                    "context occurrence {index} must have start < end ({}..{})",
-                    occurrence.start, occurrence.end
-                ));
-            }
             if occurrence.source.trim().is_empty() {
                 return Err(format!(
                     "context occurrence {index} source must be non-empty"
