@@ -119,6 +119,6 @@ mod tests {
         assert_eq!(status("8.7"), CoverageStatus::Implemented);
         assert_eq!(status("3.4"), CoverageStatus::Partial);
         assert_eq!(status("5.3"), CoverageStatus::ContextRequired);
-        assert_eq!(status("9.3"), CoverageStatus::NotImplemented);
+        assert_eq!(status("9.3"), CoverageStatus::Partial);
     }
 }
