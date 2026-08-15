@@ -7,8 +7,10 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | Code | Severity | Meaning | Rule provenance | Autofix |
 | --- | --- | --- | --- | --- |
 | `STE-PUNC-001` | error | A semicolon is present. | 8.1 | `;` to `.` |
-| `STE-LEN-001` | error | A procedural sentence exceeds 20 words. | 5.1 | none |
-| `STE-LEN-002` | error | A descriptive sentence exceeds 25 words. | 6.3 | none |
+| `STE-SYN-001` | error | A clear contraction is present. | 4.2 | none |
+| `STE-LEN-001` | error | A procedural sentence unit exceeds 20 words. | 5.1; counting semantics 8.4–8.7 | none |
+| `STE-LEN-002` | error | A descriptive sentence unit exceeds 25 words. | 6.3; counting semantics 8.4–8.7 | none |
+| `STE-PARA-001` | error | A descriptive paragraph contains more than six prose sentences. | 6.6 | none |
 | `STE-LEX-001` | error | Every runtime dictionary record for a matched word or phrase form is unapproved and no approved project technical-term identity governs the match. | 1.1, 9.2 | none |
 | `STE-LEX-002` | blocked | A matched word or phrase form has both approved and unapproved runtime dictionary records, so grammar or sense must be resolved before approval can be determined. | 1.1, 9.2 | none |
 | `STE-TERM-001` | blocked | A prose token is absent from both the runtime lexicon and project glossary after phrase matching. | 1.1 | none |
@@ -20,11 +22,29 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 
 ## Current behavior
 
-### Sentence counting
+### Issue 9 mechanical sentence and word counting
 
-The current sentence pass splits on `.`, `?`, and `!`. Word counting splits Unicode whitespace and trims surrounding ASCII punctuation. Diagnostics identify this implementation as `first_slice_whitespace` in their evidence.
+Sentence-length diagnostics use the `issue9_mechanical_v1` analyzer rather than the original whitespace counter.
 
-This is not yet the complete ASD-STE100 word-count algorithm.
+For the 20/25-word limits it implements the deterministic text-level behavior established by Issue 9 Rules 8.4–8.7:
+
+- `.`, `?`, and `!` close normal sentence units, while decimal points and common abbreviation periods are not treated as sentence boundaries;
+- when a colon introduces a recognized vertical list, the introductory segment and each list item are independent word-limit units;
+- a parenthetical group counts as one word in the outer sentence, while its content is checked as its own word-limit unit;
+- quoted multiword text counts as one word;
+- `No.` plus an alphanumeric identifier counts as one word;
+- numeric values paired with recognized units, temperature scales, or clock abbreviations count as one word;
+- hyphenated groups count as one word because they remain one lexical token.
+
+This does not silently infer document semantics that raw prose cannot establish. In particular, arbitrary unquoted titles/headings/labels and multiword proper nouns require document or identity context before they can safely be collapsed to one word under Rule 8.6. Those cases remain explicit limitations rather than guessed classifications.
+
+### Paragraph sentence counting
+
+`STE-PARA-001` applies to descriptive writing. Blank-line-delimited paragraphs may contain at most six prose sentences. A vertical-list introduction contributes its prose sentence, but list-item sentence units used for Rule 8.4 word limits do not inflate the Rule 6.6 paragraph sentence count. This distinction follows the retained Rule 6.6 structural example.
+
+### Contractions
+
+`STE-SYN-001` implements the deterministic part of Rule 4.2 by detecting clear English contractions, including straight and curly apostrophe forms. Generic possessive `'s` is not blanket-flagged. Contractions receive no autofix because forms such as `'d` can expand differently depending on grammar and meaning.
 
 ### Lexical token and phrase handling
 
@@ -52,7 +72,7 @@ The full Issue 9 structural dictionary contains forms shared by multiple records
 
 ### Autofix boundary
 
-Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes semicolons. Lexical substitutions are intentionally not automatic even when the runtime dictionary contains alternatives.
+Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes semicolons. Contractions and lexical substitutions are intentionally not automatic when expansion or replacement can depend on grammar, sense, or context.
 
 ## Planned families
 
