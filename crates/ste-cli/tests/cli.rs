@@ -152,19 +152,18 @@ fn human_dictionary_lookup_shows_status_forms_meaning_and_alternatives() {
         .success()
         .stdout(predicate::str::contains("USE — approved verb"))
         .stdout(predicate::str::contains("forms: USE, USES, USED"))
-        .stdout(predicate::str::contains("meaning: Employ something for a purpose"));
+        .stdout(predicate::str::contains(
+            "meaning: Employ something for a purpose",
+        ));
 
     let mut unapproved = assert_cmd::cargo::cargo_bin_cmd!("ste");
     unapproved
-        .args([
-            "--allow-test-lexicon",
-            "dictionary",
-            "lookup",
-            "acceptable",
-        ])
+        .args(["--allow-test-lexicon", "dictionary", "lookup", "acceptable"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("acceptable — unapproved adjective"))
+        .stdout(predicate::str::contains(
+            "acceptable — unapproved adjective",
+        ))
         .stdout(predicate::str::contains("alternative: PERMITTED"))
         .stdout(predicate::str::contains("strategy: word_replacement"));
 }
