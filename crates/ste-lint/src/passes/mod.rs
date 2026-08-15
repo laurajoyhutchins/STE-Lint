@@ -7,3 +7,4 @@ pub(crate) mod paragraph;
 pub(crate) mod perfect;
 pub(crate) mod punctuation;
 pub(crate) mod semantic;
+pub(crate) mod technical_roles;
