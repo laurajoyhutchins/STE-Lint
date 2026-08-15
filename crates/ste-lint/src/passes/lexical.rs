@@ -15,10 +15,49 @@ pub(crate) fn check(
                 return None;
             }
 
-            if let Some(entry) = lexicon.lookup_form(token.text) {
-                return match entry.status {
-                    ApprovalStatus::Approved => None,
-                    ApprovalStatus::Unapproved => Some(Diagnostic {
+            let candidates = lexicon.lookup_form_candidates(token.text);
+            if !candidates.is_empty() {
+                let has_approved = candidates
+                    .iter()
+                    .any(|entry| entry.status == ApprovalStatus::Approved);
+                let has_unapproved = candidates
+                    .iter()
+                    .any(|entry| entry.status == ApprovalStatus::Unapproved);
+                let evidence_candidates = candidates
+                    .iter()
+                    .map(|entry| {
+                        json!({
+                            "lemma": entry.lemma,
+                            "part_of_speech": entry.part_of_speech,
+                            "status": entry.status,
+                            "alternatives": entry.alternatives,
+                        })
+                    })
+                    .collect::<Vec<_>>();
+
+                if has_approved && has_unapproved {
+                    return Some(Diagnostic {
+                        code: "STE-LEX-002".into(),
+                        severity: Severity::Blocked,
+                        message: format!(
+                            "'{}' has both approved and unapproved runtime dictionary records; grammatical or sense disambiguation is required.",
+                            token.text
+                        ),
+                        span: Span {
+                            start: token.start,
+                            end: token.end,
+                        },
+                        rules: vec!["1.1".into(), "9.2".into()],
+                        evidence: Some(json!({
+                            "candidates": evidence_candidates,
+                            "required_resolution": ["part_of_speech", "approved_sense"]
+                        })),
+                        autofix: None,
+                    });
+                }
+
+                if has_unapproved {
+                    return Some(Diagnostic {
                         code: "STE-LEX-001".into(),
                         severity: Severity::Error,
                         message: format!(
@@ -31,13 +70,13 @@ pub(crate) fn check(
                         },
                         rules: vec!["1.1".into(), "9.2".into()],
                         evidence: Some(json!({
-                            "lemma": entry.lemma,
-                            "part_of_speech": entry.part_of_speech,
-                            "alternatives": entry.alternatives,
+                            "candidates": evidence_candidates,
                         })),
                         autofix: None,
-                    }),
-                };
+                    });
+                }
+
+                return None;
             }
 
             if glossary.is_some_and(|glossary| glossary.contains_term(token.text)) {
