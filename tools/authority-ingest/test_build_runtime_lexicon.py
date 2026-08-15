@@ -89,7 +89,7 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
             shutil.copytree(FIXTURE, authority_dir)
             dictionary_path = authority_dir / "dictionary.json"
             dictionary = json.loads(dictionary_path.read_text())
-            dictionary[0]["ste_example"] = "TAMPERED SYNTHETIC EXAMPLE."
+            dictionary[0]["ste_example"] = "CHECK THE PART."
             dictionary_path.write_text(
                 json.dumps(dictionary, ensure_ascii=False, indent=2) + "\n"
             )
