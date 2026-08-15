@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use coverage::{CoverageStatus, RuleCoverageManifest};
 use serde::Serialize;
 use ste_core::{Diagnostic, Severity};
-use ste_data::RuntimeLexicon;
+use ste_data::{LexiconEntry, RuntimeLexicon};
 use ste_glossary::Glossary;
 use ste_lint::{LintMode, LintOptions, LintResult, lint_text};
 use ste_rewrite_check::{ProposedChange, RewriteCheckResult, check_rewrite};
@@ -220,11 +220,11 @@ fn run_dictionary(
                     if entries.is_empty() {
                         println!("no matches");
                     } else {
-                        for entry in entries {
-                            println!(
-                                "{} ({:?}) {:?}",
-                                entry.lemma, entry.part_of_speech, entry.status
-                            );
+                        for (index, entry) in entries.iter().enumerate() {
+                            if index > 0 {
+                                println!();
+                            }
+                            print_human_dictionary_entry(entry);
                         }
                     }
                 }
@@ -232,6 +232,70 @@ fn run_dictionary(
             Ok(0)
         }
     }
+}
+
+fn print_human_dictionary_entry(entry: &LexiconEntry) {
+    let status = serialized_label(&entry.status);
+    let part_of_speech = entry
+        .part_of_speech
+        .as_ref()
+        .map(serialized_label)
+        .unwrap_or_else(|| "expression".to_string());
+    println!("{} — {} {}", entry.lemma, status, part_of_speech);
+
+    if !entry.forms.is_empty() {
+        println!("forms: {}", entry.forms.join(", "));
+    }
+    if let Some(paradigm) = &entry.verb_paradigm {
+        println!("verb class: {}", serialized_label(&paradigm.classification));
+        println!("source form sequence: {}", paradigm.source_sequence.join(", "));
+    }
+    for sense in &entry.senses {
+        println!("meaning: {}", sense.meaning);
+    }
+    for alternative in &entry.alternatives {
+        println!(
+            "alternative: {} [{}; strategy: {}]",
+            alternative.text,
+            serialized_label(&alternative.kind),
+            serialized_label(&alternative.strategy)
+        );
+    }
+    for restriction in &entry.restrictions {
+        println!("restriction: {restriction}");
+    }
+
+    if let Some(source) = &entry.source_semantics {
+        if entry.senses.is_empty() && !source.meaning_or_alternatives.trim().is_empty() {
+            println!("source meaning/help: {}", source.meaning_or_alternatives.trim());
+        }
+        if !source.ste_example.trim().is_empty() {
+            println!("STE example: {}", source.ste_example.trim());
+        }
+        if !source.non_ste_example.trim().is_empty() {
+            println!("non-STE example: {}", source.non_ste_example.trim());
+        }
+    }
+    if let Some(provenance) = &entry.provenance {
+        let pages = provenance
+            .source_pages
+            .iter()
+            .map(u32::to_string)
+            .collect::<Vec<_>>()
+            .join(", ");
+        println!("source pages: {pages}");
+    }
+    println!(
+        "interpretation: {}",
+        serialized_label(&entry.interpretation_state)
+    );
+}
+
+fn serialized_label<T: Serialize>(value: &T) -> String {
+    serde_json::to_string(value)
+        .unwrap_or_else(|_| "\"unknown\"".to_string())
+        .trim_matches('"')
+        .to_string()
 }
 
 fn run_glossary(command: GlossaryCommands) -> Result<u8, AppFailure> {
