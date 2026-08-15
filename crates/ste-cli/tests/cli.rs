@@ -144,6 +144,32 @@ fn dictionary_lookup_exposes_structured_alternatives() {
 }
 
 #[test]
+fn human_dictionary_lookup_shows_status_forms_meaning_and_alternatives() {
+    let mut approved = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    approved
+        .args(["--allow-test-lexicon", "dictionary", "lookup", "USE"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("USE — approved verb"))
+        .stdout(predicate::str::contains("forms: USE, USES, USED"))
+        .stdout(predicate::str::contains("meaning: Employ something for a purpose"));
+
+    let mut unapproved = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    unapproved
+        .args([
+            "--allow-test-lexicon",
+            "dictionary",
+            "lookup",
+            "acceptable",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("acceptable — unapproved adjective"))
+        .stdout(predicate::str::contains("alternative: PERMITTED"))
+        .stdout(predicate::str::contains("strategy: word_replacement"));
+}
+
+#[test]
 fn glossary_check_accepts_valid_project_terms() {
     let fixture =
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/glossary/valid.json");
