@@ -88,11 +88,10 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
             authority_dir = Path(tmp) / "authority"
             shutil.copytree(FIXTURE, authority_dir)
             dictionary_path = authority_dir / "dictionary.json"
-            dictionary = json.loads(dictionary_path.read_text())
-            dictionary[0]["ste_example"] = "CHECK THE PART."
-            dictionary_path.write_text(
-                json.dumps(dictionary, ensure_ascii=False, indent=2) + "\n"
-            )
+            original = dictionary_path.read_text(encoding="utf-8")
+            tampered = original.replace("CHECK THE ITEM.", "CHECK THE PART.", 1)
+            self.assertEqual(len(tampered.encode("utf-8")), len(original.encode("utf-8")))
+            dictionary_path.write_text(tampered, encoding="utf-8")
 
             with self.assertRaisesRegex(AuthorityValidationError, "dictionary.json sha256"):
                 compile_document(
