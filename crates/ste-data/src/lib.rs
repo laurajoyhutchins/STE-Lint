@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -127,6 +129,50 @@ pub struct LexiconDocument {
     pub entries: Vec<LexiconEntry>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuntimeIdentityManifest {
+    pub standard: String,
+    pub issue: u8,
+    pub scope: String,
+    pub source_sha256: String,
+    pub private_bundle_sha256: String,
+    pub runtime_lexicon_sha256: String,
+    pub runtime_lexicon_bytes: u64,
+    pub structural_records: u32,
+    pub structural_approved_records: u32,
+    pub structural_unapproved_records: u32,
+    pub source_declared_approved_words: u32,
+    pub source_declared_unapproved_words: u32,
+}
+
+impl RuntimeIdentityManifest {
+    pub fn from_json(json: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(json)
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum RuntimeDataError {
+    #[error("runtime lexicon byte size mismatch: got {actual}, expected {expected}")]
+    ByteSize { actual: u64, expected: u64 },
+    #[error("runtime lexicon sha256 mismatch: got {actual}, expected {expected}")]
+    Sha256 { actual: String, expected: String },
+    #[error("runtime lexicon is not UTF-8: {0}")]
+    Utf8(#[from] std::str::Utf8Error),
+    #[error("runtime lexicon JSON is invalid: {0}")]
+    Json(#[from] serde_json::Error),
+    #[error("runtime authority metadata is missing")]
+    MissingAuthority,
+    #[error("runtime dictionary cardinalities are missing")]
+    MissingCardinalities,
+    #[error("runtime {field} mismatch: got {actual}, expected {expected}")]
+    Contract {
+        field: &'static str,
+        actual: String,
+        expected: String,
+    },
+}
+
 #[derive(Debug, Clone)]
 pub struct RuntimeLexicon {
     document: LexiconDocument,
@@ -137,6 +183,39 @@ pub struct RuntimeLexicon {
 impl RuntimeLexicon {
     pub fn embedded() -> Result<Self, serde_json::Error> {
         Self::from_json(include_str!("../data/test-lexicon.json"))
+    }
+
+    pub fn verified_issue9_from_bytes(bytes: &[u8]) -> Result<Self, RuntimeDataError> {
+        let manifest = RuntimeIdentityManifest::from_json(include_str!(
+            "../../../data/issue9-runtime.manifest.json"
+        ))?;
+        Self::from_verified_bytes(bytes, &manifest)
+    }
+
+    pub fn from_verified_bytes(
+        bytes: &[u8],
+        manifest: &RuntimeIdentityManifest,
+    ) -> Result<Self, RuntimeDataError> {
+        let actual_bytes = bytes.len() as u64;
+        if actual_bytes != manifest.runtime_lexicon_bytes {
+            return Err(RuntimeDataError::ByteSize {
+                actual: actual_bytes,
+                expected: manifest.runtime_lexicon_bytes,
+            });
+        }
+
+        let actual_sha256 = format!("{:x}", Sha256::digest(bytes));
+        if actual_sha256 != manifest.runtime_lexicon_sha256 {
+            return Err(RuntimeDataError::Sha256 {
+                actual: actual_sha256,
+                expected: manifest.runtime_lexicon_sha256.clone(),
+            });
+        }
+
+        let json = std::str::from_utf8(bytes)?;
+        let lexicon = Self::from_json(json)?;
+        lexicon.validate_identity(manifest)?;
+        Ok(lexicon)
     }
 
     pub fn from_json(json: &str) -> Result<Self, serde_json::Error> {
@@ -194,6 +273,107 @@ impl RuntimeLexicon {
             .map(|index| &self.document.entries[*index])
             .collect()
     }
+
+    fn validate_identity(
+        &self,
+        manifest: &RuntimeIdentityManifest,
+    ) -> Result<(), RuntimeDataError> {
+        require_contract(
+            "standard",
+            &self.document.metadata.standard,
+            &manifest.standard,
+        )?;
+        require_contract("issue", self.document.metadata.issue, manifest.issue)?;
+        require_contract("scope", &self.document.metadata.scope, &manifest.scope)?;
+
+        let authority = self
+            .document
+            .metadata
+            .authority
+            .as_ref()
+            .ok_or(RuntimeDataError::MissingAuthority)?;
+        require_contract(
+            "source sha256",
+            &authority.source_sha256,
+            &manifest.source_sha256,
+        )?;
+        require_contract(
+            "private bundle sha256",
+            &authority.private_bundle_sha256,
+            &manifest.private_bundle_sha256,
+        )?;
+
+        let cardinalities = self
+            .document
+            .metadata
+            .dictionary_cardinalities
+            .as_ref()
+            .ok_or(RuntimeDataError::MissingCardinalities)?;
+        require_contract(
+            "source-declared approved words",
+            cardinalities.source_declared_approved_words,
+            manifest.source_declared_approved_words,
+        )?;
+        require_contract(
+            "source-declared unapproved words",
+            cardinalities.source_declared_unapproved_words,
+            manifest.source_declared_unapproved_words,
+        )?;
+        require_contract(
+            "structural approved records",
+            cardinalities.structural_approved_records,
+            manifest.structural_approved_records,
+        )?;
+        require_contract(
+            "structural unapproved records",
+            cardinalities.structural_unapproved_records,
+            manifest.structural_unapproved_records,
+        )?;
+
+        let approved = self
+            .document
+            .entries
+            .iter()
+            .filter(|entry| entry.status == ApprovalStatus::Approved)
+            .count() as u32;
+        let unapproved = self
+            .document
+            .entries
+            .iter()
+            .filter(|entry| entry.status == ApprovalStatus::Unapproved)
+            .count() as u32;
+        require_contract(
+            "structural record count",
+            self.document.entries.len() as u32,
+            manifest.structural_records,
+        )?;
+        require_contract(
+            "derived approved structural record count",
+            approved,
+            manifest.structural_approved_records,
+        )?;
+        require_contract(
+            "derived unapproved structural record count",
+            unapproved,
+            manifest.structural_unapproved_records,
+        )?;
+
+        Ok(())
+    }
+}
+
+fn require_contract<T>(field: &'static str, actual: T, expected: T) -> Result<(), RuntimeDataError>
+where
+    T: PartialEq + ToString,
+{
+    if actual != expected {
+        return Err(RuntimeDataError::Contract {
+            field,
+            actual: actual.to_string(),
+            expected: expected.to_string(),
+        });
+    }
+    Ok(())
 }
 
 fn normalize(value: &str) -> String {
