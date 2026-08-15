@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
@@ -81,6 +82,24 @@ class RuntimeLexiconCompilerTests(unittest.TestCase):
                 dictionary,
                 BUNDLE_SHA256,
             )
+
+    def test_rejects_tampered_dictionary_artifact_with_same_cardinality(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            authority_dir = Path(tmp) / "authority"
+            shutil.copytree(FIXTURE, authority_dir)
+            dictionary_path = authority_dir / "dictionary.json"
+            dictionary = json.loads(dictionary_path.read_text())
+            dictionary[0]["ste_example"] = "TAMPERED SYNTHETIC EXAMPLE."
+            dictionary_path.write_text(
+                json.dumps(dictionary, ensure_ascii=False, indent=2) + "\n"
+            )
+
+            with self.assertRaisesRegex(AuthorityValidationError, "dictionary.json sha256"):
+                compile_document(
+                    authority_dir,
+                    FIXTURE / "verified-manifest.json",
+                    BUNDLE_SHA256,
+                )
 
     def test_compiles_losslessly_and_deterministically(self):
         first = compile_document(
