@@ -40,15 +40,19 @@ impl Glossary {
         serde_json::from_str(json)
     }
 
-    pub fn contains_term(&self, value: &str) -> bool {
+    pub fn lookup_term(&self, value: &str) -> Option<&TechnicalTerm> {
         let wanted = normalize_identity(value);
-        self.terms.iter().any(|term| {
+        self.terms.iter().find(|term| {
             normalize_identity(&term.term) == wanted
                 || term
                     .aliases
                     .iter()
                     .any(|alias| normalize_identity(alias) == wanted)
         })
+    }
+
+    pub fn contains_term(&self, value: &str) -> bool {
+        self.lookup_term(value).is_some()
     }
 
     pub fn validate(&self) -> Vec<Diagnostic> {
@@ -97,11 +101,12 @@ mod tests {
         let glossary =
             Glossary::from_json(include_str!("../../../fixtures/glossary/valid.json")).unwrap();
         assert!(glossary.contains_term("busway"));
+        assert_eq!(glossary.lookup_term("busway").unwrap().status, TermStatus::Approved);
         assert!(glossary.validate().is_empty());
     }
 
     #[test]
-    fn aliases_are_recognized_as_project_terms() {
+    fn aliases_resolve_to_the_governed_term() {
         let glossary = Glossary::from_json(
             r#"{
               "terms": [{
@@ -113,12 +118,15 @@ mod tests {
                 "aliases": ["bus duct"],
                 "examples": [],
                 "provenance": ["fixture"],
-                "status": "approved"
+                "status": "deprecated"
               }]
             }"#,
         )
         .unwrap();
 
+        let term = glossary.lookup_term("BUS   DUCT").unwrap();
+        assert_eq!(term.term, "busway");
+        assert_eq!(term.status, TermStatus::Deprecated);
         assert!(glossary.contains_term("BUS   DUCT"));
     }
 
