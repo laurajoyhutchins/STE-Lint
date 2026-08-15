@@ -36,18 +36,6 @@ fn glossary(term: &str, kind: &str) -> Glossary {
     .unwrap()
 }
 
-fn diagnostics(text: &str, kind: &str, mode: LintMode) -> Vec<ste_core::Diagnostic> {
-    let lexicon = empty_lexicon();
-    let glossary = glossary(text.split_whitespace().find(|word| word.chars().all(char::is_alphabetic)).unwrap_or("term"), kind);
-    lint_text(
-        text,
-        &lexicon,
-        Some(&glossary),
-        LintOptions { mode, fix: false },
-    )
-    .diagnostics
-}
-
 #[test]
 fn technical_noun_in_clear_command_role_is_rejected() {
     let lexicon = empty_lexicon();
