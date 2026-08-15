@@ -248,7 +248,10 @@ fn print_human_dictionary_entry(entry: &LexiconEntry) {
     }
     if let Some(paradigm) = &entry.verb_paradigm {
         println!("verb class: {}", serialized_label(&paradigm.classification));
-        println!("source form sequence: {}", paradigm.source_sequence.join(", "));
+        println!(
+            "source form sequence: {}",
+            paradigm.source_sequence.join(", ")
+        );
     }
     for sense in &entry.senses {
         println!("meaning: {}", sense.meaning);
