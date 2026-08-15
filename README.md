@@ -42,15 +42,18 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - project technical-term authority over general dictionary status for exact governed identities;
 - deprecated project terminology diagnostics;
 - semicolon detection with a whitelisted deterministic autofix;
-- procedural sentence length diagnostics over 20 words;
-- descriptive sentence length diagnostics over 25 words;
+- contraction detection for the deterministic portion of Rule 4.2, without unsafe expansion autofixes;
+- procedural sentence length diagnostics over 20 words using Issue 9-aware mechanical counting;
+- descriptive sentence length diagnostics over 25 words using the same counting model;
+- descriptive paragraph diagnostics over six prose sentences;
+- vertical-list, parenthetical, quoted-text, identifier, number+unit, decimal, and hyphenated-group handling for the deterministic text-level portions of Rules 8.4–8.7;
 - unapproved-word and unapproved-phrase diagnostics against the active runtime lexicon;
 - blocked diagnostics for dictionary forms whose approved status depends on unresolved grammar or sense;
 - blocked diagnostics for unknown prose terms that may need technical-term classification;
 - semantic rewrite checks for modality, negation, and numeric-literal changes;
 - human-readable and JSON CLI output.
 
-The current word counter and tokenizer are intentionally conservative. See `docs/diagnostics.md` for exact behavior and the remaining rule-family boundary.
+The structural counter deliberately does not guess document semantics that raw prose cannot establish. Arbitrary unquoted titles/headings/labels and multiword proper nouns still need document or identity context before they can safely receive Rule 8.6 one-word treatment. See `docs/diagnostics.md` for the exact implemented boundary.
 
 ## Build and test
 
@@ -182,4 +185,4 @@ Unknown words are not added automatically. `STE-TERM-001` means the term needs c
 
 ## Design
 
-The approved architecture is documented in `docs/superpowers/specs/2026-08-14-ste-lint-design.md`. The runtime-usability execution record is in `docs/superpowers/plans/2026-08-15-private-runtime-usability.md`.
+The approved architecture is documented in `docs/superpowers/specs/2026-08-14-ste-lint-design.md`. Execution records for the private runtime and mechanical-rule gates live under `docs/superpowers/plans/`.

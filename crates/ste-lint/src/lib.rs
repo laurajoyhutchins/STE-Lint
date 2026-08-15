@@ -1,4 +1,5 @@
 mod passes;
+mod structure;
 
 use std::cmp::Reverse;
 
@@ -70,7 +71,9 @@ fn collect_diagnostics(
     mode: LintMode,
 ) -> Vec<Diagnostic> {
     let mut diagnostics = passes::punctuation::check(text);
+    diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(text, mode));
+    diagnostics.extend(passes::paragraph::check(text, mode));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
     diagnostics

@@ -1,3 +1,5 @@
+pub(crate) mod contractions;
 pub(crate) mod length;
 pub(crate) mod lexical;
+pub(crate) mod paragraph;
 pub(crate) mod punctuation;
