@@ -25,7 +25,8 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
             diagnostics.push(Diagnostic {
                 code: "STE-CTX-000".into(),
                 severity: Severity::Blocked,
-                message: "Lint context occurrence span is not on UTF-8 character boundaries.".into(),
+                message: "Lint context occurrence span is not on UTF-8 character boundaries."
+                    .into(),
                 span: Span { start: 0, end: 0 },
                 rules: Vec::new(),
                 evidence: Some(json!({
