@@ -1,9 +1,13 @@
+mod context;
 mod document_structure;
 mod passes;
 mod structure;
 
 use std::cmp::Reverse;
 
+pub use context::{
+    DictionaryMeaningUse, LintContext, OccurrenceFact, SpellingUse, TechnicalNounScope,
+};
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};
 use ste_data::RuntimeLexicon;
@@ -35,7 +39,17 @@ pub fn lint_text(
     glossary: Option<&Glossary>,
     options: LintOptions,
 ) -> LintResult {
-    let initial = collect_diagnostics(text, lexicon, glossary, options.mode);
+    lint_text_with_context(text, lexicon, glossary, None, options)
+}
+
+pub fn lint_text_with_context(
+    text: &str,
+    lexicon: &RuntimeLexicon,
+    glossary: Option<&Glossary>,
+    context: Option<&LintContext>,
+    options: LintOptions,
+) -> LintResult {
+    let initial = collect_diagnostics(text, lexicon, glossary, context, options.mode);
     let mut output = text.to_owned();
     let mut fixed_any = false;
 
@@ -52,7 +66,7 @@ pub fn lint_text(
     }
 
     let diagnostics = if options.fix && fixed_any {
-        collect_diagnostics(&output, lexicon, glossary, options.mode)
+        collect_diagnostics(&output, lexicon, glossary, context, options.mode)
     } else {
         initial
     };
@@ -69,6 +83,7 @@ fn collect_diagnostics(
     text: &str,
     lexicon: &RuntimeLexicon,
     glossary: Option<&Glossary>,
+    context: Option<&LintContext>,
     mode: LintMode,
 ) -> Vec<Diagnostic> {
     let mut diagnostics = passes::punctuation::check(text);
@@ -83,6 +98,7 @@ fn collect_diagnostics(
         text, lexicon, glossary, mode,
     ));
     diagnostics.extend(passes::procedural::check(text, lexicon, mode));
+    diagnostics.extend(passes::contextual::check(text, context));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
     diagnostics
