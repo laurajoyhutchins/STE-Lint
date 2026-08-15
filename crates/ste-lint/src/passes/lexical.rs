@@ -1,6 +1,6 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
+use ste_data::{ApprovalStatus, LexiconEntry, PartOfSpeech, RuntimeLexicon};
 use ste_glossary::{Glossary, TechnicalTerm, TermStatus};
 
 pub(crate) fn check(
@@ -154,10 +154,16 @@ fn dictionary_diagnostic(
                 "lemma": entry.lemma,
                 "part_of_speech": entry.part_of_speech,
                 "status": entry.status,
+                "senses": entry.senses,
                 "alternatives": entry.alternatives,
+                "restrictions": entry.restrictions,
+                "interpretation_state": entry.interpretation_state,
+                "provenance": entry.provenance,
             })
         })
         .collect::<Vec<_>>();
+    let possible_parts_of_speech = distinct_parts_of_speech(candidates);
+    let role_evidence = distinct_roles(&possible_parts_of_speech);
 
     if has_approved && has_unapproved {
         return Some(Diagnostic {
@@ -170,6 +176,9 @@ fn dictionary_diagnostic(
             rules: vec!["1.1".into(), "9.2".into()],
             evidence: Some(json!({
                 "candidates": evidence_candidates,
+                "possible_parts_of_speech": possible_parts_of_speech,
+                "role_evidence": role_evidence,
+                "requires_disambiguation": true,
                 "required_resolution": ["part_of_speech", "approved_sense"]
             })),
             autofix: None,
@@ -185,12 +194,45 @@ fn dictionary_diagnostic(
             rules: vec!["1.1".into(), "9.2".into()],
             evidence: Some(json!({
                 "candidates": evidence_candidates,
+                "possible_parts_of_speech": possible_parts_of_speech,
+                "role_evidence": role_evidence,
+                "requires_disambiguation": candidates.len() > 1,
             })),
             autofix: None,
         });
     }
 
     None
+}
+
+fn distinct_parts_of_speech(candidates: &[&LexiconEntry]) -> Vec<PartOfSpeech> {
+    let mut parts = Vec::new();
+    for entry in candidates {
+        if let Some(part) = entry.part_of_speech
+            && !parts.contains(&part)
+        {
+            parts.push(part);
+        }
+    }
+    parts
+}
+
+fn distinct_roles(parts: &[PartOfSpeech]) -> Vec<&'static str> {
+    let mut roles = Vec::new();
+    for part in parts {
+        let role = match part {
+            PartOfSpeech::Noun | PartOfSpeech::Pronoun => "nominal",
+            PartOfSpeech::Verb => "verbal",
+            PartOfSpeech::Adjective | PartOfSpeech::Adverb => "modifier",
+            PartOfSpeech::Article | PartOfSpeech::Preposition | PartOfSpeech::Conjunction => {
+                "function_word"
+            }
+        };
+        if !roles.contains(&role) {
+            roles.push(role);
+        }
+    }
+    roles
 }
 
 fn glossary_diagnostic(
