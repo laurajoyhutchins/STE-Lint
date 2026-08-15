@@ -72,8 +72,7 @@ pub(crate) fn check(
                 if let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, term) {
                     diagnostics.push(diagnostic);
                 }
-            } else if let Some(diagnostic) =
-                dictionary_diagnostic(&phrase, start, end, &candidates)
+            } else if let Some(diagnostic) = dictionary_diagnostic(&phrase, start, end, &candidates)
             {
                 diagnostics.push(diagnostic);
             }
@@ -88,7 +87,8 @@ pub(crate) fn check(
         }
 
         if let Some(term) = glossary.and_then(|glossary| glossary.lookup_term(token.text)) {
-            if let Some(diagnostic) = glossary_diagnostic(token.text, token.start, token.end, term) {
+            if let Some(diagnostic) = glossary_diagnostic(token.text, token.start, token.end, term)
+            {
                 diagnostics.push(diagnostic);
             }
             index += 1;
