@@ -131,6 +131,25 @@ fn glossary(status: &str) -> Glossary {
     .unwrap()
 }
 
+fn check_glossary(status: &str) -> Glossary {
+    Glossary::from_json(&format!(
+        r#"{{
+          "terms": [{{
+            "term": "check",
+            "kind": "technical_noun",
+            "definition": "Synthetic technical noun.",
+            "domain": "inspection",
+            "preferred": true,
+            "aliases": [],
+            "examples": [],
+            "provenance": ["fixture"],
+            "status": "{status}"
+          }}]
+        }}"#
+    ))
+    .unwrap()
+}
+
 fn diagnostics_with_glossary(
     text: &str,
     lexicon: &RuntimeLexicon,
@@ -237,5 +256,26 @@ fn deprecated_multiword_glossary_term_is_rejected_as_one_phrase() {
     assert_eq!(diagnostic.severity, Severity::Error);
     assert_eq!(diagnostic.span.start, 0);
     assert_eq!(diagnostic.span.end, 8);
+    assert_eq!(diagnostics.len(), 1);
+}
+
+#[test]
+fn approved_technical_term_overrides_unapproved_general_dictionary_record() {
+    let lexicon = collision(&["unapproved"]);
+    let glossary = check_glossary("approved");
+    let diagnostics = diagnostics_with_glossary("check", &lexicon, Some(&glossary));
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn deprecated_governed_term_overrides_general_dictionary_status() {
+    let lexicon = collision(&["approved"]);
+    let glossary = check_glossary("deprecated");
+    let diagnostics = diagnostics_with_glossary("check", &lexicon, Some(&glossary));
+    let diagnostic = diagnostics
+        .iter()
+        .find(|item| item.code == "STE-TERM-002")
+        .unwrap();
+    assert_eq!(diagnostic.severity, Severity::Error);
     assert_eq!(diagnostics.len(), 1);
 }
