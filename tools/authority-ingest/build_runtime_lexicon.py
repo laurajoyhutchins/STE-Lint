@@ -51,7 +51,7 @@ def _clean_form(raw: str) -> str:
     return text.strip(" ,.")
 
 
-def _verb_forms_from_word_cell(entry: dict) -> list[str] | None:
+def _verb_form_sequence_from_word_cell(entry: dict) -> list[str] | None:
     if str(entry.get("part_of_speech") or "").lower() != "v":
         return None
 
@@ -65,9 +65,7 @@ def _verb_forms_from_word_cell(entry: dict) -> list[str] | None:
         word_cell,
         flags=re.IGNORECASE,
     )
-    normalized: list[str] = []
-    seen: set[str] = set()
-
+    sequence: list[str] = []
     for raw_line in text.splitlines():
         line = re.sub(r"\s*\(v\)\s*", "", raw_line, flags=re.IGNORECASE).strip()
         if not line:
@@ -83,12 +81,24 @@ def _verb_forms_from_word_cell(entry: dict) -> list[str] | None:
             if form.lower().startswith("also "):
                 form = form[5:].strip()
             form = form.rstrip(")").strip()
-            if not form or form in seen:
-                continue
-            seen.add(form)
-            normalized.append(form)
+            if form:
+                sequence.append(form)
 
-    return normalized or None
+    return sequence or None
+
+
+def _verb_forms_from_word_cell(entry: dict) -> list[str] | None:
+    sequence = _verb_form_sequence_from_word_cell(entry)
+    if sequence is None:
+        return None
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for form in sequence:
+        if form in seen:
+            continue
+        seen.add(form)
+        normalized.append(form)
+    return normalized
 
 
 def normalize_forms(entry: dict) -> list[str]:
@@ -111,31 +121,51 @@ def normalize_forms(entry: dict) -> list[str]:
     return normalized or [entry["headword"]]
 
 
+def _verb_classification(entry: dict) -> str:
+    meaning = str(entry.get("meaning_or_alternatives") or "").lower()
+    if "auxiliary modal verb" in meaning:
+        return "defective_modal"
+    if str(entry.get("headword") or "").upper() == "BE":
+        return "irregular_auxiliary"
+    return "lexical"
+
+
 def derive_verb_paradigm(entry: dict) -> dict | None:
-    forms = _verb_forms_from_word_cell(entry)
-    if forms is None:
+    sequence = _verb_form_sequence_from_word_cell(entry)
+    if sequence is None:
         return None
 
-    base_form = forms[0]
-    if base_form.upper() == "BE":
+    classification = _verb_classification(entry)
+    base_form = sequence[0]
+
+    if classification == "irregular_auxiliary":
+        unique = []
+        for form in sequence[1:]:
+            if form not in unique:
+                unique.append(form)
         simple_present_variants = [
-            form for form in forms[1:] if form.upper() in {"IS", "ARE"}
+            form for form in unique if form.upper() in {"IS", "ARE"}
         ]
         simple_past_variants = [
-            form for form in forms[1:] if form.upper() in {"WAS", "WERE"}
+            form for form in unique if form.upper() in {"WAS", "WERE"}
         ]
-        return {
-            "base_form": base_form,
-            "simple_present_variants": simple_present_variants,
-            "simple_past_variants": simple_past_variants,
-            "past_participle": None,
-        }
+        past_participle = None
+    elif classification == "defective_modal":
+        simple_present_variants = sequence[1:2]
+        simple_past_variants = sequence[2:3]
+        past_participle = None
+    else:
+        simple_present_variants = sequence[1:2]
+        simple_past_variants = sequence[2:3]
+        past_participle = sequence[3] if len(sequence) >= 4 else None
 
     return {
+        "classification": classification,
+        "source_sequence": sequence,
         "base_form": base_form,
-        "simple_present_variants": forms[1:2],
-        "simple_past_variants": forms[2:3],
-        "past_participle": forms[3] if len(forms) >= 4 else None,
+        "simple_present_variants": simple_present_variants,
+        "simple_past_variants": simple_past_variants,
+        "past_participle": past_participle,
     }
 
 
