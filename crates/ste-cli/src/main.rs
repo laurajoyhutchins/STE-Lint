@@ -1,8 +1,11 @@
+mod coverage;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand, ValueEnum};
+use coverage::{CoverageStatus, RuleCoverageManifest};
 use serde::Serialize;
 use ste_core::{Diagnostic, Severity};
 use ste_data::RuntimeLexicon;
@@ -48,6 +51,10 @@ enum Commands {
     Glossary {
         #[command(subcommand)]
         command: GlossaryCommands,
+    },
+    Coverage {
+        #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
+        format: OutputFormat,
     },
     Version,
 }
@@ -151,6 +158,7 @@ fn run(cli: Cli) -> Result<u8, AppFailure> {
             run_dictionary(command, lexicon.as_deref(), allow_test_lexicon)
         }
         Commands::Glossary { command } => run_glossary(command),
+        Commands::Coverage { format } => run_coverage(format),
         Commands::Version => run_version(lexicon.as_deref()),
     }
 }
@@ -236,6 +244,33 @@ fn run_glossary(command: GlossaryCommands) -> Result<u8, AppFailure> {
             Ok(exit_code_for_diagnostics(&diagnostics))
         }
     }
+}
+
+fn run_coverage(format: OutputFormat) -> Result<u8, AppFailure> {
+    let manifest = RuleCoverageManifest::embedded().map_err(AppFailure::internal)?;
+    match format {
+        OutputFormat::Json => print_json(&manifest)?,
+        OutputFormat::Human => {
+            let counts = manifest.status_counts();
+            println!("{} Issue {}", manifest.standard, manifest.issue);
+            println!("{} rules tracked", manifest.total_rules);
+            for status in [
+                CoverageStatus::Implemented,
+                CoverageStatus::Partial,
+                CoverageStatus::ContextRequired,
+                CoverageStatus::NotImplemented,
+            ] {
+                println!(
+                    "{}: {}",
+                    status.as_str(),
+                    counts.get(&status).copied().unwrap_or(0)
+                );
+            }
+            println!("full Issue 9 compliance is not claimed");
+            println!("use --format json for per-rule status and diagnostic mappings");
+        }
+    }
+    Ok(0)
 }
 
 fn run_version(lexicon_path: Option<&Path>) -> Result<u8, AppFailure> {
