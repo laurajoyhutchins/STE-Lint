@@ -114,11 +114,13 @@ fn role_diagnostic(
 }
 
 fn role_has_compatible_candidate(role: &str, candidates: &[&LexiconEntry]) -> bool {
-    candidates.iter().any(|entry| match (role, entry.part_of_speech) {
-        ("verbal", Some(PartOfSpeech::Verb)) => true,
-        ("nominal", Some(PartOfSpeech::Noun | PartOfSpeech::Pronoun)) => true,
-        _ => false,
-    })
+    candidates
+        .iter()
+        .any(|entry| match (role, entry.part_of_speech) {
+            ("verbal", Some(PartOfSpeech::Verb)) => true,
+            ("nominal", Some(PartOfSpeech::Noun | PartOfSpeech::Pronoun)) => true,
+            _ => false,
+        })
 }
 
 fn observed_role(
@@ -181,7 +183,16 @@ fn is_determiner(value: &str) -> bool {
 fn is_copula(value: &str) -> bool {
     matches!(
         value.to_ascii_lowercase().as_str(),
-        "am" | "are" | "be" | "became" | "become" | "becomes" | "is" | "stay" | "stays" | "was" | "were"
+        "am" | "are"
+            | "be"
+            | "became"
+            | "become"
+            | "becomes"
+            | "is"
+            | "stay"
+            | "stays"
+            | "was"
+            | "were"
     )
 }
 
