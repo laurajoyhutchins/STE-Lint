@@ -21,6 +21,22 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
 
     let mut diagnostics = Vec::new();
     for occurrence in &context.occurrences {
+        if !text.is_char_boundary(occurrence.start) || !text.is_char_boundary(occurrence.end) {
+            diagnostics.push(Diagnostic {
+                code: "STE-CTX-000".into(),
+                severity: Severity::Blocked,
+                message: "Lint context occurrence span is not on UTF-8 character boundaries.".into(),
+                span: Span { start: 0, end: 0 },
+                rules: Vec::new(),
+                evidence: Some(json!({
+                    "source": occurrence.source,
+                    "span": {"start": occurrence.start, "end": occurrence.end},
+                })),
+                autofix: None,
+            });
+            continue;
+        }
+
         let span = Span {
             start: occurrence.start,
             end: occurrence.end,
@@ -34,7 +50,7 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
                 message: format!(
                     "'{text_value}' is explicitly resolved to a meaning that is not approved for this dictionary word."
                 ),
-                span: span.clone(),
+                span,
                 rules: vec!["1.3".into()],
                 evidence: Some(json!({
                     "source": occurrence.source,
@@ -60,7 +76,7 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
                 message: format!(
                     "'{text_value}' is explicitly classified as regional, slang, or jargon technical terminology."
                 ),
-                span: span.clone(),
+                span,
                 rules: vec!["1.10".into()],
                 evidence: Some(json!({
                     "source": occurrence.source,
