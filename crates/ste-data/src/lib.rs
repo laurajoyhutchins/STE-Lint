@@ -50,6 +50,14 @@ pub enum InterpretationState {
     Interpreted,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VerbClassification {
+    Lexical,
+    IrregularAuxiliary,
+    DefectiveModal,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Sense {
     pub meaning: String,
@@ -96,6 +104,8 @@ pub struct SourceSemantics {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VerbParadigm {
+    pub classification: VerbClassification,
+    pub source_sequence: Vec<String>,
     pub base_form: String,
     pub simple_present_variants: Vec<String>,
     pub simple_past_variants: Vec<String>,
@@ -509,6 +519,8 @@ mod tests {
             "part_of_speech": "verb",
             "forms": ["REMOVE", "REMOVES", "REMOVED"],
             "verb_paradigm": {
+              "classification": "lexical",
+              "source_sequence": ["REMOVE", "REMOVES", "REMOVED", "REMOVED"],
               "base_form": "REMOVE",
               "simple_present_variants": ["REMOVES"],
               "simple_past_variants": ["REMOVED"],
@@ -523,6 +535,11 @@ mod tests {
         let lexicon = RuntimeLexicon::from_json(json).unwrap();
         let entry = lexicon.lookup_form("removed").unwrap();
         let paradigm = entry.verb_paradigm.as_ref().unwrap();
+        assert_eq!(paradigm.classification, VerbClassification::Lexical);
+        assert_eq!(
+            paradigm.source_sequence,
+            vec!["REMOVE", "REMOVES", "REMOVED", "REMOVED"]
+        );
         assert_eq!(paradigm.base_form, "REMOVE");
         assert_eq!(paradigm.simple_present_variants, vec!["REMOVES"]);
         assert_eq!(paradigm.simple_past_variants, vec!["REMOVED"]);
