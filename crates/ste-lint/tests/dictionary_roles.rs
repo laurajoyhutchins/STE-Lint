@@ -16,49 +16,72 @@ fn lexicon() -> RuntimeLexicon {
               "status": "approved",
               "part_of_speech": "noun",
               "forms": ["test"],
-              "senses": [{"meaning": "An examination."}]
+              "senses": [{"meaning": "An examination."}],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "ADJUST",
               "status": "approved",
               "part_of_speech": "verb",
-              "forms": ["adjust"]
+              "forms": ["adjust"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "CLEAN_VERB",
               "status": "approved",
               "part_of_speech": "verb",
-              "forms": ["clean"]
+              "forms": ["clean"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "CLEAN_ADJECTIVE",
               "status": "approved",
               "part_of_speech": "adjective",
-              "forms": ["clean"]
+              "forms": ["clean"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "turn on",
               "status": "unapproved",
               "part_of_speech": "verb",
-              "forms": ["turn on"]
+              "forms": ["turn on"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "TURN",
               "status": "approved",
               "part_of_speech": "verb",
-              "forms": ["turn"]
+              "forms": ["turn"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "ON",
               "status": "approved",
               "part_of_speech": "preposition",
-              "forms": ["on"]
+              "forms": ["on"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             },
             {
               "lemma": "MAKE SURE",
               "status": "approved",
               "part_of_speech": "verb",
-              "forms": ["make sure"]
+              "forms": ["make sure"],
+              "senses": [],
+              "alternatives": [],
+              "restrictions": []
             }
           ]
         }"#,
