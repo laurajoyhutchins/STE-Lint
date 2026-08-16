@@ -41,7 +41,10 @@ fn coverage_manifest_is_evidence_complete_and_path_valid() {
         let id = rule["id"].as_str().expect("rule id");
         let status = rule["status"].as_str().expect("rule status");
         let claim_scope = rule["claim_scope"].as_str().unwrap_or("").trim();
-        assert!(!claim_scope.is_empty(), "rule {id} must state its claim scope");
+        assert!(
+            !claim_scope.is_empty(),
+            "rule {id} must state its claim scope"
+        );
 
         let evidence = rule["evidence_artifacts"]
             .as_array()
