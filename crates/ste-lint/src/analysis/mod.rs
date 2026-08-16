@@ -1,6 +1,7 @@
 mod document;
 mod entity;
 mod grammar;
+mod sense;
 mod sentence;
 mod token;
 
@@ -13,5 +14,6 @@ pub use grammar::{
     IngUse, NounPhrase, ObservedRole, ObservedRoleEvidence, ParticipleRole, ParticipleUse,
     SubjectPredicate,
 };
+pub use sense::{SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag};
 pub use sentence::AnalysisSentence;
 pub use token::AnalysisToken;
