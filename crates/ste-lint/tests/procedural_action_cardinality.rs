@@ -3,12 +3,7 @@ use ste_lint::{LintMode, LintOptions, LintResult, lint_text};
 
 fn lint(text: &str, mode: LintMode) -> LintResult {
     let lexicon = lexicon();
-    lint_text(
-        text,
-        &lexicon,
-        None,
-        LintOptions { mode, fix: false },
-    )
+    lint_text(text, &lexicon, None, LintOptions { mode, fix: false })
 }
 
 fn has_code(result: &LintResult, code: &str) -> bool {
@@ -29,7 +24,10 @@ fn resolved_multiple_procedural_actions_are_reported_for_rule_5_2() {
         .find(|diagnostic| diagnostic.code == "STE-PROC-003")
         .expect("resolved multiple-action procedural instruction must be reported");
     assert_eq!(diagnostic.rules, vec!["5.2"]);
-    assert_eq!((diagnostic.span.start, diagnostic.span.end), (0, text.len()));
+    assert_eq!(
+        (diagnostic.span.start, diagnostic.span.end),
+        (0, text.len())
+    );
     let evidence = diagnostic.evidence.as_ref().expect("action evidence");
     assert_eq!(evidence["action_count"], 2);
     assert_eq!(evidence["action_heads"][0]["start"], 0);
