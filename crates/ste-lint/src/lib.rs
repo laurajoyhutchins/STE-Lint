@@ -6,7 +6,8 @@ mod structure;
 use std::cmp::Reverse;
 
 pub use context::{
-    DictionaryMeaningUse, LintContext, OccurrenceFact, SpellingUse, TechnicalNounScope, TopicFact,
+    CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
+    SpellingUse, TechnicalNounScope, TopicFact,
 };
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};
@@ -88,7 +89,7 @@ fn collect_diagnostics(
 ) -> Vec<Diagnostic> {
     let mut diagnostics = passes::punctuation::check(text);
     diagnostics.extend(passes::contractions::check(text));
-    diagnostics.extend(passes::length::check(text, mode));
+    diagnostics.extend(passes::length::check(text, mode, context));
     diagnostics.extend(passes::lists::check(text));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
