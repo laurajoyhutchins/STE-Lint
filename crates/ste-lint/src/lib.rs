@@ -108,6 +108,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
     diagnostics.extend(passes::perfect::check(&analysis));
+    diagnostics.extend(passes::grammar_semantics::check(&analysis));
     diagnostics.extend(passes::technical_roles::check(&analysis));
     diagnostics.extend(passes::dictionary_roles::check(&analysis));
     diagnostics.extend(passes::procedural::check(&analysis));

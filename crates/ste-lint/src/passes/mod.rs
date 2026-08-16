@@ -1,6 +1,7 @@
 pub(crate) mod contextual;
 pub(crate) mod contractions;
 pub(crate) mod dictionary_roles;
+pub(crate) mod grammar_semantics;
 pub(crate) mod length;
 pub(crate) mod lexical;
 pub(crate) mod lists;
