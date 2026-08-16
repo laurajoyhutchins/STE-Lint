@@ -1,8 +1,8 @@
 use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
 use ste_lint::{
-    AnalysisDocument, DocumentNodeId, DocumentNodeKind, DocumentRelationKind, LintContext, LintMode,
-    Resolution,
+    AnalysisDocument, DocumentNodeId, DocumentNodeKind, DocumentRelationKind, LintContext,
+    LintMode, Resolution,
 };
 
 #[test]
@@ -113,13 +113,8 @@ fn graph_preserves_ambiguous_reference_targets() {
     let text = "Inspect the busway and the pump. It is ready.";
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let glossary = two_entity_glossary();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        Some(&glossary),
-        None,
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, Some(&glossary), None, LintMode::Descriptive);
 
     let graph = analysis.document_graph();
     assert_eq!(graph.references.len(), 1);
@@ -127,9 +122,11 @@ fn graph_preserves_ambiguous_reference_targets() {
         panic!("competing entity antecedents must remain ambiguous");
     };
     assert_eq!(targets.len(), 2);
-    assert!(targets
-        .iter()
-        .all(|target| target.kind == DocumentNodeKind::EntityMention));
+    assert!(
+        targets
+            .iter()
+            .all(|target| target.kind == DocumentNodeKind::EntityMention)
+    );
 }
 
 #[test]
@@ -147,13 +144,8 @@ fn semantic_ordering_does_not_infer_missing_graph_identity() {
     )
     .unwrap();
     context.validate(text.len()).unwrap();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        None,
-        Some(&context),
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, None, Some(&context), LintMode::Descriptive);
 
     let graph = analysis.document_graph();
     assert_eq!(graph.semantic_orderings.len(), 1);
