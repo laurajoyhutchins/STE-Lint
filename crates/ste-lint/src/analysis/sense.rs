@@ -97,7 +97,10 @@ impl<'a> AnalysisDocument<'a> {
     }
 }
 
-fn role_allows_entry(observed_role: Option<ObservedRole>, part_of_speech: Option<PartOfSpeech>) -> bool {
+fn role_allows_entry(
+    observed_role: Option<ObservedRole>,
+    part_of_speech: Option<PartOfSpeech>,
+) -> bool {
     match observed_role {
         Some(ObservedRole::Nominal) => part_of_speech == Some(PartOfSpeech::Noun),
         Some(ObservedRole::Verbal) => part_of_speech == Some(PartOfSpeech::Verb),
