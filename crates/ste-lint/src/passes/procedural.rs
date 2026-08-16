@@ -2,6 +2,7 @@ use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, PartOfSpeech, VerbClassification};
 
+use crate::document_structure::{safety_blocks, starts_condition};
 use crate::{AnalysisDocument, LintMode};
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
@@ -110,37 +111,24 @@ fn condition_commas(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     let text = analysis.text();
     let mut diagnostics = Vec::new();
-    let mut offset = 0usize;
 
-    for line in text.split_inclusive('\n') {
-        let without_newline = line.trim_end_matches(['\r', '\n']);
-        let leading = without_newline.len() - without_newline.trim_start().len();
-        let trimmed = without_newline.trim_start();
-        let Some(label_len) = safety_label_len(trimmed) else {
-            offset += line.len();
-            continue;
-        };
-        let after_label = &trimmed[label_len..];
-        let content_leading = after_label.len() - after_label.trim_start().len();
-        let content = after_label.trim_start();
-        if content.is_empty() {
-            offset += line.len();
+    for block in safety_blocks(text) {
+        if block.content_start >= block.content_end {
             continue;
         }
-        let content_start = offset + leading + label_len + content_leading;
-        let content_end = content_start + content.len();
-
+        let content = &text[block.content_start..block.content_end];
         if starts_condition(content) {
-            offset += line.len();
             continue;
         }
 
         let Some(matched) =
-            analysis.leading_dictionary_match_in_span(content_start, content_end, 8)
+            analysis.leading_dictionary_match_in_span(block.content_start, block.content_end, 8)
         else {
-            let end = content_start + content.split_whitespace().next().map_or(0, str::len);
-            diagnostics.push(safety_error(content_start, end.max(content_start + 1)));
-            offset += line.len();
+            let end = block.content_start + content.split_whitespace().next().map_or(0, str::len);
+            diagnostics.push(safety_error(
+                block.content_start,
+                end.max(block.content_start + 1),
+            ));
             continue;
         };
 
@@ -158,11 +146,10 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             .count();
 
         if base_verbs > 0 && base_verbs == matched.candidates.len() {
-            offset += line.len();
             continue;
         }
 
-        let span_end = content_start + matched.text.len();
+        let span_end = block.content_start + matched.text.len();
         if base_verbs > 0 {
             diagnostics.push(Diagnostic {
                 code: "STE-SAFE-002".into(),
@@ -172,7 +159,7 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
                     matched.text
                 ),
                 span: Span {
-                    start: content_start,
+                    start: block.content_start,
                     end: span_end,
                 },
                 rules: vec!["7.2".into()],
@@ -185,10 +172,8 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
                 autofix: None,
             });
         } else {
-            diagnostics.push(safety_error(content_start, span_end));
+            diagnostics.push(safety_error(block.content_start, span_end));
         }
-
-        offset += line.len();
     }
 
     diagnostics
@@ -208,30 +193,8 @@ fn safety_error(start: usize, end: usize) -> Diagnostic {
     }
 }
 
-fn starts_condition(text: &str) -> bool {
-    let first = text
-        .split_whitespace()
-        .next()
-        .unwrap_or_default()
-        .trim_matches(|character: char| character.is_ascii_punctuation());
-    matches!(
-        first.to_ascii_lowercase().as_str(),
-        "after" | "before" | "if" | "when" | "while"
-    )
-}
-
 fn starts_label(text: &str, label: &str) -> bool {
     text.get(..label.len())
         .is_some_and(|prefix| prefix.eq_ignore_ascii_case(label))
         && text[label.len()..].trim_start().starts_with(':')
-}
-
-fn safety_label_len(text: &str) -> Option<usize> {
-    for label in ["WARNING", "CAUTION"] {
-        if starts_label(text, label) {
-            let colon = text[label.len()..].find(':')? + label.len();
-            return Some(colon + 1);
-        }
-    }
-    None
 }
