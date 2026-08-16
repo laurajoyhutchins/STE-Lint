@@ -6,11 +6,7 @@ use ste_core::{Diagnostic, Severity, Span};
 use crate::structure::{paragraph_prose_sentence_count, paragraph_ranges};
 use crate::{LintContext, LintMode, TopicFact};
 
-pub(crate) fn check(
-    text: &str,
-    mode: LintMode,
-    context: Option<&LintContext>,
-) -> Vec<Diagnostic> {
+pub(crate) fn check(text: &str, mode: LintMode, context: Option<&LintContext>) -> Vec<Diagnostic> {
     if mode != LintMode::Descriptive {
         return Vec::new();
     }
