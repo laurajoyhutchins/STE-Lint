@@ -135,7 +135,8 @@ mod tests {
     }
 
     fn diagnostics(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
-        let analysis = AnalysisDocument::new(text, lexicon, None, None, crate::LintMode::Descriptive);
+        let analysis =
+            AnalysisDocument::new(text, lexicon, None, None, crate::LintMode::Descriptive);
         check(&analysis)
     }
 
