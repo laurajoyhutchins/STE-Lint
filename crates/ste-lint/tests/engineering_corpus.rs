@@ -108,21 +108,17 @@ fn representative_engineering_corpus_matches_declared_results() {
             .as_str()
             .unwrap()
             .to_string();
-        assert_eq!(
-            observed_outcome, case.expected_outcome,
-            "unexpected outcome for corpus case {}",
-            case.id
-        );
-
         let observed_codes = result
             .diagnostics
             .iter()
             .map(|diagnostic| diagnostic.code.clone())
             .collect::<BTreeSet<_>>();
         let expected_codes = case.expected_codes.iter().cloned().collect::<BTreeSet<_>>();
+
         assert_eq!(
-            observed_codes, expected_codes,
-            "unexpected diagnostic codes for corpus case {}",
+            (observed_outcome.as_str(), &observed_codes),
+            (case.expected_outcome.as_str(), &expected_codes),
+            "unexpected lint result for corpus case {}",
             case.id
         );
     }
