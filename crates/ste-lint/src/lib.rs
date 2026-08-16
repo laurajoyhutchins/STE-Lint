@@ -11,7 +11,8 @@ pub use analysis::{
     AuxiliaryChain, AuxiliaryKind, DictionaryMatch, EntityIdentity, EntityMention,
     EntityMentionKind, GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole,
     ObservedRoleEvidence, ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution,
-    SubjectPredicate, VerbFormCandidate, VerbFormRole,
+    SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate,
+    VerbFormCandidate, VerbFormRole,
 };
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
