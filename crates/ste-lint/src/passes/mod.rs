@@ -10,6 +10,5 @@ pub(crate) mod paragraph;
 pub(crate) mod perfect;
 pub(crate) mod procedural;
 pub(crate) mod punctuation;
-pub(crate) mod safety_semantics;
 pub(crate) mod semantic;
 pub(crate) mod technical_roles;
