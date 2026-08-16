@@ -25,10 +25,7 @@ fn analysis_document_preserves_spans_sentence_identity_and_runtime_evidence() {
     let use_match = analysis.longest_dictionary_match_at(0).unwrap();
     assert_eq!(use_match.text, "USE");
     assert_eq!((use_match.start, use_match.end), (0, 3));
-    assert_eq!(
-        use_match.possible_parts_of_speech,
-        vec![PartOfSpeech::Verb]
-    );
+    assert_eq!(use_match.possible_parts_of_speech, vec![PartOfSpeech::Verb]);
     assert!(matches!(use_match.resolution, Resolution::Resolved(_)));
     assert!(
         use_match
