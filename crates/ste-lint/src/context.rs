@@ -227,7 +227,9 @@ impl LintContext {
         }
         for (index, fact) in self.safety_facts.iter().enumerate() {
             if fact.source.trim().is_empty() {
-                return Err(format!("context safety fact {index} source must be non-empty"));
+                return Err(format!(
+                    "context safety fact {index} source must be non-empty"
+                ));
             }
             if fact.safety_level.is_none()
                 && fact.actor.is_none()
