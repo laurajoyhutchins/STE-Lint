@@ -64,11 +64,7 @@ fn safety_semantics(analysis: &AnalysisDocument<'_>) -> Vec<SafetySemantics> {
                     resolve_context_spans(&facts, |fact| fact.command, "command"),
                 ),
                 hazard: resolve_context_spans(&facts, |fact| fact.hazard, "hazard"),
-                consequence: resolve_context_spans(
-                    &facts,
-                    |fact| fact.consequence,
-                    "consequence",
-                ),
+                consequence: resolve_context_spans(&facts, |fact| fact.consequence, "consequence"),
             }
         })
         .collect()
@@ -190,12 +186,9 @@ where
         let Some(span) = select(fact) else {
             continue;
         };
-        if candidates
-            .iter()
-            .any(|candidate: &SafetySpanEvidence| {
-                candidate.span.start == span.start && candidate.span.end == span.end
-            })
-        {
+        if candidates.iter().any(|candidate: &SafetySpanEvidence| {
+            candidate.span.start == span.start && candidate.span.end == span.end
+        }) {
             continue;
         }
         candidates.push(SafetySpanEvidence {
