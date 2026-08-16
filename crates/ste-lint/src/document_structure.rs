@@ -19,6 +19,21 @@ pub(crate) struct SimpleListBlock {
     pub items: Vec<ListItem>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SafetyLabel {
+    Warning,
+    Caution,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct SafetyBlock {
+    pub start: usize,
+    pub end: usize,
+    pub content_start: usize,
+    pub content_end: usize,
+    pub label: SafetyLabel,
+}
+
 #[derive(Debug, Clone, Copy)]
 struct LineSpan {
     start: usize,
@@ -68,6 +83,42 @@ pub(crate) fn note_blocks(text: &str) -> Vec<NoteBlock> {
         index = continuation.max(index + 1);
     }
     blocks
+}
+
+pub(crate) fn safety_blocks(text: &str) -> Vec<SafetyBlock> {
+    let mut blocks = Vec::new();
+    for line in line_spans(text) {
+        let raw = line_text(text, line);
+        let trimmed = raw.trim_start();
+        let leading = raw.len() - trimmed.len();
+        let Some((label_len, label)) = safety_label(trimmed) else {
+            continue;
+        };
+        let after_label = &trimmed[label_len..];
+        let content_leading = after_label.len() - after_label.trim_start().len();
+        let content_start = line.start + leading + label_len + content_leading;
+        let content_end = line.start + raw.len();
+        blocks.push(SafetyBlock {
+            start: line.start + leading,
+            end: content_end,
+            content_start,
+            content_end,
+            label,
+        });
+    }
+    blocks
+}
+
+pub(crate) fn starts_condition(text: &str) -> bool {
+    let first = text
+        .split_whitespace()
+        .next()
+        .unwrap_or_default()
+        .trim_matches(|character: char| character.is_ascii_punctuation());
+    matches!(
+        first.to_ascii_lowercase().as_str(),
+        "after" | "before" | "if" | "when" | "while"
+    )
 }
 
 pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
@@ -126,6 +177,23 @@ pub(crate) fn overlaps_note(start: usize, end: usize, notes: &[NoteBlock]) -> bo
     notes
         .iter()
         .any(|note| start < note.end && note.start < end)
+}
+
+fn safety_label(text: &str) -> Option<(usize, SafetyLabel)> {
+    for (name, label) in [
+        ("WARNING", SafetyLabel::Warning),
+        ("CAUTION", SafetyLabel::Caution),
+    ] {
+        if text
+            .get(..name.len())
+            .is_some_and(|prefix| prefix.eq_ignore_ascii_case(name))
+            && text[name.len()..].trim_start().starts_with(':')
+        {
+            let colon = text[name.len()..].find(':')? + name.len();
+            return Some((colon + 1, label));
+        }
+    }
+    None
 }
 
 fn list_item_layout(line: &str) -> Option<(usize, usize)> {

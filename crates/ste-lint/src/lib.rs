@@ -12,14 +12,15 @@ pub use analysis::{
     DocumentNodeKind, DocumentReferenceRelation, DocumentRelation, DocumentRelationKind,
     DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind,
     GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole, ObservedRoleEvidence,
-    ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution, SenseEvidence,
+    ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution, SafetyEvidenceSource,
+    SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence, SenseEvidence,
     SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate, VerbFormCandidate,
     VerbFormRole,
 };
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
-    SemanticOrderTarget, SemanticOrderTargetKind, SemanticOrderingFact, SpellingUse,
-    TechnicalNounScope, TopicFact,
+    SafetyFact, SafetyLevelFact, SafetySpanFact, SemanticOrderTarget, SemanticOrderTargetKind,
+    SemanticOrderingFact, SpellingUse, TechnicalNounScope, TopicFact,
 };
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};

@@ -8,6 +8,8 @@ pub struct LintContext {
     pub topics: Vec<TopicFact>,
     #[serde(default)]
     pub semantic_orderings: Vec<SemanticOrderingFact>,
+    #[serde(default)]
+    pub safety_facts: Vec<SafetyFact>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -60,6 +62,36 @@ pub enum SemanticOrderTargetKind {
     Paragraph,
     Topic,
     EntityMention,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SafetyFact {
+    pub start: usize,
+    pub end: usize,
+    pub source: String,
+    #[serde(default)]
+    pub safety_level: Option<SafetyLevelFact>,
+    #[serde(default)]
+    pub actor: Option<SafetySpanFact>,
+    #[serde(default)]
+    pub command: Option<SafetySpanFact>,
+    #[serde(default)]
+    pub hazard: Option<SafetySpanFact>,
+    #[serde(default)]
+    pub consequence: Option<SafetySpanFact>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SafetySpanFact {
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SafetyLevelFact {
+    Warning,
+    Caution,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -147,6 +179,13 @@ impl LintContext {
                 text_len,
             )?;
         }
+        for (index, fact) in self.safety_facts.iter().enumerate() {
+            validate_span("context safety fact", index, fact.start, fact.end, text_len)?;
+            validate_safety_component("actor", index, fact.actor, fact, text_len)?;
+            validate_safety_component("command", index, fact.command, fact, text_len)?;
+            validate_safety_component("hazard", index, fact.hazard, fact, text_len)?;
+            validate_safety_component("consequence", index, fact.consequence, fact, text_len)?;
+        }
         self.validate_count_group_overlaps()?;
         Ok(())
     }
@@ -186,6 +225,23 @@ impl LintContext {
                 ));
             }
         }
+        for (index, fact) in self.safety_facts.iter().enumerate() {
+            if fact.source.trim().is_empty() {
+                return Err(format!(
+                    "context safety fact {index} source must be non-empty"
+                ));
+            }
+            if fact.safety_level.is_none()
+                && fact.actor.is_none()
+                && fact.command.is_none()
+                && fact.hazard.is_none()
+                && fact.consequence.is_none()
+            {
+                return Err(format!(
+                    "context safety fact {index} must contain at least one safety evidence fact"
+                ));
+            }
+        }
         Ok(())
     }
 
@@ -210,6 +266,32 @@ impl LintContext {
         }
         Ok(())
     }
+}
+
+fn validate_safety_component(
+    component: &str,
+    index: usize,
+    span: Option<SafetySpanFact>,
+    fact: &SafetyFact,
+    text_len: usize,
+) -> Result<(), String> {
+    let Some(span) = span else {
+        return Ok(());
+    };
+    validate_span(
+        &format!("context safety fact {component}"),
+        index,
+        span.start,
+        span.end,
+        text_len,
+    )?;
+    if span.start < fact.start || span.end > fact.end {
+        return Err(format!(
+            "context safety fact {index} {component} span {}..{} must be contained in safety fact span {}..{}",
+            span.start, span.end, fact.start, fact.end
+        ));
+    }
+    Ok(())
 }
 
 fn validate_span(
