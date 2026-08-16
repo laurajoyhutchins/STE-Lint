@@ -1,7 +1,7 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 
-use crate::{DictionaryMeaningUse, LintContext, SpellingUse, TechnicalNounScope};
+use crate::{DictionaryMeaningUse, LintContext, ParenthesisUseKind, SpellingUse, TechnicalNounScope};
 
 pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic> {
     let Some(context) = context else {
@@ -128,7 +128,74 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
                 autofix: None,
             });
         }
+
+        if let Some(direct_relation) = occurrence.hyphen_direct_relation {
+            if !text_value.contains('-') {
+                diagnostics.push(invalid_occurrence_shape(
+                    occurrence,
+                    "hyphen_direct_relation evidence must identify text that contains a hyphen",
+                ));
+            } else if !direct_relation {
+                diagnostics.push(Diagnostic {
+                    code: "STE-PUNC-002".into(),
+                    severity: Severity::Error,
+                    message: format!(
+                        "'{text_value}' is explicitly classified as a hyphen use between words that are not directly related."
+                    ),
+                    span,
+                    rules: vec!["8.2".into()],
+                    evidence: Some(json!({
+                        "source": occurrence.source,
+                        "fact": "hyphen_direct_relation",
+                        "value": direct_relation,
+                        "span": {"start": occurrence.start, "end": occurrence.end},
+                    })),
+                    autofix: None,
+                });
+            }
+        }
+
+        if let Some(parenthesis_use) = occurrence.parenthesis_use {
+            let trimmed = text_value.trim();
+            if !(trimmed.starts_with('(') && trimmed.ends_with(')')) {
+                diagnostics.push(invalid_occurrence_shape(
+                    occurrence,
+                    "parenthesis_use evidence must identify a parenthesized text span",
+                ));
+            } else if parenthesis_use == ParenthesisUseKind::Other {
+                diagnostics.push(Diagnostic {
+                    code: "STE-PUNC-003".into(),
+                    severity: Severity::Error,
+                    message: "This parenthetical use is explicitly classified outside the Rule 8.3 allowed categories."
+                        .into(),
+                    span,
+                    rules: vec!["8.3".into()],
+                    evidence: Some(json!({
+                        "source": occurrence.source,
+                        "fact": "parenthesis_use",
+                        "value": parenthesis_use,
+                        "span": {"start": occurrence.start, "end": occurrence.end},
+                    })),
+                    autofix: None,
+                });
+            }
+        }
     }
 
     diagnostics
+}
+
+fn invalid_occurrence_shape(occurrence: &crate::OccurrenceFact, message: &str) -> Diagnostic {
+    Diagnostic {
+        code: "STE-CTX-000".into(),
+        severity: Severity::Blocked,
+        message: message.into(),
+        span: Span { start: 0, end: 0 },
+        rules: Vec::new(),
+        evidence: Some(json!({
+            "source": occurrence.source,
+            "span": {"start": occurrence.start, "end": occurrence.end},
+        })),
+        autofix: None,
+    }
 }
