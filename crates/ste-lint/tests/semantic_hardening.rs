@@ -18,7 +18,8 @@ fn grammar_selected_sense_keeps_the_same_head_token_span() {
     let Resolution::Resolved(noun_phrase) = analysis.noun_phrase_at(0) else {
         panic!("bounded noun phrase should resolve");
     };
-    let Resolution::Resolved(sense) = analysis.sense_resolution_at(noun_phrase.head_token, 1) else {
+    let Resolution::Resolved(sense) = analysis.sense_resolution_at(noun_phrase.head_token, 1)
+    else {
         panic!("grammar-selected noun identity should resolve one source-safe sense");
     };
     let head = &analysis.tokens()[noun_phrase.head_token];
@@ -135,17 +136,13 @@ fn safety_command_and_actor_spans_align_with_dictionary_and_entity_evidence() {
 #[test]
 fn unresolved_sense_does_not_fabricate_entity_or_graph_identity() {
     let lexicon = lexicon();
-    let analysis =
-        AnalysisDocument::new("TEST.", &lexicon, None, None, LintMode::Descriptive);
+    let analysis = AnalysisDocument::new("TEST.", &lexicon, None, None, LintMode::Descriptive);
 
     assert!(matches!(
         analysis.sense_resolution_at(0, 1),
         Resolution::Ambiguous(_)
     ));
-    assert!(matches!(
-        analysis.entity_mention_at(0),
-        Resolution::Unknown
-    ));
+    assert!(matches!(analysis.entity_mention_at(0), Resolution::Unknown));
     assert!(
         analysis
             .document_graph()
