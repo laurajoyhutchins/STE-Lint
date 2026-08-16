@@ -8,8 +8,9 @@ use std::cmp::Reverse;
 
 pub use analysis::{
     ActionCardinality, ActionStructure, AnalysisDocument, AnalysisSentence, AnalysisToken,
-    AuxiliaryChain, AuxiliaryKind, DictionaryMatch, GlossaryMatch, GrammarSpan, IngRole, IngUse,
-    NounPhrase, ObservedRole, ObservedRoleEvidence, ParticipleRole, ParticipleUse, Resolution,
+    AuxiliaryChain, AuxiliaryKind, DictionaryMatch, EntityIdentity, EntityMention,
+    EntityMentionKind, GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole,
+    ObservedRoleEvidence, ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution,
     SubjectPredicate, VerbFormCandidate, VerbFormRole,
 };
 pub use context::{

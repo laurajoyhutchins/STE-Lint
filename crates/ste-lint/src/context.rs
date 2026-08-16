@@ -120,6 +120,7 @@ impl LintContext {
             if occurrence.dictionary_meaning.is_none()
                 && occurrence.technical_noun_scope.is_none()
                 && occurrence.spelling.is_none()
+                && !occurrence.official_technical_name
                 && occurrence.count_group.is_none()
                 && occurrence.hyphen_direct_relation.is_none()
                 && occurrence.parenthesis_use.is_none()
