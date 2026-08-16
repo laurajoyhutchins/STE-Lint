@@ -102,7 +102,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::perfect::check(&analysis));
     diagnostics.extend(passes::technical_roles::check(&analysis));
     diagnostics.extend(passes::dictionary_roles::check(&analysis));
-    diagnostics.extend(passes::procedural::check(text, lexicon, mode));
+    diagnostics.extend(passes::procedural::check(&analysis));
     diagnostics.extend(passes::contextual::check(text, context));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));

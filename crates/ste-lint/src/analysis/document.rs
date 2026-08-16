@@ -225,6 +225,43 @@ impl<'a> AnalysisDocument<'a> {
         grammar::technical_role(self.text, &self.tokens, token_start, token_width, self.mode)
     }
 
+    pub(crate) fn first_token_in_span(
+        &self,
+        start: usize,
+        end: usize,
+    ) -> Option<(usize, &AnalysisToken<'a>)> {
+        self.tokens
+            .iter()
+            .enumerate()
+            .find(|(_, token)| token.start >= start && token.end <= end)
+    }
+
+    pub(crate) fn leading_dictionary_match_in_span(
+        &self,
+        start: usize,
+        end: usize,
+        max_words: usize,
+    ) -> Option<DictionaryMatch<'a>> {
+        if start >= end || end > self.text.len() {
+            return None;
+        }
+        let words = self.text[start..end]
+            .split_whitespace()
+            .take(max_words)
+            .map(|word| word.trim_matches(|character: char| character.is_ascii_punctuation()))
+            .take_while(|word| !word.is_empty())
+            .collect::<Vec<_>>();
+        for width in (1..=words.len()).rev() {
+            let phrase = words[..width].join(" ");
+            if let Some(matched) =
+                self.make_dictionary_match(0, width, phrase.clone(), start, start + phrase.len())
+            {
+                return Some(matched);
+            }
+        }
+        None
+    }
+
     pub(crate) fn word_tokens(&self) -> &[WordToken<'a>] {
         &self.word_tokens
     }

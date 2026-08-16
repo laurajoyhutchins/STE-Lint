@@ -1,25 +1,27 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_data::{ApprovalStatus, PartOfSpeech, RuntimeLexicon, VerbClassification};
+use ste_data::{ApprovalStatus, PartOfSpeech, VerbClassification};
 
-use crate::{LintMode, structure::word_limit_units};
+use crate::{AnalysisDocument, LintMode};
 
-pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon, mode: LintMode) -> Vec<Diagnostic> {
-    let mut diagnostics = safety_openings(text, lexicon);
-    if mode != LintMode::Procedural {
+pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let text = analysis.text();
+    let mut diagnostics = safety_openings(analysis);
+    if analysis.mode() != LintMode::Procedural {
         return diagnostics;
     }
 
-    diagnostics.extend(condition_commas(text));
-    diagnostics.extend(imperative_forms(text, lexicon));
+    diagnostics.extend(condition_commas(analysis));
+    diagnostics.extend(imperative_forms(analysis));
     diagnostics
 }
 
-fn imperative_forms(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
+fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let text = analysis.text();
     let mut diagnostics = Vec::new();
-    for unit in word_limit_units(text) {
-        let start = unit.start;
-        let end = unit.end;
+    for sentence_span in analysis.sentences() {
+        let start = sentence_span.start;
+        let end = sentence_span.end;
         let sentence = text[start..end].trim_start();
         if sentence.is_empty()
             || starts_label(sentence, "NOTE")
@@ -30,14 +32,16 @@ fn imperative_forms(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
             continue;
         }
 
-        let Some((word, word_start, word_end)) = first_word(text, start, end) else {
+        let Some((token_index, token)) = analysis.first_token_in_span(start, end) else {
             continue;
         };
-        let candidates = lexicon.lookup_form_candidates(word);
-        if candidates.len() != 1 {
+        let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
+            continue;
+        };
+        if matched.candidates.len() != 1 {
             continue;
         }
-        let entry = candidates[0];
+        let entry = matched.candidates[0];
         if entry.status != ApprovalStatus::Approved
             || entry.part_of_speech != Some(PartOfSpeech::Verb)
         {
@@ -47,7 +51,7 @@ fn imperative_forms(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
             continue;
         };
         if paradigm.classification != VerbClassification::Lexical
-            || word.eq_ignore_ascii_case(&paradigm.base_form)
+            || token.text.eq_ignore_ascii_case(&paradigm.base_form)
         {
             continue;
         }
@@ -56,17 +60,17 @@ fn imperative_forms(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
             code: "STE-PROC-001".into(),
             severity: Severity::Error,
             message: format!(
-                "Procedural instruction starts with non-imperative verb form '{word}'; use the source-backed base form '{}'.",
-                paradigm.base_form
+                "Procedural instruction starts with non-imperative verb form '{}'; use the source-backed base form '{}'.",
+                token.text, paradigm.base_form
             ),
             span: Span {
-                start: word_start,
-                end: word_end,
+                start: token.start,
+                end: token.end,
             },
             rules: vec!["5.3".into()],
             evidence: Some(json!({
                 "lemma": entry.lemma,
-                "observed_form": word,
+                "observed_form": token.text,
                 "base_form": paradigm.base_form,
                 "verb_classification": paradigm.classification,
                 "source_sequence": paradigm.source_sequence,
@@ -77,11 +81,12 @@ fn imperative_forms(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
     diagnostics
 }
 
-fn condition_commas(text: &str) -> Vec<Diagnostic> {
+fn condition_commas(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let text = analysis.text();
     let mut diagnostics = Vec::new();
-    for unit in word_limit_units(text) {
-        let start = unit.start;
-        let end = unit.end;
+    for sentence_span in analysis.sentences() {
+        let start = sentence_span.start;
+        let end = sentence_span.end;
         let sentence = text[start..end].trim_start();
         if !starts_condition(sentence) || sentence.contains(',') {
             continue;
@@ -103,7 +108,8 @@ fn condition_commas(text: &str) -> Vec<Diagnostic> {
     diagnostics
 }
 
-fn safety_openings(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
+fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let text = analysis.text();
     let mut diagnostics = Vec::new();
     let mut offset = 0usize;
 
@@ -123,43 +129,47 @@ fn safety_openings(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
             continue;
         }
         let content_start = offset + leading + label_len + content_leading;
+        let content_end = content_start + content.len();
 
         if starts_condition(content) {
             offset += line.len();
             continue;
         }
 
-        let Some((matched, candidates)) = leading_dictionary_match(content, lexicon) else {
+        let Some(matched) = analysis.leading_dictionary_match_in_span(content_start, content_end, 8)
+        else {
             let end = content_start + content.split_whitespace().next().map_or(0, str::len);
             diagnostics.push(safety_error(content_start, end.max(content_start + 1)));
             offset += line.len();
             continue;
         };
 
-        let base_verbs = candidates
+        let base_verbs = matched
+            .candidates
             .iter()
             .filter(|entry| {
                 entry.status == ApprovalStatus::Approved
                     && entry.part_of_speech == Some(PartOfSpeech::Verb)
                     && entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
                         paradigm.classification == VerbClassification::Lexical
-                            && matched.eq_ignore_ascii_case(&paradigm.base_form)
+                            && matched.text.eq_ignore_ascii_case(&paradigm.base_form)
                     })
             })
             .count();
 
-        if base_verbs > 0 && base_verbs == candidates.len() {
+        if base_verbs > 0 && base_verbs == matched.candidates.len() {
             offset += line.len();
             continue;
         }
 
-        let span_end = content_start + matched.len();
+        let span_end = content_start + matched.text.len();
         if base_verbs > 0 {
             diagnostics.push(Diagnostic {
                 code: "STE-SAFE-002".into(),
                 severity: Severity::Blocked,
                 message: format!(
-                    "Safety instruction opening '{matched}' has competing approved dictionary identities; command role cannot be selected safely."
+                    "Safety instruction opening '{}' has competing approved dictionary identities; command role cannot be selected safely.",
+                    matched.text
                 ),
                 span: Span {
                     start: content_start,
@@ -167,8 +177,8 @@ fn safety_openings(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
                 },
                 rules: vec!["7.2".into()],
                 evidence: Some(json!({
-                    "opening": matched,
-                    "candidate_count": candidates.len(),
+                    "opening": matched.text,
+                    "candidate_count": matched.candidates.len(),
                     "base_verb_candidates": base_verbs,
                     "requires_disambiguation": true,
                 })),
@@ -196,48 +206,6 @@ fn safety_error(start: usize, end: usize) -> Diagnostic {
         })),
         autofix: None,
     }
-}
-
-fn leading_dictionary_match<'a>(
-    content: &str,
-    lexicon: &'a RuntimeLexicon,
-) -> Option<(String, Vec<&'a ste_data::LexiconEntry>)> {
-    let words = content
-        .split_whitespace()
-        .take(8)
-        .map(|word| word.trim_matches(|character: char| character.is_ascii_punctuation()))
-        .take_while(|word| !word.is_empty())
-        .collect::<Vec<_>>();
-    for width in (1..=words.len()).rev() {
-        let phrase = words[..width].join(" ");
-        let candidates = lexicon.lookup_form_candidates(&phrase);
-        if !candidates.is_empty() {
-            return Some((phrase, candidates));
-        }
-    }
-    None
-}
-
-fn first_word(text: &str, start: usize, end: usize) -> Option<(&str, usize, usize)> {
-    let slice = &text[start..end];
-    let mut word_start = None;
-    for (relative, character) in slice.char_indices() {
-        if character.is_alphabetic() {
-            word_start.get_or_insert(relative);
-        } else if let Some(relative_start) = word_start {
-            let absolute_start = start + relative_start;
-            let absolute_end = start + relative;
-            return Some((
-                &text[absolute_start..absolute_end],
-                absolute_start,
-                absolute_end,
-            ));
-        }
-    }
-    word_start.map(|relative_start| {
-        let absolute_start = start + relative_start;
-        (&text[absolute_start..end], absolute_start, end)
-    })
 }
 
 fn starts_condition(text: &str) -> bool {
