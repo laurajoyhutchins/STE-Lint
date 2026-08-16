@@ -5,7 +5,7 @@ use crate::{LintContext, LintMode};
 
 use super::grammar::{self, ObservedRoleEvidence};
 use super::sentence::{AnalysisSentence, build_sentences};
-use super::token::{AnalysisToken, lexical_tokens};
+use super::token::{AnalysisToken, WordToken, lexical_tokens, word_tokens};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerbFormRole {
@@ -52,6 +52,7 @@ pub struct AnalysisDocument<'a> {
     context: Option<&'a LintContext>,
     mode: LintMode,
     tokens: Vec<AnalysisToken<'a>>,
+    word_tokens: Vec<WordToken<'a>>,
     sentences: Vec<AnalysisSentence>,
     max_dictionary_words: usize,
     max_glossary_words: usize,
@@ -93,6 +94,7 @@ impl<'a> AnalysisDocument<'a> {
             context,
             mode,
             tokens,
+            word_tokens: word_tokens(text),
             sentences,
             max_dictionary_words,
             max_glossary_words,
@@ -141,7 +143,25 @@ impl<'a> AnalysisDocument<'a> {
         token_start: usize,
         token_width: usize,
     ) -> Option<DictionaryMatch<'a>> {
-        self.dictionary_match_from_tokens(&self.tokens, token_start, token_width)
+        if token_width == 0 || token_start + token_width > self.tokens.len() {
+            return None;
+        }
+        let window = &self.tokens[token_start..token_start + token_width];
+        if !analysis_tokens_whitespace_joined(self.text, window) {
+            return None;
+        }
+        let phrase = window
+            .iter()
+            .map(|token| token.text)
+            .collect::<Vec<_>>()
+            .join(" ");
+        self.make_dictionary_match(
+            token_start,
+            token_width,
+            phrase,
+            window[0].start,
+            window[token_width - 1].end,
+        )
     }
 
     pub fn longest_dictionary_match_at(&self, token_start: usize) -> Option<DictionaryMatch<'a>> {
@@ -167,10 +187,14 @@ impl<'a> AnalysisDocument<'a> {
         let max_width = self.max_glossary_words.min(self.tokens.len() - token_start);
         for width in (1..=max_width).rev() {
             let window = &self.tokens[token_start..token_start + width];
-            if !whitespace_joined(self.text, window) {
+            if !analysis_tokens_whitespace_joined(self.text, window) {
                 continue;
             }
-            let phrase = normalized_phrase(window.iter().map(|token| token.text));
+            let phrase = window
+                .iter()
+                .map(|token| token.text)
+                .collect::<Vec<_>>()
+                .join(" ");
             if let Some(term) = glossary.lookup_term(&phrase) {
                 return Some(GlossaryMatch {
                     token_start,
@@ -201,20 +225,36 @@ impl<'a> AnalysisDocument<'a> {
         grammar::technical_role(self.text, &self.tokens, token_start, token_width, self.mode)
     }
 
-    fn dictionary_match_from_tokens(
+    pub(crate) fn word_tokens(&self) -> &[WordToken<'a>] {
+        &self.word_tokens
+    }
+
+    pub(crate) fn word_dictionary_match_at(
         &self,
-        tokens: &[AnalysisToken<'a>],
         token_start: usize,
         token_width: usize,
     ) -> Option<DictionaryMatch<'a>> {
-        if token_width == 0 || token_start + token_width > tokens.len() {
+        if token_width == 0 || token_start + token_width > self.word_tokens.len() {
             return None;
         }
-        let window = &tokens[token_start..token_start + token_width];
-        if !whitespace_joined(self.text, window) {
+        let window = &self.word_tokens[token_start..token_start + token_width];
+        if !word_tokens_whitespace_joined(self.text, window) {
             return None;
         }
-        let phrase = normalized_phrase(window.iter().map(|token| token.text));
+        let start = window[0].start;
+        let end = window[token_width - 1].end;
+        let phrase = self.text[start..end].to_string();
+        self.make_dictionary_match(token_start, token_width, phrase, start, end)
+    }
+
+    fn make_dictionary_match(
+        &self,
+        token_start: usize,
+        token_width: usize,
+        phrase: String,
+        start: usize,
+        end: usize,
+    ) -> Option<DictionaryMatch<'a>> {
         let candidates = self.lexicon.lookup_form_candidates(&phrase);
         if candidates.is_empty() {
             return None;
@@ -227,8 +267,8 @@ impl<'a> AnalysisDocument<'a> {
             token_start,
             token_width,
             text: phrase,
-            start: window[0].start,
-            end: window[token_width - 1].end,
+            start,
+            end,
             candidates,
             resolution,
             possible_parts_of_speech,
@@ -310,11 +350,15 @@ fn verb_forms<'a>(phrase: &str, candidates: &[&'a LexiconEntry]) -> Vec<VerbForm
     forms
 }
 
-fn normalized_phrase<'a>(parts: impl Iterator<Item = &'a str>) -> String {
-    parts.collect::<Vec<_>>().join(" ")
+fn analysis_tokens_whitespace_joined(text: &str, tokens: &[AnalysisToken<'_>]) -> bool {
+    tokens.windows(2).all(|pair| {
+        text[pair[0].end..pair[1].start]
+            .chars()
+            .all(char::is_whitespace)
+    })
 }
 
-fn whitespace_joined(text: &str, tokens: &[AnalysisToken<'_>]) -> bool {
+fn word_tokens_whitespace_joined(text: &str, tokens: &[WordToken<'_>]) -> bool {
     tokens.windows(2).all(|pair| {
         text[pair[0].end..pair[1].start]
             .chars()
