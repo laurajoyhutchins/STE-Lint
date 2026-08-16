@@ -136,13 +136,8 @@ fn repeated_official_name_mentions_keep_distinct_spans() {
         }"#,
     )
     .unwrap();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        None,
-        Some(&context),
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, None, Some(&context), LintMode::Descriptive);
 
     let mentions = analysis.entity_mentions();
     assert_eq!(mentions.len(), 2);
