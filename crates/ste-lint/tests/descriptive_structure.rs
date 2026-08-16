@@ -27,6 +27,7 @@ fn two_explicit_topics_in_one_paragraph_violate_rule_6_5() {
             topic(17, 35, "valve condition"),
         ],
         semantic_orderings: Vec::new(),
+        safety_facts: Vec::new(),
     };
     let lexicon = RuntimeLexicon::embedded().unwrap();
 
@@ -49,6 +50,7 @@ fn repeated_explicit_topic_in_one_paragraph_is_allowed() {
         occurrences: Vec::new(),
         topics: vec![topic(0, 16, "pump"), topic(17, text.len(), "pump")],
         semantic_orderings: Vec::new(),
+        safety_facts: Vec::new(),
     };
     let lexicon = RuntimeLexicon::embedded().unwrap();
 
@@ -70,6 +72,7 @@ fn different_topics_in_different_paragraphs_are_allowed() {
         occurrences: Vec::new(),
         topics: vec![topic(0, 16, "pump"), topic(valve, text.len(), "valve")],
         semantic_orderings: Vec::new(),
+        safety_facts: Vec::new(),
     };
     let lexicon = RuntimeLexicon::embedded().unwrap();
 
