@@ -158,8 +158,7 @@ fn competing_entries_without_grammar_evidence_remain_ambiguous() {
           "restrictions":[]
         }"#,
     );
-    let analysis =
-        AnalysisDocument::new("TEST.", &lexicon, None, None, LintMode::Descriptive);
+    let analysis = AnalysisDocument::new("TEST.", &lexicon, None, None, LintMode::Descriptive);
 
     let Resolution::Ambiguous(candidates) = analysis.sense_resolution_at(0, 1) else {
         panic!("dictionary identity alone cannot choose between competing entries");
@@ -182,13 +181,8 @@ fn structurally_uninterpreted_entry_stays_unknown() {
           "provenance":{"structural_record_index":3,"source_pages":[7,8]}
         }"#,
     );
-    let analysis = AnalysisDocument::new(
-        "CHECK AGAIN.",
-        &lexicon,
-        None,
-        None,
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new("CHECK AGAIN.", &lexicon, None, None, LintMode::Descriptive);
 
     assert!(matches!(
         analysis.sense_resolution_at(0, 2),
