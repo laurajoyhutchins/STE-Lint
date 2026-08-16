@@ -1,3 +1,4 @@
+mod analysis;
 mod context;
 mod document_structure;
 mod passes;
@@ -5,6 +6,10 @@ mod structure;
 
 use std::cmp::Reverse;
 
+pub use analysis::{
+    AnalysisDocument, AnalysisSentence, AnalysisToken, DictionaryMatch, GlossaryMatch,
+    ObservedRole, ObservedRoleEvidence, Resolution, VerbFormCandidate, VerbFormRole,
+};
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
     SpellingUse, TechnicalNounScope, TopicFact,
