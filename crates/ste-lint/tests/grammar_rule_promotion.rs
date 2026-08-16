@@ -1,13 +1,8 @@
 use ste_data::RuntimeLexicon;
-use ste_lint::{lint_text, LintMode, LintOptions, LintResult};
+use ste_lint::{LintMode, LintOptions, LintResult, lint_text};
 
 fn lint(text: &str, lexicon: &RuntimeLexicon, mode: LintMode) -> LintResult {
-    lint_text(
-        text,
-        lexicon,
-        None,
-        LintOptions { mode, fix: false },
-    )
+    lint_text(text, lexicon, None, LintOptions { mode, fix: false })
 }
 
 fn has_code(result: &LintResult, code: &str) -> bool {
