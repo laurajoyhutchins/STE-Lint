@@ -32,9 +32,14 @@ fn warning_label_conflicting_with_supplied_caution_level_is_reported() {
         .diagnostics
         .iter()
         .find(|diagnostic| diagnostic.code == "STE-SAFE-003")
-        .expect("supplied risk level that conflicts with the visible safety label must be reported");
+        .expect(
+            "supplied risk level that conflicts with the visible safety label must be reported",
+        );
     assert_eq!(diagnostic.rules, vec!["7.1"]);
-    assert_eq!((diagnostic.span.start, diagnostic.span.end), (0, text.len()));
+    assert_eq!(
+        (diagnostic.span.start, diagnostic.span.end),
+        (0, text.len())
+    );
 }
 
 #[test]
