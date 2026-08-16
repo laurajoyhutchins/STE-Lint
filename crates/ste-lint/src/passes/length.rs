@@ -5,11 +5,7 @@ use crate::document_structure::{note_blocks, overlaps_note};
 use crate::structure::{CountUnit, word_limit_units};
 use crate::{LintContext, LintMode};
 
-pub(crate) fn check(
-    text: &str,
-    mode: LintMode,
-    context: Option<&LintContext>,
-) -> Vec<Diagnostic> {
+pub(crate) fn check(text: &str, mode: LintMode, context: Option<&LintContext>) -> Vec<Diagnostic> {
     let notes = note_blocks(text);
     let counting_text = counting_projection(text, context);
     let (normal_limit, normal_code, normal_rule) = match mode {
