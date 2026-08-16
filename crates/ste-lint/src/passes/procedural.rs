@@ -136,7 +136,8 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             continue;
         }
 
-        let Some(matched) = analysis.leading_dictionary_match_in_span(content_start, content_end, 8)
+        let Some(matched) =
+            analysis.leading_dictionary_match_in_span(content_start, content_end, 8)
         else {
             let end = content_start + content.split_whitespace().next().map_or(0, str::len);
             diagnostics.push(safety_error(content_start, end.max(content_start + 1)));
