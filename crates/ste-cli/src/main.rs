@@ -10,7 +10,7 @@ use serde::Serialize;
 use ste_core::{Diagnostic, Severity};
 use ste_data::{LexiconEntry, RuntimeLexicon};
 use ste_glossary::Glossary;
-use ste_lint::{LintMode, LintOptions, LintResult, lint_text};
+use ste_lint::{LintContext, LintMode, LintOptions, LintResult, lint_text_with_context};
 use ste_rewrite_check::{ProposedChange, RewriteCheckResult, check_rewrite};
 
 #[derive(Debug, Parser)]
@@ -174,10 +174,12 @@ fn run_lint(
     let (lexicon, _) = runtime_lexicon(lexicon_path, allow_test_lexicon)?;
     let original = read_text(path)?;
     let glossary = find_project_glossary(path)?;
-    let result = lint_text(
+    let context = find_project_context(path)?;
+    let result = lint_text_with_context(
         &original,
         &lexicon,
         glossary.as_ref(),
+        context.as_ref(),
         LintOptions { mode, fix },
     );
 
@@ -409,34 +411,52 @@ fn parse_glossary(path: &Path) -> Result<Glossary, AppFailure> {
     })
 }
 
-fn find_project_glossary(path: &Path) -> Result<Option<Glossary>, AppFailure> {
+fn parse_context(path: &Path) -> Result<LintContext, AppFailure> {
+    let text = read_text(path)?;
+    LintContext::from_json(&text).map_err(|error| {
+        AppFailure::invalid_data(format!("invalid lint context {}: {error}", path.display()))
+    })
+}
+
+fn project_file(path: &Path, relative: &str) -> Option<PathBuf> {
     let start = if path.is_dir() {
         path
     } else {
         path.parent().unwrap_or_else(|| Path::new("."))
     };
 
-    for ancestor in start.ancestors() {
-        let candidate = ancestor.join(".ste/terms.json");
-        if candidate.is_file() {
-            let glossary = parse_glossary(&candidate)?;
-            let diagnostics = glossary.validate();
-            if !diagnostics.is_empty() {
-                let codes = diagnostics
-                    .iter()
-                    .map(|diagnostic| diagnostic.code.as_str())
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                return Err(AppFailure::invalid_data(format!(
-                    "project glossary {} failed validation: {codes}",
-                    candidate.display()
-                )));
-            }
-            return Ok(Some(glossary));
-        }
-    }
+    start
+        .ancestors()
+        .map(|ancestor| ancestor.join(relative))
+        .find(|candidate| candidate.is_file())
+}
 
-    Ok(None)
+fn find_project_glossary(path: &Path) -> Result<Option<Glossary>, AppFailure> {
+    let Some(candidate) = project_file(path, ".ste/terms.json") else {
+        return Ok(None);
+    };
+
+    let glossary = parse_glossary(&candidate)?;
+    let diagnostics = glossary.validate();
+    if !diagnostics.is_empty() {
+        let codes = diagnostics
+            .iter()
+            .map(|diagnostic| diagnostic.code.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+        return Err(AppFailure::invalid_data(format!(
+            "project glossary {} failed validation: {codes}",
+            candidate.display()
+        )));
+    }
+    Ok(Some(glossary))
+}
+
+fn find_project_context(path: &Path) -> Result<Option<LintContext>, AppFailure> {
+    let Some(candidate) = project_file(path, ".ste/context.json") else {
+        return Ok(None);
+    };
+    parse_context(&candidate).map(Some)
 }
 
 fn print_lint_result(result: &LintResult, format: OutputFormat) -> Result<(), AppFailure> {
