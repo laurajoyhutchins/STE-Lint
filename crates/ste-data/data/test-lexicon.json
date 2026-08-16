@@ -47,6 +47,14 @@
       "status": "approved",
       "part_of_speech": "verb",
       "forms": ["USE", "USES", "USED"],
+      "verb_paradigm": {
+        "classification": "lexical",
+        "source_sequence": ["USE", "USES", "USED", "USED"],
+        "base_form": "USE",
+        "simple_present_variants": ["USES"],
+        "simple_past_variants": ["USED"],
+        "past_participle": "USED"
+      },
       "senses": [{"meaning": "Employ something for a purpose"}],
       "alternatives": [],
       "restrictions": []
