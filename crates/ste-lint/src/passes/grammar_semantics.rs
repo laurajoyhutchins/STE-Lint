@@ -59,7 +59,7 @@ fn procedural_passive_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagno
                 start: participle_use.span.start,
                 end: participle_use.span.end,
             },
-            rules: vec!["3.6".into()],
+            rules: vec!["3.3".into(), "3.6".into()],
             evidence: Some(json!({
                 "grammar_resolution": "resolved_passive_verb",
                 "mode": "procedural",
