@@ -94,14 +94,20 @@ impl RuleCoverageManifest {
 
         for rule in &self.rules {
             if rule.claim_scope.trim().is_empty() {
-                return Err(format!("rule {} must state a non-empty claim_scope", rule.id));
+                return Err(format!(
+                    "rule {} must state a non-empty claim_scope",
+                    rule.id
+                ));
             }
             if rule
                 .evidence_artifacts
                 .iter()
                 .any(|artifact| artifact.trim().is_empty())
             {
-                return Err(format!("rule {} contains an empty evidence artifact", rule.id));
+                return Err(format!(
+                    "rule {} contains an empty evidence artifact",
+                    rule.id
+                ));
             }
             if rule
                 .unresolved_requirements
@@ -167,7 +173,12 @@ mod tests {
         assert_eq!(manifest.total_rules, 53);
         assert_eq!(manifest.rules.len(), 53);
         assert!(!manifest.full_compliance_claimed);
-        assert!(manifest.rules.iter().all(|rule| !rule.claim_scope.is_empty()));
+        assert!(
+            manifest
+                .rules
+                .iter()
+                .all(|rule| !rule.claim_scope.is_empty())
+        );
     }
 
     #[test]
