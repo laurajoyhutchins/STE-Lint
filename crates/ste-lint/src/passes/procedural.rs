@@ -3,10 +3,13 @@ use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, PartOfSpeech, VerbClassification};
 
 use crate::document_structure::{safety_blocks, starts_condition};
-use crate::{AnalysisDocument, LintMode};
+use crate::{
+    AnalysisDocument, LintMode, Resolution, SafetyEvidenceSource, SafetyLevel, SafetyLevelFact,
+};
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
-    let mut diagnostics = safety_openings(analysis);
+    let mut diagnostics = safety_level_mismatches(analysis);
+    diagnostics.extend(safety_openings(analysis));
     if analysis.mode() != LintMode::Procedural {
         return diagnostics;
     }
@@ -14,6 +17,96 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     diagnostics.extend(condition_commas(analysis));
     diagnostics.extend(imperative_forms(analysis));
     diagnostics
+}
+
+fn safety_level_mismatches(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let Some(context) = analysis.context() else {
+        return Vec::new();
+    };
+    let mut diagnostics = Vec::new();
+
+    for safety in analysis.safety_semantics() {
+        let Resolution::Ambiguous(levels) = &safety.level else {
+            continue;
+        };
+        let Some(structural) = levels
+            .iter()
+            .find(|candidate| matches!(&candidate.source, SafetyEvidenceSource::Structure))
+        else {
+            continue;
+        };
+
+        let mut supplied_levels = Vec::new();
+        let mut supplied_sources = Vec::new();
+        for fact in context
+            .safety_facts
+            .iter()
+            .filter(|fact| fact.start == safety.span.start && fact.end == safety.span.end)
+        {
+            let Some(level) = fact.safety_level else {
+                continue;
+            };
+            let level = safety_level_from_fact(level);
+            if !supplied_levels.contains(&level) {
+                supplied_levels.push(level);
+            }
+            if !supplied_sources
+                .iter()
+                .any(|source: &String| source == &fact.source)
+            {
+                supplied_sources.push(fact.source.clone());
+            }
+        }
+
+        if supplied_levels.len() != 1 {
+            continue;
+        }
+        let supplied_level = supplied_levels[0];
+        if supplied_level == structural.level
+            || !levels.iter().any(|candidate| {
+                candidate.level == supplied_level
+                    && matches!(&candidate.source, SafetyEvidenceSource::Context(_))
+            })
+        {
+            continue;
+        }
+
+        diagnostics.push(Diagnostic {
+            code: "STE-SAFE-003".into(),
+            severity: Severity::Error,
+            message:
+                "Visible safety label does not agree with the unambiguous supplied project risk level."
+                    .into(),
+            span: Span {
+                start: safety.span.start,
+                end: safety.span.end,
+            },
+            rules: vec!["7.1".into()],
+            evidence: Some(json!({
+                "safety_resolution": "structural_context_level_mismatch",
+                "visible_level": safety_level_name(structural.level),
+                "supplied_level": safety_level_name(supplied_level),
+                "context_sources": supplied_sources,
+            })),
+            autofix: None,
+        });
+    }
+
+    diagnostics
+}
+
+fn safety_level_from_fact(level: SafetyLevelFact) -> SafetyLevel {
+    match level {
+        SafetyLevelFact::Warning => SafetyLevel::Warning,
+        SafetyLevelFact::Caution => SafetyLevel::Caution,
+    }
+}
+
+fn safety_level_name(level: SafetyLevel) -> &'static str {
+    match level {
+        SafetyLevel::Warning => "warning",
+        SafetyLevel::Caution => "caution",
+    }
 }
 
 fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
