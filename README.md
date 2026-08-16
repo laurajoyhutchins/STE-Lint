@@ -38,6 +38,7 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - ambiguity-preserving, longest-match dictionary and glossary phrase lookup;
 - source-backed approved verb paradigms that preserve lexical, irregular-auxiliary, and defective-modal distinctions;
 - governed project technical terminology, including technical nouns, technical verbs, and dual-use terms;
+- repo-local `.ste/context.json` evidence for bounded sense, terminology-scope, and spelling decisions that raw text cannot safely establish;
 - semicolon detection with a whitelisted deterministic autofix;
 - contraction detection for the deterministic portion of Rule 4.2;
 - direct `HAVE`/`HAS`/`HAD` plus approved-past-participle detection for the deterministic portion of Rule 3.4;
@@ -137,7 +138,7 @@ Exit codes:
 | `0` | Clean, accepted, safely fixed, or coverage reported |
 | `1` | Error diagnostics remain or a rewrite was rejected |
 | `2` | Lint result is blocked by unresolved terminology, grammar, or sense |
-| `3` | Required runtime language or glossary data is missing or invalid |
+| `3` | Required runtime language, glossary, or project-context data is missing or invalid |
 | `4` | I/O or internal failure |
 
 ## Repo-local technical terminology
@@ -165,6 +166,26 @@ A repository can extend the effective lexicon with `.ste/terms.json` without cha
 `kind` can be `technical_noun`, `technical_verb`, or `technical_noun_and_verb` when project or subject-field authority establishes both uses. The current linter does not yet prove noun-versus-verb use from sentence grammar.
 
 Unknown words are not added automatically. `STE-TERM-001` means the term needs classification, not that it is necessarily wrong. A governed term with `status: deprecated` produces `STE-TERM-002`.
+
+## Repo-local context evidence
+
+When a rule needs a fact that cannot be established safely from raw text, a repository can provide explicit occurrence evidence in the nearest ancestor `.ste/context.json`. A present but malformed context file is an error; STE-Lint does not silently lint without it.
+
+```json
+{
+  "occurrences": [
+    {
+      "start": 0,
+      "end": 6,
+      "source": "terminology review 2026-08-16",
+      "spelling": "non_american",
+      "official_technical_name": false
+    }
+  ]
+}
+```
+
+The current vocabulary supports `dictionary_meaning`, `technical_noun_scope`, and `spelling` facts. Those facts drive bounded checks for Rules 1.3, 1.10, and 1.14 and retain the supplied provenance in diagnostic evidence. They are assertions supplied by project authority, not classifications silently invented by the linter. See `docs/rule-coverage.md` for the exact fields and claim boundary.
 
 ## Agent use
 
