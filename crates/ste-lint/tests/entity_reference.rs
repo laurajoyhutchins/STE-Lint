@@ -48,7 +48,9 @@ fn official_technical_name_context_is_a_valid_stable_entity_source() {
         }"#,
     )
     .unwrap();
-    context.validate("RAVEN MODULE is installed. It is ready.".len()).unwrap();
+    context
+        .validate("RAVEN MODULE is installed. It is ready.".len())
+        .unwrap();
 
     let analysis = AnalysisDocument::new(
         "RAVEN MODULE is installed. It is ready.",
@@ -86,7 +88,10 @@ fn singular_reference_resolves_to_unique_governed_entity_in_previous_sentence() 
     let Resolution::Resolved(reference) = analysis.reference_at(3) else {
         panic!("a singular reference with one bounded antecedent should resolve");
     };
-    assert_eq!(reference.basis, ReferenceBasis::PreviousSentenceUniqueEntity);
+    assert_eq!(
+        reference.basis,
+        ReferenceBasis::PreviousSentenceUniqueEntity
+    );
     assert_eq!(
         reference.antecedent.identity,
         EntityIdentity::GovernedTerm {
@@ -94,7 +99,10 @@ fn singular_reference_resolves_to_unique_governed_entity_in_previous_sentence() 
             domain: "electrical".into(),
         }
     );
-    assert_eq!((reference.reference.start, reference.reference.end), (20, 22));
+    assert_eq!(
+        (reference.reference.start, reference.reference.end),
+        (20, 22)
+    );
 }
 
 #[test]
@@ -134,13 +142,8 @@ fn singular_reference_is_ambiguous_when_two_distinct_entities_compete() {
 #[test]
 fn singular_reference_without_bounded_entity_evidence_is_unknown() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let analysis = AnalysisDocument::new(
-        "It is ready.",
-        &lexicon,
-        None,
-        None,
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new("It is ready.", &lexicon, None, None, LintMode::Descriptive);
 
     assert!(matches!(analysis.reference_at(0), Resolution::Unknown));
 }
