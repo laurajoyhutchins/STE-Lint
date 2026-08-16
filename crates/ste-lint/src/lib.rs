@@ -8,15 +8,18 @@ use std::cmp::Reverse;
 
 pub use analysis::{
     ActionCardinality, ActionStructure, AnalysisDocument, AnalysisSentence, AnalysisToken,
-    AuxiliaryChain, AuxiliaryKind, DictionaryMatch, EntityIdentity, EntityMention,
-    EntityMentionKind, GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole,
-    ObservedRoleEvidence, ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution,
-    SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate,
-    VerbFormCandidate, VerbFormRole,
+    AuxiliaryChain, AuxiliaryKind, DictionaryMatch, DocumentGraph, DocumentNode, DocumentNodeId,
+    DocumentNodeKind, DocumentReferenceRelation, DocumentRelation, DocumentRelationKind,
+    DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind,
+    GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole, ObservedRoleEvidence,
+    ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution, SenseEvidence,
+    SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate, VerbFormCandidate,
+    VerbFormRole,
 };
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
-    SpellingUse, TechnicalNounScope, TopicFact,
+    SemanticOrderTarget, SemanticOrderTargetKind, SemanticOrderingFact, SpellingUse,
+    TechnicalNounScope, TopicFact,
 };
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};
