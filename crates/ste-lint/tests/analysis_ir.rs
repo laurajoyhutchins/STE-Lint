@@ -166,8 +166,16 @@ fn grammar_v1_keeps_ing_roles_fail_closed() {
     let Resolution::Ambiguous(candidates) = ambiguous.ing_use_at(3) else {
         panic!("BE plus competing verb/adjective identities must remain ambiguous");
     };
-    assert!(candidates.iter().any(|candidate| candidate.role == IngRole::Progressive));
-    assert!(candidates.iter().any(|candidate| candidate.role == IngRole::Adjectival));
+    assert!(
+        candidates
+            .iter()
+            .any(|candidate| candidate.role == IngRole::Progressive)
+    );
+    assert!(
+        candidates
+            .iter()
+            .any(|candidate| candidate.role == IngRole::Adjectival)
+    );
 }
 
 #[test]
