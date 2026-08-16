@@ -5,7 +5,6 @@ use ste_data::{ApprovalStatus, PartOfSpeech, VerbClassification};
 use crate::{AnalysisDocument, LintMode};
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
-    let text = analysis.text();
     let mut diagnostics = safety_openings(analysis);
     if analysis.mode() != LintMode::Procedural {
         return diagnostics;
