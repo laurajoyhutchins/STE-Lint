@@ -6,7 +6,7 @@ mod structure;
 use std::cmp::Reverse;
 
 pub use context::{
-    DictionaryMeaningUse, LintContext, OccurrenceFact, SpellingUse, TechnicalNounScope,
+    DictionaryMeaningUse, LintContext, OccurrenceFact, SpellingUse, TechnicalNounScope, TopicFact,
 };
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};
@@ -91,7 +91,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::length::check(text, mode));
     diagnostics.extend(passes::lists::check(text));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
-    diagnostics.extend(passes::paragraph::check(text, mode));
+    diagnostics.extend(passes::paragraph::check(text, mode, context));
     diagnostics.extend(passes::perfect::check(text, lexicon));
     diagnostics.extend(passes::technical_roles::check(text, glossary, mode));
     diagnostics.extend(passes::dictionary_roles::check(

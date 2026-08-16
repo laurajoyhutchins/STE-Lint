@@ -20,6 +20,24 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
     }
 
     let mut diagnostics = Vec::new();
+    for topic in &context.topics {
+        if !text.is_char_boundary(topic.start) || !text.is_char_boundary(topic.end) {
+            diagnostics.push(Diagnostic {
+                code: "STE-CTX-000".into(),
+                severity: Severity::Blocked,
+                message: "Lint context topic span is not on UTF-8 character boundaries.".into(),
+                span: Span { start: 0, end: 0 },
+                rules: Vec::new(),
+                evidence: Some(json!({
+                    "source": topic.source,
+                    "topic": topic.topic,
+                    "span": {"start": topic.start, "end": topic.end},
+                })),
+                autofix: None,
+            });
+        }
+    }
+
     for occurrence in &context.occurrences {
         if !text.is_char_boundary(occurrence.start) || !text.is_char_boundary(occurrence.end) {
             diagnostics.push(Diagnostic {
