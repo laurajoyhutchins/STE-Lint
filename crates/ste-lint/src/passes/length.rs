@@ -73,13 +73,18 @@ fn counting_projection(text: &str, context: Option<&LintContext>) -> String {
         .filter(|occurrence| occurrence.count_group.is_some())
     {
         let mut marker = None;
-        for index in occurrence.start..occurrence.end {
-            match bytes[index] {
+        for (index, byte) in bytes
+            .iter_mut()
+            .enumerate()
+            .take(occurrence.end)
+            .skip(occurrence.start)
+        {
+            match *byte {
                 b'\n' | b'\r' => {}
-                byte if byte.is_ascii_whitespace() => bytes[index] = b' ',
+                value if value.is_ascii_whitespace() => *byte = b' ',
                 _ => {
                     marker.get_or_insert(index);
-                    bytes[index] = b' ';
+                    *byte = b' ';
                 }
             }
         }
