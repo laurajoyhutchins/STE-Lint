@@ -42,7 +42,7 @@
     {"id":"6.2","status":"context_required","diagnostic_codes":[]},
     {"id":"6.3","status":"partial","diagnostic_codes":["STE-LEN-002"]},
     {"id":"6.4","status":"context_required","diagnostic_codes":[]},
-    {"id":"6.5","status":"context_required","diagnostic_codes":[]},
+    {"id":"6.5","status":"partial","diagnostic_codes":["STE-PARA-002"]},
     {"id":"6.6","status":"partial","diagnostic_codes":["STE-PARA-001"]},
     {"id":"7.1","status":"context_required","diagnostic_codes":[]},
     {"id":"7.2","status":"partial","diagnostic_codes":["STE-SAFE-001","STE-SAFE-002"]},
