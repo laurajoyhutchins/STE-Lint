@@ -22,13 +22,8 @@ fn safety_semantics_combine_structural_level_and_command_with_explicit_context()
     .unwrap();
     context.validate(text.len()).unwrap();
 
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        None,
-        Some(&context),
-        LintMode::Procedural,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, None, Some(&context), LintMode::Procedural);
     let semantics = analysis.safety_semantics();
     assert_eq!(semantics.len(), 1);
     let safety = &semantics[0];
@@ -70,8 +65,7 @@ fn safety_semantics_combine_structural_level_and_command_with_explicit_context()
 fn structural_safety_without_semantic_context_stays_unknown_where_required() {
     let text = "CAUTION: DISCONNECT POWER.";
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let analysis =
-        AnalysisDocument::new(text, &lexicon, None, None, LintMode::Procedural);
+    let analysis = AnalysisDocument::new(text, &lexicon, None, None, LintMode::Procedural);
 
     let semantics = analysis.safety_semantics();
     assert_eq!(semantics.len(), 1);
@@ -98,21 +92,24 @@ fn conflicting_explicit_safety_levels_remain_ambiguous() {
         }"#,
     )
     .unwrap();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        None,
-        Some(&context),
-        LintMode::Procedural,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, None, Some(&context), LintMode::Procedural);
 
     let semantics = analysis.safety_semantics();
     let Resolution::Ambiguous(levels) = &semantics[0].level else {
         panic!("conflicting structural and explicit safety levels must remain ambiguous");
     };
     assert_eq!(levels.len(), 2);
-    assert!(levels.iter().any(|level| level.level == SafetyLevel::Warning));
-    assert!(levels.iter().any(|level| level.level == SafetyLevel::Caution));
+    assert!(
+        levels
+            .iter()
+            .any(|level| level.level == SafetyLevel::Warning)
+    );
+    assert!(
+        levels
+            .iter()
+            .any(|level| level.level == SafetyLevel::Caution)
+    );
 }
 
 #[test]
@@ -138,13 +135,8 @@ fn competing_explicit_actor_evidence_remains_ambiguous() {
         }"#,
     )
     .unwrap();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        None,
-        Some(&context),
-        LintMode::Procedural,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, None, Some(&context), LintMode::Procedural);
 
     let semantics = analysis.safety_semantics();
     let Resolution::Ambiguous(actors) = &semantics[0].actor else {
@@ -176,13 +168,8 @@ fn context_fact_for_non_safety_span_does_not_create_safety_semantics() {
         }"#,
     )
     .unwrap();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        None,
-        Some(&context),
-        LintMode::Procedural,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, None, Some(&context), LintMode::Procedural);
 
     assert!(analysis.safety_semantics().is_empty());
 }
