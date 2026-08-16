@@ -7,8 +7,10 @@ mod structure;
 use std::cmp::Reverse;
 
 pub use analysis::{
-    AnalysisDocument, AnalysisSentence, AnalysisToken, DictionaryMatch, GlossaryMatch,
-    ObservedRole, ObservedRoleEvidence, Resolution, VerbFormCandidate, VerbFormRole,
+    ActionCardinality, ActionStructure, AnalysisDocument, AnalysisSentence, AnalysisToken,
+    AuxiliaryChain, AuxiliaryKind, DictionaryMatch, GlossaryMatch, GrammarSpan, IngRole, IngUse,
+    NounPhrase, ObservedRole, ObservedRoleEvidence, ParticipleRole, ParticipleUse, Resolution,
+    SubjectPredicate, VerbFormCandidate, VerbFormRole,
 };
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
