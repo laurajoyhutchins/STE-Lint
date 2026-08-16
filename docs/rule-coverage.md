@@ -2,7 +2,7 @@
 
 STE-Lint tracks all 53 ASD-STE100 Issue 9 writing-rule identifiers in `data/rules.json`.
 
-This manifest is a capability contract, not a copy of the source rules. It stores rule IDs, conservative execution status, and the diagnostic codes that currently provide executable evidence. It does not reproduce protected rule prose.
+This manifest is the machine-readable capability and evidence contract. It does not copy protected rule prose. Each rule records its conservative execution status, stable diagnostic codes, repository evidence artifacts, unresolved requirements, and the exact scope of the claim that STE-Lint can currently support.
 
 ## Inspect coverage
 
@@ -11,35 +11,38 @@ ste coverage
 ste coverage --format json
 ```
 
-Coverage inspection does not require `--lexicon` or `STE_LINT_LEXICON`. This lets CI and agents inspect verifier capability before a protected runtime artifact is available.
+Coverage inspection does not require `--lexicon` or `STE_LINT_LEXICON`. This lets CI, agents, and reviewers inspect verifier capability before a protected runtime artifact is available.
 
-The human summary reports the current status counts and always states that full Issue 9 compliance is not claimed. JSON output exposes every rule entry for automated policy checks.
+The human summary reports status counts and always states that full Issue 9 compliance is not claimed. JSON output exposes every rule entry, including its evidence and remaining gaps.
+
+## Per-rule evidence fields
+
+Every rule entry contains:
+
+- `status`: `implemented`, `partial`, `context_required`, or `not_implemented`;
+- `diagnostic_codes`: stable executable diagnostics currently associated with the rule;
+- `evidence_artifacts`: repository paths that demonstrate an executable slice; `partial` and `implemented` rules must cite at least one existing path;
+- `unresolved_requirements`: what still prevents a broader claim; this must be non-empty for every rule that is not `implemented`;
+- `claim_scope`: the bounded statement that the current status actually supports.
+
+CI verifies that the manifest contains all 53 unique rule IDs, that only Rules 8.5 and 8.7 are currently marked `implemented`, that executable rules cite real repository paths, and that incomplete rules explicitly state what remains unresolved. Runtime validation also rejects structurally incomplete evidence metadata.
+
+An evidence path is proof of implementation or regression coverage, not proof that every semantic application of the source rule is decidable. The `claim_scope` and `unresolved_requirements` fields define that boundary.
 
 ## Status semantics
 
-- `implemented`: complete for the current executable text-level scope of that rule.
-- `partial`: a bounded source-backed slice is executable, but other applications of the rule remain unresolved.
-- `context_required`: safe evaluation requires grammar, document structure, item identity, terminology authority, discourse, or domain semantics that current runtime evidence does not establish.
-- `not_implemented`: no executable check currently exists.
+- `implemented`: complete for the rule's stated `claim_scope`, with executable evidence and no unresolved requirements inside that scope.
+- `partial`: a bounded source-backed slice is executable and evidenced, but additional applications remain explicitly unresolved.
+- `context_required`: no safe automatic verdict is available without grammar, document structure, identity, terminology authority, discourse, or domain semantics identified in `unresolved_requirements`.
+- `not_implemented`: no executable check exists. The current manifest has zero entries in this state.
 
-The status vocabulary deliberately separates “not implemented” from “cannot be decided safely with current context.” That distinction prevents missing parser capability from being confused with a negative result.
+A zero `not_implemented` count does not mean full standards implementation. It means every rule is either executable in some bounded way or has an explicit context boundary.
 
 ## Project context evidence
 
 Some Issue 9 decisions cannot be inferred safely from raw text. A project can provide explicit evidence in the nearest ancestor `.ste/context.json`. The CLI discovers that file using the same nearest-project-file rule as `.ste/terms.json`. A present but malformed context file is invalid data and causes exit code 3; STE-Lint never silently ignores it.
 
-Occurrence facts identify a byte span, a non-empty provenance source, and one or more explicit facts. The current occurrence vocabulary supports:
-
-- `dictionary_meaning`: `approved` or `not_approved`, used by the bounded Rule 1.3 check;
-- `technical_noun_scope`: `international`, `regional`, `slang`, or `jargon`, used by the bounded Rule 1.10 check;
-- `spelling`: `american` or `non_american`, together with `official_technical_name`, used by the bounded Rule 1.14 check;
-- `count_group`: `abbreviation`, `title`, `heading`, `placard`, `label`, or `proper_noun`; the identified Rule 8.6 span is counted as one word by the existing sentence-length analyzer;
-- `hyphen_direct_relation`: boolean project evidence for the bounded Rule 8.2 check; `false` produces `STE-PUNC-002` only when the span contains a hyphen;
-- `parenthesis_use`: `reference`, `item_identifier`, `work_step_identifier`, `abbreviation`, `singular_plural`, `explanation`, `alternative`, or `other`; `other` produces `STE-PUNC-003` for a parenthesized span under the bounded Rule 8.3 check.
-
-Overlapping `count_group` spans are invalid context. Section 8 semantic classifications are never inferred from capitalization, typography, or punctuation alone.
-
-Paragraph-topic facts are separate because the linter must not infer discourse topics from wording. Each `topics` item identifies a byte span, a non-empty `topic` identity, and a provenance `source`. In descriptive mode, `STE-PARA-002` reports a paragraph only when project-supplied topic evidence resolves more than one distinct topic inside the same blank-line-delimited paragraph. Repeated evidence for the same topic is allowed, and different topics in different paragraphs are allowed.
+Occurrence evidence can supply bounded facts for dictionary meaning, technical-noun scope, spelling, Rule 8.6 count-group identity, Rule 8.2 hyphen relation, and Rule 8.3 parenthesis use. Paragraph-topic evidence can identify topic spans for the bounded Rule 6.5 check. All supplied facts retain provenance and are validated for byte-range and UTF-8 safety before use.
 
 Example:
 
@@ -71,21 +74,27 @@ Example:
 }
 ```
 
-Spans must be valid byte ranges for the file being linted and must land on UTF-8 character boundaries. Topic spans must be contained in one paragraph. Context-backed diagnostics retain the supplied provenance. Providing a fact makes only that bounded rule slice executable; it does not imply that STE-Lint inferred the fact or evaluated every semantic use of the rule.
+Context facts are assertions supplied by project authority. They are not classifications silently invented by the linter.
+
+## Representative regression evidence
+
+`fixtures/corpus/manifest.json` defines a public synthetic engineering regression corpus. Its cases are written specifically for STE-Lint and are not copied from ASD-STE100 or third-party manuals. The corpus test requires exact outcomes and exact diagnostic-code sets across clean controls, punctuation, lexical errors, blockers, notes, lists, context evidence, word counting, paragraphs, safety, procedures, contractions, and verb morphology.
+
+This corpus improves regression breadth. It does not change a rule's status by itself.
 
 ## Current conservative inventory
 
-At this gate the 53 rules classify as:
+The 53 rules classify as:
 
 - 2 `implemented`;
 - 31 `partial`;
 - 20 `context_required`;
 - 0 `not_implemented`.
 
-Only Rules 8.5 and 8.7 are marked `implemented`. This is intentionally strict. A zero `not_implemented` count means every Issue 9 rule has either an executable slice or an explicit context-required boundary. It does **not** mean every rule is fully implemented. Rules 1.3, 1.10, and 1.14 are `partial` because supplied occurrence evidence can drive bounded checks; automatic sense, terminology-scope, and spelling classification remain unresolved. Rule 6.5 is `partial` because supplied topic evidence can prove multiple distinct topics inside one paragraph; STE-Lint does not infer topics, topic progression, or logical discourse structure. Rules 6.1, 6.2, and 6.4 therefore remain `context_required`. Rules 8.2 and 8.3 are now `partial` because supplied semantic evidence can evaluate bounded hyphen and parenthesis uses; the linter does not infer those semantic categories. Rule 8.6 remains `partial`: mechanical one-word categories are handled directly and semantic title/label/proper-noun categories can now be supplied explicitly. Rules 4.3 and 5.5 remain partial for similarly bounded structural behavior. Rule 3.4 remains partial because direct perfect-tense constructions are checked while other auxiliary constructions need deeper grammar.
+Only Rules 8.5 and 8.7 are marked `implemented`. All other rules carry at least one explicit unresolved requirement. `data/rules.json` is the authority for the exact per-rule claim boundary.
 
 ## Claim boundary
 
-A zero-exit lint means that the diagnostics implemented by that version found no remaining errors or blockers. It does not mean that all 53 rules were evaluated.
+A zero-exit lint means that the diagnostics executable for that version, runtime, glossary, and supplied project context found no remaining errors or blockers. It does not mean that all semantic applications of all 53 rules were automatically evaluated.
 
-Any workflow that needs an ASD-STE100 claim must pair the lint result with the coverage manifest and state unresolved rule coverage explicitly. The manifest field `full_compliance_claimed` remains `false` until the repository has evidence sufficient to change that statement.
+Any workflow that makes an ASD-STE100 statement must pair the lint result with the coverage manifest and preserve unresolved rule coverage. The manifest field `full_compliance_claimed` remains `false`.

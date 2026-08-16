@@ -27,6 +27,9 @@ pub(crate) struct RuleCoverage {
     pub id: String,
     pub status: CoverageStatus,
     pub diagnostic_codes: Vec<String>,
+    pub evidence_artifacts: Vec<String>,
+    pub unresolved_requirements: Vec<String>,
+    pub claim_scope: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -88,6 +91,74 @@ impl RuleCoverageManifest {
                 return Err(format!("rule coverage manifest is missing rule {expected}"));
             }
         }
+
+        for rule in &self.rules {
+            if rule.claim_scope.trim().is_empty() {
+                return Err(format!(
+                    "rule {} must state a non-empty claim_scope",
+                    rule.id
+                ));
+            }
+            if rule
+                .evidence_artifacts
+                .iter()
+                .any(|artifact| artifact.trim().is_empty())
+            {
+                return Err(format!(
+                    "rule {} contains an empty evidence artifact",
+                    rule.id
+                ));
+            }
+            if rule
+                .unresolved_requirements
+                .iter()
+                .any(|requirement| requirement.trim().is_empty())
+            {
+                return Err(format!(
+                    "rule {} contains an empty unresolved requirement",
+                    rule.id
+                ));
+            }
+
+            match rule.status {
+                CoverageStatus::Implemented => {
+                    if rule.evidence_artifacts.is_empty() {
+                        return Err(format!(
+                            "implemented rule {} must cite executable evidence",
+                            rule.id
+                        ));
+                    }
+                    if !rule.unresolved_requirements.is_empty() {
+                        return Err(format!(
+                            "implemented rule {} must not have unresolved requirements in its claim scope",
+                            rule.id
+                        ));
+                    }
+                }
+                CoverageStatus::Partial => {
+                    if rule.evidence_artifacts.is_empty() {
+                        return Err(format!(
+                            "partial rule {} must cite executable evidence",
+                            rule.id
+                        ));
+                    }
+                    if rule.unresolved_requirements.is_empty() {
+                        return Err(format!(
+                            "partial rule {} must state what remains unresolved",
+                            rule.id
+                        ));
+                    }
+                }
+                CoverageStatus::ContextRequired | CoverageStatus::NotImplemented => {
+                    if rule.unresolved_requirements.is_empty() {
+                        return Err(format!(
+                            "incomplete rule {} must state what remains unresolved",
+                            rule.id
+                        ));
+                    }
+                }
+            }
+        }
         Ok(())
     }
 }
@@ -102,6 +173,12 @@ mod tests {
         assert_eq!(manifest.total_rules, 53);
         assert_eq!(manifest.rules.len(), 53);
         assert!(!manifest.full_compliance_claimed);
+        assert!(
+            manifest
+                .rules
+                .iter()
+                .all(|rule| !rule.claim_scope.is_empty())
+        );
     }
 
     #[test]
