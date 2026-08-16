@@ -6,6 +6,8 @@ pub struct LintContext {
     pub occurrences: Vec<OccurrenceFact>,
     #[serde(default)]
     pub topics: Vec<TopicFact>,
+    #[serde(default)]
+    pub semantic_orderings: Vec<SemanticOrderingFact>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,6 +37,29 @@ pub struct TopicFact {
     pub end: usize,
     pub topic: String,
     pub source: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SemanticOrderingFact {
+    pub before: SemanticOrderTarget,
+    pub after: SemanticOrderTarget,
+    pub source: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SemanticOrderTarget {
+    pub kind: SemanticOrderTargetKind,
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SemanticOrderTargetKind {
+    Sentence,
+    Paragraph,
+    Topic,
+    EntityMention,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -106,6 +131,22 @@ impl LintContext {
         for (index, topic) in self.topics.iter().enumerate() {
             validate_span("context topic", index, topic.start, topic.end, text_len)?;
         }
+        for (index, ordering) in self.semantic_orderings.iter().enumerate() {
+            validate_span(
+                "context semantic ordering before target",
+                index,
+                ordering.before.start,
+                ordering.before.end,
+                text_len,
+            )?;
+            validate_span(
+                "context semantic ordering after target",
+                index,
+                ordering.after.start,
+                ordering.after.end,
+                text_len,
+            )?;
+        }
         self.validate_count_group_overlaps()?;
         Ok(())
     }
@@ -136,6 +177,13 @@ impl LintContext {
             }
             if topic.topic.trim().is_empty() {
                 return Err(format!("context topic {index} topic must be non-empty"));
+            }
+        }
+        for (index, ordering) in self.semantic_orderings.iter().enumerate() {
+            if ordering.source.trim().is_empty() {
+                return Err(format!(
+                    "context semantic ordering {index} source must be non-empty"
+                ));
             }
         }
         Ok(())
