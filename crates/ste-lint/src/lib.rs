@@ -92,6 +92,7 @@ fn collect_diagnostics(
     context: Option<&LintContext>,
     mode: LintMode,
 ) -> Vec<Diagnostic> {
+    let analysis = AnalysisDocument::new(text, lexicon, glossary, context, mode);
     let mut diagnostics = passes::punctuation::check(text);
     diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(text, mode, context));
@@ -99,10 +100,8 @@ fn collect_diagnostics(
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
     diagnostics.extend(passes::perfect::check(text, lexicon));
-    diagnostics.extend(passes::technical_roles::check(text, glossary, mode));
-    diagnostics.extend(passes::dictionary_roles::check(
-        text, lexicon, glossary, mode,
-    ));
+    diagnostics.extend(passes::technical_roles::check(&analysis));
+    diagnostics.extend(passes::dictionary_roles::check(&analysis));
     diagnostics.extend(passes::procedural::check(text, lexicon, mode));
     diagnostics.extend(passes::contextual::check(text, context));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
