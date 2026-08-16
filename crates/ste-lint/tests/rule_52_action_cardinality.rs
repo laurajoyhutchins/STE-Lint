@@ -23,24 +23,19 @@ fn lexicon() -> RuntimeLexicon {
 }
 
 fn lint(text: &str, mode: LintMode) -> ste_lint::LintResult {
-    lint_text(
-        text,
-        &lexicon(),
-        None,
-        LintOptions { mode, fix: false },
-    )
+    lint_text(text, &lexicon(), None, LintOptions { mode, fix: false })
 }
 
-fn diagnostic<'a>(result: &'a ste_lint::LintResult, code: &str) -> Option<&'a ste_core::Diagnostic> {
+fn diagnostic<'a>(
+    result: &'a ste_lint::LintResult,
+    code: &str,
+) -> Option<&'a ste_core::Diagnostic> {
     result.diagnostics.iter().find(|item| item.code == code)
 }
 
 #[test]
 fn resolved_multiple_actions_emit_rule_52_diagnostic_with_exact_heads() {
-    let result = lint(
-        "OPEN THE VALVE AND CLOSE THE VALVE.",
-        LintMode::Procedural,
-    );
+    let result = lint("OPEN THE VALVE AND CLOSE THE VALVE.", LintMode::Procedural);
     let diagnostic = diagnostic(&result, "STE-PROC-003")
         .expect("resolved multiple procedural actions must be reported");
 
@@ -63,27 +58,18 @@ fn resolved_single_action_does_not_emit_rule_52_diagnostic() {
 
 #[test]
 fn descriptive_multiple_action_wording_does_not_emit_rule_52_diagnostic() {
-    let result = lint(
-        "OPEN THE VALVE AND CLOSE THE VALVE.",
-        LintMode::Descriptive,
-    );
+    let result = lint("OPEN THE VALVE AND CLOSE THE VALVE.", LintMode::Descriptive);
     assert!(diagnostic(&result, "STE-PROC-003").is_none());
 }
 
 #[test]
 fn unresolved_non_base_opening_does_not_emit_rule_52_diagnostic() {
-    let result = lint(
-        "OPENS THE VALVE AND CLOSE THE VALVE.",
-        LintMode::Procedural,
-    );
+    let result = lint("OPENS THE VALVE AND CLOSE THE VALVE.", LintMode::Procedural);
     assert!(diagnostic(&result, "STE-PROC-003").is_none());
 }
 
 #[test]
 fn unresolved_second_action_word_does_not_emit_rule_52_diagnostic() {
-    let result = lint(
-        "OPEN THE VALVE AND CLOSED THE VALVE.",
-        LintMode::Procedural,
-    );
+    let result = lint("OPEN THE VALVE AND CLOSED THE VALVE.", LintMode::Procedural);
     assert!(diagnostic(&result, "STE-PROC-003").is_none());
 }
