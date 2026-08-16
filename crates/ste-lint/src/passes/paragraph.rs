@@ -4,7 +4,7 @@ use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 
 use crate::structure::{paragraph_prose_sentence_count, paragraph_ranges};
-use crate::{LintContext, LintMode};
+use crate::{LintContext, LintMode, TopicFact};
 
 pub(crate) fn check(
     text: &str,
@@ -41,6 +41,14 @@ pub(crate) fn check(
     let Some(context) = context else {
         return diagnostics;
     };
+    if context.validate(text.len()).is_err()
+        || context
+            .topics
+            .iter()
+            .any(|topic| !text.is_char_boundary(topic.start) || !text.is_char_boundary(topic.end))
+    {
+        return diagnostics;
+    }
 
     for topic in &context.topics {
         if !paragraphs
@@ -64,7 +72,7 @@ pub(crate) fn check(
     }
 
     for &(start, end) in &paragraphs {
-        let mut topics = BTreeMap::<String, Vec<&crate::TopicFact>>::new();
+        let mut topics = BTreeMap::<String, Vec<&TopicFact>>::new();
         for topic in context
             .topics
             .iter()
