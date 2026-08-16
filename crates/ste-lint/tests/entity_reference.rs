@@ -114,6 +114,49 @@ fn overlapping_authorities_remain_explicitly_ambiguous() {
 }
 
 #[test]
+fn repeated_official_name_mentions_keep_distinct_spans() {
+    let text = "RAVEN MODULE. RAVEN MODULE.";
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let context = LintContext::from_json(
+        r#"{
+          "occurrences": [
+            {
+              "start": 0,
+              "end": 12,
+              "source": "official-name-register",
+              "official_technical_name": true
+            },
+            {
+              "start": 14,
+              "end": 26,
+              "source": "official-name-register",
+              "official_technical_name": true
+            }
+          ]
+        }"#,
+    )
+    .unwrap();
+    let analysis = AnalysisDocument::new(
+        text,
+        &lexicon,
+        None,
+        Some(&context),
+        LintMode::Descriptive,
+    );
+
+    let mentions = analysis.entity_mentions();
+    assert_eq!(mentions.len(), 2);
+    assert_eq!(
+        mentions
+            .iter()
+            .map(|mention| (mention.span.start, mention.span.end))
+            .collect::<Vec<_>>(),
+        vec![(0, 12), (14, 26)]
+    );
+    assert_eq!(mentions[0].identity, mentions[1].identity);
+}
+
+#[test]
 fn singular_reference_resolves_to_unique_governed_entity_in_previous_sentence() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let glossary = entity_glossary();
