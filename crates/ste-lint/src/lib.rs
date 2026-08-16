@@ -1,3 +1,4 @@
+mod analysis;
 mod context;
 mod document_structure;
 mod passes;
@@ -5,6 +6,10 @@ mod structure;
 
 use std::cmp::Reverse;
 
+pub use analysis::{
+    AnalysisDocument, AnalysisSentence, AnalysisToken, DictionaryMatch, GlossaryMatch,
+    ObservedRole, ObservedRoleEvidence, Resolution, VerbFormCandidate, VerbFormRole,
+};
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
     SpellingUse, TechnicalNounScope, TopicFact,
@@ -87,18 +92,17 @@ fn collect_diagnostics(
     context: Option<&LintContext>,
     mode: LintMode,
 ) -> Vec<Diagnostic> {
+    let analysis = AnalysisDocument::new(text, lexicon, glossary, context, mode);
     let mut diagnostics = passes::punctuation::check(text);
     diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(text, mode, context));
     diagnostics.extend(passes::lists::check(text));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
-    diagnostics.extend(passes::perfect::check(text, lexicon));
-    diagnostics.extend(passes::technical_roles::check(text, glossary, mode));
-    diagnostics.extend(passes::dictionary_roles::check(
-        text, lexicon, glossary, mode,
-    ));
-    diagnostics.extend(passes::procedural::check(text, lexicon, mode));
+    diagnostics.extend(passes::perfect::check(&analysis));
+    diagnostics.extend(passes::technical_roles::check(&analysis));
+    diagnostics.extend(passes::dictionary_roles::check(&analysis));
+    diagnostics.extend(passes::procedural::check(&analysis));
     diagnostics.extend(passes::contextual::check(text, context));
     diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));

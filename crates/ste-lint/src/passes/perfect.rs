@@ -1,10 +1,14 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_data::{ApprovalStatus, PartOfSpeech, RuntimeLexicon};
+use ste_data::{ApprovalStatus, PartOfSpeech};
 
-pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
-    let words = word_spans(text);
-    let max_participle_words = lexicon
+use crate::{AnalysisDocument, VerbFormRole};
+
+pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let text = analysis.text();
+    let words = analysis.word_tokens();
+    let max_participle_words = analysis
+        .lexicon()
         .entries()
         .iter()
         .filter(|entry| entry.status == ApprovalStatus::Approved)
@@ -14,8 +18,8 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
         .unwrap_or(1);
     let mut diagnostics = Vec::new();
 
-    for (index, &(aux_start, aux_end)) in words.iter().enumerate() {
-        let auxiliary = &text[aux_start..aux_end];
+    for (index, word) in words.iter().enumerate() {
+        let auxiliary = word.text;
         if !matches!(
             auxiliary.to_ascii_lowercase().as_str(),
             "have" | "has" | "had"
@@ -24,11 +28,11 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
         }
 
         let Some((participle_start, participle_end, ambiguous)) =
-            find_participle(text, &words, index + 1, max_participle_words, lexicon)
+            find_participle(analysis, index + 1, max_participle_words)
         else {
             continue;
         };
-        if !text[aux_end..participle_start]
+        if !text[word.end..participle_start]
             .chars()
             .all(char::is_whitespace)
         {
@@ -57,7 +61,7 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
             severity,
             message,
             span: Span {
-                start: aux_start,
+                start: word.start,
                 end: participle_end,
             },
             rules: vec!["3.2".into(), "3.4".into()],
@@ -76,86 +80,44 @@ pub(crate) fn check(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
 }
 
 fn find_participle(
-    text: &str,
-    words: &[(usize, usize)],
+    analysis: &AnalysisDocument<'_>,
     start_index: usize,
     max_words: usize,
-    lexicon: &RuntimeLexicon,
 ) -> Option<(usize, usize, bool)> {
-    if start_index >= words.len() {
+    if start_index >= analysis.word_tokens().len() {
         return None;
     }
-    let max_end = (start_index + max_words).min(words.len());
+    let max_width = max_words.min(analysis.word_tokens().len() - start_index);
 
-    for end_index in (start_index..max_end).rev() {
-        if !is_whitespace_joined(text, words, start_index, end_index) {
+    for width in (1..=max_width).rev() {
+        let Some(matched) = analysis.word_dictionary_match_at(start_index, width) else {
             continue;
-        }
-        let start = words[start_index].0;
-        let end = words[end_index].1;
-        let phrase = &text[start..end];
-        let candidates = lexicon.lookup_form_candidates(phrase);
-        let matching = candidates.iter().any(|entry| {
-            entry.status == ApprovalStatus::Approved
-                && entry
-                    .verb_paradigm
-                    .as_ref()
-                    .and_then(|paradigm| paradigm.past_participle.as_deref())
-                    .is_some_and(|form| form.eq_ignore_ascii_case(phrase))
+        };
+        let matching = matched.verb_forms.iter().any(|candidate| {
+            candidate.entry.status == ApprovalStatus::Approved
+                && candidate.role == VerbFormRole::PastParticiple
         });
         if !matching {
             continue;
         }
-        let ambiguous = candidates.iter().any(|entry| {
+        let ambiguous = matched.candidates.iter().any(|entry| {
             entry.status == ApprovalStatus::Approved
                 && (entry.part_of_speech != Some(PartOfSpeech::Verb)
                     || entry
                         .verb_paradigm
                         .as_ref()
                         .and_then(|paradigm| paradigm.past_participle.as_deref())
-                        .is_none_or(|form| !form.eq_ignore_ascii_case(phrase)))
+                        .is_none_or(|form| !form.eq_ignore_ascii_case(&matched.text)))
         });
-        return Some((start, end, ambiguous));
+        return Some((matched.start, matched.end, ambiguous));
     }
     None
-}
-
-fn is_whitespace_joined(
-    text: &str,
-    words: &[(usize, usize)],
-    start_index: usize,
-    end_index: usize,
-) -> bool {
-    (start_index..end_index).all(|index| {
-        text[words[index].1..words[index + 1].0]
-            .chars()
-            .all(char::is_whitespace)
-    })
-}
-
-fn word_spans(text: &str) -> Vec<(usize, usize)> {
-    let mut spans = Vec::new();
-    let mut start = None;
-    for (index, character) in text.char_indices() {
-        let is_word = character.is_alphabetic() || character == '-';
-        match (start, is_word) {
-            (None, true) => start = Some(index),
-            (Some(word_start), false) => {
-                spans.push((word_start, index));
-                start = None;
-            }
-            _ => {}
-        }
-    }
-    if let Some(word_start) = start {
-        spans.push((word_start, text.len()));
-    }
-    spans
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ste_data::RuntimeLexicon;
 
     fn lexicon() -> RuntimeLexicon {
         RuntimeLexicon::from_json(
@@ -172,9 +134,16 @@ mod tests {
         .unwrap()
     }
 
+    fn diagnostics(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
+        let analysis =
+            AnalysisDocument::new(text, lexicon, None, None, crate::LintMode::Descriptive);
+        check(&analysis)
+    }
+
     #[test]
     fn reports_unambiguous_direct_perfect_tense() {
-        let diagnostics = check("THE UNIT HAS REMOVED THE PART.", &lexicon());
+        let lexicon = lexicon();
+        let diagnostics = diagnostics("THE UNIT HAS REMOVED THE PART.", &lexicon);
         let diagnostic = diagnostics
             .iter()
             .find(|diagnostic| diagnostic.code == "STE-VERB-001")
@@ -185,7 +154,8 @@ mod tests {
 
     #[test]
     fn recognizes_multiword_past_participle() {
-        let diagnostics = check("THE UNIT HAS TURNED OFF.", &lexicon());
+        let lexicon = lexicon();
+        let diagnostics = diagnostics("THE UNIT HAS TURNED OFF.", &lexicon);
         assert!(
             diagnostics
                 .iter()
@@ -195,7 +165,8 @@ mod tests {
 
     #[test]
     fn blocks_when_participle_has_competing_approved_identity() {
-        let diagnostics = check("THE UNIT HAS COMPLETED WORK.", &lexicon());
+        let lexicon = lexicon();
+        let diagnostics = diagnostics("THE UNIT HAS COMPLETED WORK.", &lexicon);
         let diagnostic = diagnostics
             .iter()
             .find(|diagnostic| diagnostic.code == "STE-VERB-002")
@@ -205,11 +176,13 @@ mod tests {
 
     #[test]
     fn simple_past_without_have_auxiliary_is_not_reported() {
-        assert!(check("THE UNIT REMOVED THE PART.", &lexicon()).is_empty());
+        let lexicon = lexicon();
+        assert!(diagnostics("THE UNIT REMOVED THE PART.", &lexicon).is_empty());
     }
 
     #[test]
     fn punctuation_between_auxiliary_and_participle_breaks_direct_pattern() {
-        assert!(check("THE UNIT HAS, REMOVED THE PART.", &lexicon()).is_empty());
+        let lexicon = lexicon();
+        assert!(diagnostics("THE UNIT HAS, REMOVED THE PART.", &lexicon).is_empty());
     }
 }
