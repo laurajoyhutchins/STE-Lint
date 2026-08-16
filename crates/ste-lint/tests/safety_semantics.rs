@@ -3,10 +3,41 @@ use ste_lint::{
     AnalysisDocument, LintContext, LintMode, Resolution, SafetyEvidenceSource, SafetyLevel,
 };
 
+fn lexicon() -> RuntimeLexicon {
+    RuntimeLexicon::from_json(
+        r#"{
+          "metadata": {
+            "standard": "ASD-STE100",
+            "issue": 9,
+            "date": "2025-01-15",
+            "scope": "synthetic_safety_semantics"
+          },
+          "entries": [{
+            "lemma": "DISCONNECT",
+            "status": "approved",
+            "part_of_speech": "verb",
+            "forms": ["disconnect", "disconnects", "disconnected"],
+            "verb_paradigm": {
+              "classification": "lexical",
+              "source_sequence": ["DISCONNECT", "DISCONNECTS", "DISCONNECTED", "DISCONNECTED"],
+              "base_form": "DISCONNECT",
+              "simple_present_variants": ["DISCONNECT", "DISCONNECTS"],
+              "simple_past_variants": ["DISCONNECTED"],
+              "past_participle": "DISCONNECTED"
+            },
+            "senses": [],
+            "alternatives": [],
+            "restrictions": []
+          }]
+        }"#,
+    )
+    .unwrap()
+}
+
 #[test]
 fn safety_semantics_combine_structural_level_and_command_with_explicit_context() {
     let text = "WARNING: DISCONNECT POWER TO PREVENT SHOCK.";
-    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let lexicon = lexicon();
     let context = LintContext::from_json(
         r#"{
           "safety_facts": [{
@@ -64,7 +95,7 @@ fn safety_semantics_combine_structural_level_and_command_with_explicit_context()
 #[test]
 fn structural_safety_without_semantic_context_stays_unknown_where_required() {
     let text = "CAUTION: DISCONNECT POWER.";
-    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let lexicon = lexicon();
     let analysis = AnalysisDocument::new(text, &lexicon, None, None, LintMode::Procedural);
 
     let semantics = analysis.safety_semantics();
@@ -80,7 +111,7 @@ fn structural_safety_without_semantic_context_stays_unknown_where_required() {
 #[test]
 fn conflicting_explicit_safety_levels_remain_ambiguous() {
     let text = "WARNING: DISCONNECT POWER.";
-    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let lexicon = lexicon();
     let context = LintContext::from_json(
         r#"{
           "safety_facts": [{
@@ -115,7 +146,7 @@ fn conflicting_explicit_safety_levels_remain_ambiguous() {
 #[test]
 fn competing_explicit_actor_evidence_remains_ambiguous() {
     let text = "WARNING: DISCONNECT POWER TO PREVENT SHOCK.";
-    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let lexicon = lexicon();
     let context = LintContext::from_json(
         r#"{
           "safety_facts": [
@@ -155,7 +186,7 @@ fn competing_explicit_actor_evidence_remains_ambiguous() {
 #[test]
 fn context_fact_for_non_safety_span_does_not_create_safety_semantics() {
     let text = "DISCONNECT POWER.";
-    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let lexicon = lexicon();
     let context = LintContext::from_json(
         r#"{
           "safety_facts": [{
