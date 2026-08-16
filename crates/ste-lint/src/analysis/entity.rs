@@ -59,10 +59,9 @@ impl<'a> AnalysisDocument<'a> {
                     continue;
                 }
                 if let Some(mention) = mention_from_official_name(self, occurrence)
-                    && !mentions.iter().any(|existing| {
-                        existing.span.start == mention.span.start
-                            && existing.span.end == mention.span.end
-                    })
+                    && !mentions
+                        .iter()
+                        .any(|existing| existing.identity == mention.identity)
                 {
                     mentions.push(mention);
                 }
@@ -88,10 +87,9 @@ impl<'a> AnalysisDocument<'a> {
                 if occurrence.official_technical_name
                     && occurrence.start == token.start
                     && let Some(mention) = mention_from_official_name(self, occurrence)
-                    && !candidates.iter().any(|existing: &EntityMention| {
-                        existing.span.start == mention.span.start
-                            && existing.span.end == mention.span.end
-                    })
+                    && !candidates
+                        .iter()
+                        .any(|existing: &EntityMention| existing.identity == mention.identity)
                 {
                     candidates.push(mention);
                 }
