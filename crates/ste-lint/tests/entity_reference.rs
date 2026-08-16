@@ -74,6 +74,46 @@ fn official_technical_name_context_is_a_valid_stable_entity_source() {
 }
 
 #[test]
+fn overlapping_authorities_remain_explicitly_ambiguous() {
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let glossary = entity_glossary();
+    let context = LintContext::from_json(
+        r#"{
+          "occurrences": [{
+            "start": 0,
+            "end": 6,
+            "source": "official-name-register",
+            "official_technical_name": true
+          }]
+        }"#,
+    )
+    .unwrap();
+    let analysis = AnalysisDocument::new(
+        "busway",
+        &lexicon,
+        Some(&glossary),
+        Some(&context),
+        LintMode::Descriptive,
+    );
+
+    let Resolution::Ambiguous(candidates) = analysis.entity_mention_at(0) else {
+        panic!("distinct authority-backed identities on one span must not be silently collapsed");
+    };
+    assert_eq!(candidates.len(), 2);
+    assert!(
+        candidates
+            .iter()
+            .any(|candidate| candidate.kind == EntityMentionKind::GovernedTechnicalTerm)
+    );
+    assert!(
+        candidates
+            .iter()
+            .any(|candidate| candidate.kind == EntityMentionKind::OfficialTechnicalName)
+    );
+    assert_eq!(analysis.entity_mentions().len(), 2);
+}
+
+#[test]
 fn singular_reference_resolves_to_unique_governed_entity_in_previous_sentence() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let glossary = entity_glossary();
