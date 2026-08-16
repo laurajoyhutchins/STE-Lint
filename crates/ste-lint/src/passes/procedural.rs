@@ -38,9 +38,11 @@ fn safety_level_mismatches(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 
         let mut supplied_levels = Vec::new();
         let mut supplied_sources = Vec::new();
-        for fact in context.safety_facts.iter().filter(|fact| {
-            fact.start == safety.span.start && fact.end == safety.span.end
-        }) {
+        for fact in context
+            .safety_facts
+            .iter()
+            .filter(|fact| fact.start == safety.span.start && fact.end == safety.span.end)
+        {
             let Some(level) = fact.safety_level else {
                 continue;
             };
