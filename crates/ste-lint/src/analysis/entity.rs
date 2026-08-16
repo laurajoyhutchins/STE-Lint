@@ -234,10 +234,7 @@ fn exact_analysis_span(
     None
 }
 
-fn mention_sentence_id(
-    analysis: &AnalysisDocument<'_>,
-    mention: &EntityMention,
-) -> Option<usize> {
+fn mention_sentence_id(analysis: &AnalysisDocument<'_>, mention: &EntityMention) -> Option<usize> {
     analysis
         .tokens()
         .get(mention.span.token_start)
