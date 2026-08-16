@@ -5,10 +5,10 @@ use ste_lint::{
 };
 
 #[test]
-fn grammar_selected_sense_keeps_the_same_head_token_span() {
+fn resolved_noun_phrase_and_sense_keep_the_same_head_token_span() {
     let lexicon = lexicon();
     let analysis = AnalysisDocument::new(
-        "THE TEST IS READY.",
+        "THE PUMP IS READY.",
         &lexicon,
         None,
         None,
@@ -20,7 +20,7 @@ fn grammar_selected_sense_keeps_the_same_head_token_span() {
     };
     let Resolution::Resolved(sense) = analysis.sense_resolution_at(noun_phrase.head_token, 1)
     else {
-        panic!("grammar-selected noun identity should resolve one source-safe sense");
+        panic!("resolved noun identity should expose one source-safe sense");
     };
     let head = &analysis.tokens()[noun_phrase.head_token];
 
