@@ -22,7 +22,10 @@ fn two_explicit_topics_in_one_paragraph_violate_rule_6_5() {
     let text = "The pump is hot. The valve is open.";
     let context = LintContext {
         occurrences: Vec::new(),
-        topics: vec![topic(0, 16, "pump condition"), topic(17, 35, "valve condition")],
+        topics: vec![
+            topic(0, 16, "pump condition"),
+            topic(17, 35, "valve condition"),
+        ],
     };
     let lexicon = RuntimeLexicon::embedded().unwrap();
 
