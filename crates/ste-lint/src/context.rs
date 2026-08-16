@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct LintContext {
     #[serde(default)]
     pub occurrences: Vec<OccurrenceFact>,
+    #[serde(default)]
+    pub topics: Vec<TopicFact>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -19,6 +21,14 @@ pub struct OccurrenceFact {
     pub spelling: Option<SpellingUse>,
     #[serde(default)]
     pub official_technical_name: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TopicFact {
+    pub start: usize,
+    pub end: usize,
+    pub topic: String,
+    pub source: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,18 +65,16 @@ impl LintContext {
     pub fn validate(&self, text_len: usize) -> Result<(), String> {
         self.validate_evidence()?;
         for (index, occurrence) in self.occurrences.iter().enumerate() {
-            if occurrence.start >= occurrence.end {
-                return Err(format!(
-                    "context occurrence {index} must have start < end ({}..{})",
-                    occurrence.start, occurrence.end
-                ));
-            }
-            if occurrence.end > text_len {
-                return Err(format!(
-                    "context occurrence {index} ends at {}, beyond text length {text_len}",
-                    occurrence.end
-                ));
-            }
+            validate_span(
+                "context occurrence",
+                index,
+                occurrence.start,
+                occurrence.end,
+                text_len,
+            )?;
+        }
+        for (index, topic) in self.topics.iter().enumerate() {
+            validate_span("context topic", index, topic.start, topic.end, text_len)?;
         }
         Ok(())
     }
@@ -87,6 +95,34 @@ impl LintContext {
                 ));
             }
         }
+        for (index, topic) in self.topics.iter().enumerate() {
+            if topic.source.trim().is_empty() {
+                return Err(format!("context topic {index} source must be non-empty"));
+            }
+            if topic.topic.trim().is_empty() {
+                return Err(format!("context topic {index} topic must be non-empty"));
+            }
+        }
         Ok(())
     }
+}
+
+fn validate_span(
+    kind: &str,
+    index: usize,
+    start: usize,
+    end: usize,
+    text_len: usize,
+) -> Result<(), String> {
+    if start >= end {
+        return Err(format!(
+            "{kind} {index} must have start < end ({start}..{end})"
+        ));
+    }
+    if end > text_len {
+        return Err(format!(
+            "{kind} {index} ends at {end}, beyond text length {text_len}"
+        ));
+    }
+    Ok(())
 }
