@@ -39,7 +39,10 @@ fn representative_engineering_corpus_matches_declared_results() {
     });
     let manifest: CorpusManifest = serde_json::from_str(&source).expect("corpus manifest JSON");
 
-    assert!(manifest.synthetic, "public regression prose must be synthetic");
+    assert!(
+        manifest.synthetic,
+        "public regression prose must be synthetic"
+    );
     assert!(
         manifest.cases.len() >= 10,
         "corpus must contain at least ten representative cases"
@@ -50,7 +53,11 @@ fn representative_engineering_corpus_matches_declared_results() {
         .iter()
         .map(|case| case.id.as_str())
         .collect::<HashSet<_>>();
-    assert_eq!(ids.len(), manifest.cases.len(), "corpus case ids must be unique");
+    assert_eq!(
+        ids.len(),
+        manifest.cases.len(),
+        "corpus case ids must be unique"
+    );
 
     let categories = manifest
         .cases
@@ -82,10 +89,9 @@ fn representative_engineering_corpus_matches_declared_results() {
             .glossary_file
             .as_deref()
             .map(|path| Glossary::from_json(&read_fixture(&root, path)).expect("corpus glossary"));
-        let context = case
-            .context_file
-            .as_deref()
-            .map(|path| LintContext::from_json(&read_fixture(&root, path)).expect("corpus context"));
+        let context = case.context_file.as_deref().map(|path| {
+            LintContext::from_json(&read_fixture(&root, path)).expect("corpus context")
+        });
         let result = lint_text_with_context(
             &text,
             &lexicon,
@@ -113,11 +119,7 @@ fn representative_engineering_corpus_matches_declared_results() {
             .iter()
             .map(|diagnostic| diagnostic.code.clone())
             .collect::<BTreeSet<_>>();
-        let expected_codes = case
-            .expected_codes
-            .iter()
-            .cloned()
-            .collect::<BTreeSet<_>>();
+        let expected_codes = case.expected_codes.iter().cloned().collect::<BTreeSet<_>>();
         assert_eq!(
             observed_codes, expected_codes,
             "unexpected diagnostic codes for corpus case {}",
