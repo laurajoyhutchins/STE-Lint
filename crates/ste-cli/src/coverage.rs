@@ -117,8 +117,19 @@ mod tests {
         };
         assert_eq!(status("8.5"), CoverageStatus::Implemented);
         assert_eq!(status("8.7"), CoverageStatus::Implemented);
+        assert_eq!(status("1.3"), CoverageStatus::Partial);
+        assert_eq!(status("1.10"), CoverageStatus::Partial);
+        assert_eq!(status("1.14"), CoverageStatus::Partial);
         assert_eq!(status("3.4"), CoverageStatus::Partial);
         assert_eq!(status("5.3"), CoverageStatus::Partial);
         assert_eq!(status("9.3"), CoverageStatus::Partial);
+        assert_eq!(
+            manifest
+                .status_counts()
+                .get(&CoverageStatus::NotImplemented)
+                .copied()
+                .unwrap_or(0),
+            0
+        );
     }
 }
