@@ -24,16 +24,44 @@ The human summary reports the current status counts and always states that full 
 
 The status vocabulary deliberately separates “not implemented” from “cannot be decided safely with current context.” That distinction prevents missing parser capability from being confused with a negative result.
 
+## Project context evidence
+
+Some Issue 9 decisions cannot be inferred safely from raw text. A project can provide explicit occurrence facts in the nearest ancestor `.ste/context.json`. The CLI discovers that file using the same nearest-project-file rule as `.ste/terms.json`. A present but malformed context file is invalid data and causes exit code 3; STE-Lint never silently ignores it.
+
+Each occurrence identifies a byte span, a non-empty provenance source, and one or more explicit facts. The current context vocabulary supports:
+
+- `dictionary_meaning`: `approved` or `not_approved`, used by the bounded Rule 1.3 check;
+- `technical_noun_scope`: `international`, `regional`, `slang`, or `jargon`, used by the bounded Rule 1.10 check;
+- `spelling`: `american` or `non_american`, together with `official_technical_name`, used by the bounded Rule 1.14 check.
+
+Example:
+
+```json
+{
+  "occurrences": [
+    {
+      "start": 0,
+      "end": 6,
+      "source": "terminology review 2026-08-16",
+      "spelling": "non_american",
+      "official_technical_name": false
+    }
+  ]
+}
+```
+
+Spans must be valid byte ranges for the file being linted and must land on UTF-8 character boundaries. Context-backed diagnostics retain the supplied provenance. Providing a fact makes only that bounded rule slice executable; it does not imply that STE-Lint inferred the fact or evaluated every semantic use of the rule.
+
 ## Current conservative inventory
 
 At this gate the 53 rules classify as:
 
 - 2 `implemented`;
-- 17 `partial`;
-- 29 `context_required`;
-- 5 `not_implemented`.
+- 28 `partial`;
+- 23 `context_required`;
+- 0 `not_implemented`.
 
-Only Rules 8.5 and 8.7 are marked `implemented`. This is intentionally strict. Rules 4.3 and 5.5 are now `partial`: simple vertical-list mechanics and bounded note behavior are executable, but nested/wrapped lists, sentence-versus-fragment classification, article choice, and non-imperative ways of expressing note requirements still need deeper structure or grammar. Sentence-length enforcement remains partial for Rules 5.1 and 6.3 because some Issue 9 one-word categories need document or identity context. Rule 3.4 remains partial because direct perfect-tense constructions are checked while other auxiliary constructions need deeper grammar.
+Only Rules 8.5 and 8.7 are marked `implemented`. This is intentionally strict. A zero `not_implemented` count means every Issue 9 rule has either an executable slice or an explicit context-required boundary. It does **not** mean every rule is fully implemented. Rules 1.3, 1.10, and 1.14 are now `partial` because supplied occurrence evidence can drive bounded checks; automatic sense, terminology-scope, and spelling classification remain unresolved. Rules 4.3 and 5.5 remain partial for similarly bounded structural behavior. Sentence-length enforcement remains partial for Rules 5.1 and 6.3 because some Issue 9 one-word categories need document or identity context. Rule 3.4 remains partial because direct perfect-tense constructions are checked while other auxiliary constructions need deeper grammar.
 
 ## Claim boundary
 
