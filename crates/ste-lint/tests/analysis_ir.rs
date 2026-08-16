@@ -1,25 +1,22 @@
 use ste_data::{PartOfSpeech, RuntimeLexicon};
 use ste_glossary::Glossary;
-use ste_lint::{
-    AnalysisDocument, LintMode, Resolution, VerbFormRole,
-};
+use ste_lint::{AnalysisDocument, LintMode, Resolution, VerbFormRole};
 
 #[test]
 fn analysis_document_preserves_spans_sentence_identity_and_runtime_evidence() {
     let text = "USE busway. USE fluxcapacitor.";
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let glossary = Glossary::from_json(include_str!("../../../fixtures/glossary/valid.json")).unwrap();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        Some(&glossary),
-        None,
-        LintMode::Procedural,
-    );
+    let glossary =
+        Glossary::from_json(include_str!("../../../fixtures/glossary/valid.json")).unwrap();
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, Some(&glossary), None, LintMode::Procedural);
 
     let tokens = analysis.tokens();
     assert_eq!(tokens.len(), 4);
-    assert_eq!((tokens[0].text, tokens[0].start, tokens[0].end), ("USE", 0, 3));
+    assert_eq!(
+        (tokens[0].text, tokens[0].start, tokens[0].end),
+        ("USE", 0, 3)
+    );
     assert_eq!(tokens[0].sentence_id, Some(0));
     assert_eq!(tokens[1].sentence_id, Some(0));
     assert_eq!(tokens[2].sentence_id, Some(1));
@@ -28,12 +25,17 @@ fn analysis_document_preserves_spans_sentence_identity_and_runtime_evidence() {
     let use_match = analysis.longest_dictionary_match_at(0).unwrap();
     assert_eq!(use_match.text, "USE");
     assert_eq!((use_match.start, use_match.end), (0, 3));
-    assert_eq!(use_match.possible_parts_of_speech, vec![PartOfSpeech::Verb]);
+    assert_eq!(
+        use_match.possible_parts_of_speech,
+        vec![PartOfSpeech::Verb]
+    );
     assert!(matches!(use_match.resolution, Resolution::Resolved(_)));
-    assert!(use_match
-        .verb_forms
-        .iter()
-        .any(|candidate| candidate.role == VerbFormRole::Base));
+    assert!(
+        use_match
+            .verb_forms
+            .iter()
+            .any(|candidate| candidate.role == VerbFormRole::Base)
+    );
 
     let busway = analysis.longest_glossary_match_at(1).unwrap();
     assert_eq!(busway.text, "busway");
@@ -57,13 +59,8 @@ fn analysis_document_preserves_competing_dictionary_identities() {
         }"#,
     )
     .unwrap();
-    let analysis = AnalysisDocument::new(
-        "COMPLETE THIS.",
-        &lexicon,
-        None,
-        None,
-        LintMode::Procedural,
-    );
+    let analysis =
+        AnalysisDocument::new("COMPLETE THIS.", &lexicon, None, None, LintMode::Procedural);
 
     let matched = analysis.longest_dictionary_match_at(0).unwrap();
     assert!(matches!(
