@@ -52,7 +52,7 @@ fn resolved_procedural_passive_is_reported_for_rule_3_6() {
         .iter()
         .find(|diagnostic| diagnostic.code == "STE-GRAM-003")
         .expect("resolved procedural passive should be reported");
-    assert_eq!(diagnostic.rules, vec!["3.6"]);
+    assert_eq!(diagnostic.rules, vec!["3.3", "3.6"]);
     assert_eq!((diagnostic.span.start, diagnostic.span.end), (12, 21));
 }
 
