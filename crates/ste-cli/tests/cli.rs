@@ -106,6 +106,66 @@ fn lint_fix_applies_only_safe_fix_and_exits_clean() {
 }
 
 #[test]
+fn lint_discovers_nearest_project_context() {
+    let root = tempfile::tempdir().unwrap();
+    let nested = root.path().join("docs");
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    fs::create_dir_all(&nested).unwrap();
+    let document = nested.join("sample.txt");
+    fs::write(&document, "USE.").unwrap();
+    fs::write(
+        root.path().join(".ste/context.json"),
+        r#"{
+  "occurrences": [
+    {
+      "start": 0,
+      "end": 3,
+      "source": "project terminology review",
+      "spelling": "non_american",
+      "official_technical_name": false
+    }
+  ]
+}"#,
+    )
+    .unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(1)
+        .stdout(predicate::str::contains("STE-CTX-003"))
+        .stdout(predicate::str::contains("project terminology review"));
+}
+
+#[test]
+fn malformed_project_context_fails_closed() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    let document = root.path().join("sample.txt");
+    fs::write(&document, "USE.").unwrap();
+    fs::write(root.path().join(".ste/context.json"), "{not-json").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+        ])
+        .assert()
+        .code(3)
+        .stderr(predicate::str::contains("invalid lint context"))
+        .stderr(predicate::str::contains(".ste/context.json"));
+}
+
+#[test]
 fn check_rewrite_rejects_modality_change() {
     let mut before = tempfile::NamedTempFile::new().unwrap();
     let mut after = tempfile::NamedTempFile::new().unwrap();
