@@ -150,7 +150,9 @@ impl<'a> AnalysisDocument<'a> {
         if token_start >= self.tokens.len() {
             return None;
         }
-        let max_width = self.max_dictionary_words.min(self.tokens.len() - token_start);
+        let max_width = self
+            .max_dictionary_words
+            .min(self.tokens.len() - token_start);
         for width in (1..=max_width).rev() {
             if let Some(matched) = self.dictionary_match_at(token_start, width) {
                 return Some(matched);

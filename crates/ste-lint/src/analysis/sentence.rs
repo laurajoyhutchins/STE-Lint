@@ -11,7 +11,10 @@ pub struct AnalysisSentence {
     pub last_token: Option<usize>,
 }
 
-pub(crate) fn build_sentences(text: &str, tokens: &mut [AnalysisToken<'_>]) -> Vec<AnalysisSentence> {
+pub(crate) fn build_sentences(
+    text: &str,
+    tokens: &mut [AnalysisToken<'_>],
+) -> Vec<AnalysisSentence> {
     let mut sentences = Vec::new();
 
     for (id, unit) in word_limit_units(text).into_iter().enumerate() {
