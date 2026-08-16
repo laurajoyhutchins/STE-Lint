@@ -170,7 +170,9 @@ fn add_containment_relations(graph: &mut DocumentGraph) {
         .filter(|node| {
             matches!(
                 node.id.kind,
-                DocumentNodeKind::Sentence | DocumentNodeKind::Topic | DocumentNodeKind::EntityMention
+                DocumentNodeKind::Sentence
+                    | DocumentNodeKind::Topic
+                    | DocumentNodeKind::EntityMention
             )
         })
         .cloned()
@@ -222,8 +224,9 @@ fn map_entity_resolution(
     entities: &[EntityMention],
 ) -> Resolution<DocumentNodeId> {
     match resolution {
-        Resolution::Resolved(mention) => entity_node_id(&mention, entities)
-            .map_or(Resolution::Unknown, Resolution::Resolved),
+        Resolution::Resolved(mention) => {
+            entity_node_id(&mention, entities).map_or(Resolution::Unknown, Resolution::Resolved)
+        }
         Resolution::Ambiguous(mentions) => {
             let targets = mentions
                 .iter()
@@ -238,7 +241,9 @@ fn map_entity_resolution(
 fn entity_node_id(mention: &EntityMention, entities: &[EntityMention]) -> Option<DocumentNodeId> {
     entities
         .iter()
-        .position(|candidate| candidate.identity == mention.identity && candidate.span == mention.span)
+        .position(|candidate| {
+            candidate.identity == mention.identity && candidate.span == mention.span
+        })
         .map(|index| DocumentNodeId {
             kind: DocumentNodeKind::EntityMention,
             index,
