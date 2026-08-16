@@ -2,7 +2,7 @@ use crate::context::{SemanticOrderTarget, SemanticOrderTargetKind};
 use crate::structure::paragraph_ranges;
 
 use super::document::{AnalysisDocument, Resolution};
-use super::entity::EntityMention;
+use super::entity::{EntityMention, ReferenceLink};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DocumentNodeKind {
@@ -203,7 +203,7 @@ fn build_reference_relations(
         let Some(sentence_id) = token.sentence_id else {
             continue;
         };
-        let target = map_entity_resolution(analysis.reference_at(token_index), entities);
+        let target = map_reference_resolution(analysis.reference_at(token_index), entities);
         relations.push(DocumentReferenceRelation {
             reference: DocumentSpan {
                 start: token.start,
@@ -219,18 +219,17 @@ fn build_reference_relations(
     relations
 }
 
-fn map_entity_resolution(
-    resolution: Resolution<EntityMention>,
+fn map_reference_resolution(
+    resolution: Resolution<ReferenceLink>,
     entities: &[EntityMention],
 ) -> Resolution<DocumentNodeId> {
     match resolution {
-        Resolution::Resolved(mention) => {
-            entity_node_id(&mention, entities).map_or(Resolution::Unknown, Resolution::Resolved)
-        }
-        Resolution::Ambiguous(mentions) => {
-            let targets = mentions
+        Resolution::Resolved(link) => entity_node_id(&link.antecedent, entities)
+            .map_or(Resolution::Unknown, Resolution::Resolved),
+        Resolution::Ambiguous(links) => {
+            let targets = links
                 .iter()
-                .filter_map(|mention| entity_node_id(mention, entities))
+                .filter_map(|link| entity_node_id(&link.antecedent, entities))
                 .collect::<Vec<_>>();
             resolution_from_candidates(targets)
         }
