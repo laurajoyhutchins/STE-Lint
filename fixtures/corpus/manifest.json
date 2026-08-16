@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "description": "Public regression corpus written specifically for STE-Lint. No case text is copied from ASD-STE100 or a third-party manual.",
+  "cases": [
+    {"id":"clean-breaker-command","category":"clean_control","mode":"procedural","text_file":"clean-control.txt","expected_outcome":"clean","expected_codes":[]},
+    {"id":"semicolon-between-commands","category":"punctuation","mode":"procedural","text_file":"punctuation-semicolon.txt","expected_outcome":"error","expected_codes":["STE-PUNC-001"]},
+    {"id":"unapproved-lexical-choice","category":"lexical","mode":"descriptive","text_file":"lexical-unapproved.txt","expected_outcome":"error","expected_codes":["STE-LEX-001"]},
+    {"id":"unclassified-technical-term","category":"blocker","mode":"descriptive","text_file":"unknown-term.txt","expected_outcome":"blocked","expected_codes":["STE-TERM-001"]},
+    {"id":"imperative-inside-note","category":"note","mode":"procedural","text_file":"note-imperative.txt","expected_outcome":"error","expected_codes":["STE-NOTE-001","STE-TERM-001"]},
+    {"id":"vertical-list-mechanics","category":"list","mode":"descriptive","text_file":"list-mechanics.txt","expected_outcome":"error","expected_codes":["STE-LIST-002","STE-LIST-004"]},
+    {"id":"explicit-spelling-evidence","category":"context","mode":"procedural","text_file":"context-spelling.txt","context_file":"context-spelling.json","expected_outcome":"error","expected_codes":["STE-CTX-003"]},
+    {"id":"rule-8-6-label-count-group","category":"counting","mode":"descriptive","text_file":"count-group.txt","context_file":"count-group.json","expected_outcome":"clean","expected_codes":[]},
+    {"id":"multiple-topics-one-paragraph","category":"paragraph","mode":"descriptive","text_file":"paragraph-topics.txt","context_file":"paragraph-topics.json","expected_outcome":"error","expected_codes":["STE-PARA-002"]},
+    {"id":"unsafe-warning-opening","category":"safety","mode":"procedural","text_file":"safety-opening.txt","expected_outcome":"error","expected_codes":["STE-SAFE-001","STE-TERM-001"]},
+    {"id":"leading-condition-needs-comma","category":"procedure","mode":"procedural","text_file":"condition-comma.txt","expected_outcome":"error","expected_codes":["STE-PROC-002","STE-TERM-001"]},
+    {"id":"seven-sentence-paragraph","category":"paragraph","mode":"descriptive","text_file":"paragraph-length.txt","expected_outcome":"error","expected_codes":["STE-PARA-001"]},
+    {"id":"forbidden-contraction","category":"syntax","mode":"descriptive","text_file":"contraction.txt","expected_outcome":"error","expected_codes":["STE-SYN-001"]},
+    {"id":"direct-perfect-tense","category":"verb","mode":"descriptive","text_file":"perfect-tense.txt","expected_outcome":"error","expected_codes":["STE-TERM-001","STE-VERB-001"]}
+  ]
+}
