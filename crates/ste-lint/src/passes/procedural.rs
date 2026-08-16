@@ -4,7 +4,8 @@ use ste_data::{ApprovalStatus, PartOfSpeech, VerbClassification};
 
 use crate::document_structure::{safety_blocks, starts_condition};
 use crate::{
-    AnalysisDocument, LintMode, Resolution, SafetyEvidenceSource, SafetyLevel, SafetyLevelFact,
+    ActionCardinality, AnalysisDocument, LintMode, Resolution, SafetyEvidenceSource, SafetyLevel,
+    SafetyLevelFact,
 };
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
@@ -14,8 +15,46 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         return diagnostics;
     }
 
+    diagnostics.extend(action_cardinality(analysis));
     diagnostics.extend(condition_commas(analysis));
     diagnostics.extend(imperative_forms(analysis));
+    diagnostics
+}
+
+fn action_cardinality(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+
+    for sentence in analysis.sentences() {
+        let Resolution::Resolved(action) = analysis.action_structure(sentence.id) else {
+            continue;
+        };
+        if action.cardinality != ActionCardinality::Multiple {
+            continue;
+        }
+
+        let action_heads = action
+            .action_heads
+            .iter()
+            .map(|span| json!({"start": span.start, "end": span.end}))
+            .collect::<Vec<_>>();
+        diagnostics.push(Diagnostic {
+            code: "STE-PROC-003".into(),
+            severity: Severity::Error,
+            message: "Procedural instruction contains multiple resolved actions; use one action per instruction."
+                .into(),
+            span: Span {
+                start: sentence.start,
+                end: sentence.end,
+            },
+            rules: vec!["5.2".into()],
+            evidence: Some(json!({
+                "action_cardinality": "multiple",
+                "action_heads": action_heads,
+            })),
+            autofix: None,
+        });
+    }
+
     diagnostics
 }
 
