@@ -2,8 +2,8 @@ use ste_data::{PartOfSpeech, VerbClassification};
 
 use crate::LintMode;
 
-use super::document::{AnalysisDocument, Resolution, VerbFormRole};
 use super::AnalysisToken;
+use super::document::{AnalysisDocument, Resolution, VerbFormRole};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ObservedRole {
@@ -177,13 +177,10 @@ fn subject_predicate(
     };
 
     match noun_phrase(analysis, first) {
-        Resolution::Resolved(noun_phrase) => clause_for_noun_phrase(
-            analysis,
-            sentence_id,
-            noun_phrase,
-            last,
-        )
-        .map_or(Resolution::Unknown, Resolution::Resolved),
+        Resolution::Resolved(noun_phrase) => {
+            clause_for_noun_phrase(analysis, sentence_id, noun_phrase, last)
+                .map_or(Resolution::Unknown, Resolution::Resolved)
+        }
         Resolution::Ambiguous(noun_phrases) => {
             let clauses = noun_phrases
                 .into_iter()
@@ -427,19 +424,18 @@ fn auxiliary_kinds(analysis: &AnalysisDocument<'_>, token_index: usize) -> Vec<A
     };
     let mut kinds = Vec::new();
     for candidate in matched.candidates {
-        let kind = if candidate.lemma.eq_ignore_ascii_case("be") {
-            Some(AuxiliaryKind::Be)
-        } else if candidate.lemma.eq_ignore_ascii_case("have") {
-            Some(AuxiliaryKind::Have)
-        } else if candidate
-            .verb_paradigm
-            .as_ref()
-            .is_some_and(|paradigm| paradigm.classification == VerbClassification::DefectiveModal)
-        {
-            Some(AuxiliaryKind::Modal)
-        } else {
-            None
-        };
+        let kind =
+            if candidate.lemma.eq_ignore_ascii_case("be") {
+                Some(AuxiliaryKind::Be)
+            } else if candidate.lemma.eq_ignore_ascii_case("have") {
+                Some(AuxiliaryKind::Have)
+            } else if candidate.verb_paradigm.as_ref().is_some_and(|paradigm| {
+                paradigm.classification == VerbClassification::DefectiveModal
+            }) {
+                Some(AuxiliaryKind::Modal)
+            } else {
+                None
+            };
         if let Some(kind) = kind
             && !kinds.contains(&kind)
         {
@@ -453,9 +449,7 @@ fn previous_auxiliary_kinds(
     analysis: &AnalysisDocument<'_>,
     token_index: usize,
 ) -> Vec<AuxiliaryKind> {
-    if token_index == 0
-        || !same_sentence_and_whitespace(analysis, token_index - 1, token_index)
-    {
+    if token_index == 0 || !same_sentence_and_whitespace(analysis, token_index - 1, token_index) {
         return Vec::new();
     }
     auxiliary_kinds(analysis, token_index - 1)
@@ -487,10 +481,7 @@ fn token_has_part_of_speech(
     token_parts_of_speech(analysis, token_index).contains(&part)
 }
 
-fn token_parts_of_speech(
-    analysis: &AnalysisDocument<'_>,
-    token_index: usize,
-) -> Vec<PartOfSpeech> {
+fn token_parts_of_speech(analysis: &AnalysisDocument<'_>, token_index: usize) -> Vec<PartOfSpeech> {
     analysis
         .dictionary_match_at(token_index, 1)
         .map_or_else(Vec::new, |matched| matched.possible_parts_of_speech)
@@ -521,8 +512,7 @@ fn same_sentence_and_whitespace(
     let (Some(left), Some(right)) = (tokens.get(left_index), tokens.get(right_index)) else {
         return false;
     };
-    left.sentence_id == right.sentence_id
-        && separator_is_whitespace(analysis.text(), left, right)
+    left.sentence_id == right.sentence_id && separator_is_whitespace(analysis.text(), left, right)
 }
 
 fn resolution_from_candidates<T>(mut candidates: Vec<T>) -> Resolution<T> {
