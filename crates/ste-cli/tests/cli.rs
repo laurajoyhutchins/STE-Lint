@@ -154,11 +154,7 @@ fn malformed_project_context_fails_closed() {
 
     let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
     command
-        .args([
-            "--allow-test-lexicon",
-            "lint",
-            document.to_str().unwrap(),
-        ])
+        .args(["--allow-test-lexicon", "lint", document.to_str().unwrap()])
         .assert()
         .code(3)
         .stderr(predicate::str::contains("invalid lint context"))
