@@ -1,7 +1,9 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 
-use crate::{DictionaryMeaningUse, LintContext, ParenthesisUseKind, SpellingUse, TechnicalNounScope};
+use crate::{
+    DictionaryMeaningUse, LintContext, ParenthesisUseKind, SpellingUse, TechnicalNounScope,
+};
 
 pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic> {
     let Some(context) = context else {
