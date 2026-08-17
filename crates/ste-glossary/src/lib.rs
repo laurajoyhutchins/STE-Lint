@@ -103,7 +103,7 @@ impl Glossary {
                 let normalized = normalize_identity(value);
                 if let Some((first_index, first_term, first_kind)) = identity_seen.get(&normalized)
                 {
-                    if *first_index != index && !(*first_kind == "term" && kind == "term") {
+                    if *first_index == index || !(*first_kind == "term" && kind == "term") {
                         diagnostics.push(identity_conflict(
                             first_term,
                             first_kind,
