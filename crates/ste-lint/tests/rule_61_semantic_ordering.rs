@@ -5,17 +5,7 @@ use ste_lint::{LintContext, LintMode, LintOptions, lint_text_with_context};
 fn reversed_resolved_project_ordering_reports_rule_61() {
     let text = "Use this. Use that.";
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let context = LintContext::from_json(
-        r#"{
-          "semantic_orderings": [{
-            "before": {"kind":"sentence","start":10,"end":19},
-            "after": {"kind":"sentence","start":0,"end":9},
-            "source": "project-information-order"
-          }]
-        }"#,
-    )
-    .unwrap();
-    context.validate(text.len()).unwrap();
+    let context = reversed_sentence_ordering(text);
 
     let result = lint_text_with_context(
         text,
@@ -35,4 +25,44 @@ fn reversed_resolved_project_ordering_reports_rule_61() {
         .expect("reversed resolved ordering must report Rule 6.1");
     assert_eq!(diagnostic.rules, vec!["6.1"]);
     assert_eq!((diagnostic.span.start, diagnostic.span.end), (0, 19));
+}
+
+#[test]
+fn procedural_mode_does_not_apply_descriptive_rule_61_ordering() {
+    let text = "Use this. Use that.";
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let context = reversed_sentence_ordering(text);
+
+    let result = lint_text_with_context(
+        text,
+        &lexicon,
+        None,
+        Some(&context),
+        LintOptions {
+            mode: LintMode::Procedural,
+            fix: false,
+        },
+    );
+
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .all(|diagnostic| diagnostic.code != "STE-DISC-001")
+    );
+}
+
+fn reversed_sentence_ordering(text: &str) -> LintContext {
+    let context = LintContext::from_json(
+        r#"{
+          "semantic_orderings": [{
+            "before": {"kind":"sentence","start":10,"end":19},
+            "after": {"kind":"sentence","start":0,"end":9},
+            "source": "project-information-order"
+          }]
+        }"#,
+    )
+    .unwrap();
+    context.validate(text.len()).unwrap();
+    context
 }
