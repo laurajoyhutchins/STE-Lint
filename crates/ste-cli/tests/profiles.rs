@@ -107,6 +107,82 @@ fn configured_software_profile_resolves_explicit_technical_forms() {
 }
 
 #[test]
+fn configured_git_profile_resolves_git_terminology() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["git"]}"#,
+    )
+    .unwrap();
+    let document = root.path().join("sample.txt");
+    fs::write(&document, "REPOSITORIES.").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .stdout(predicate::str::contains("STE-TERM-001").not());
+}
+
+#[test]
+fn configured_github_profile_resolves_multiword_form() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["github"]}"#,
+    )
+    .unwrap();
+    let document = root.path().join("sample.txt");
+    fs::write(&document, "PULL REQUESTS.").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .stdout(predicate::str::contains("STE-TERM-001").not());
+}
+
+#[test]
+fn profiles_leave_project_specific_terminology_blocked() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["software-core","git","github"]}"#,
+    )
+    .unwrap();
+    let document = root.path().join("sample.txt");
+    fs::write(&document, "CAPSULE.").unwrap();
+
+    let mut command = assert_cmd::cargo::cargo_bin_cmd!("ste");
+    command
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .assert()
+        .code(2)
+        .stdout(predicate::str::contains("STE-TERM-001"));
+}
+
+#[test]
 fn no_config_does_not_enable_profiles_implicitly() {
     let document = tempfile::NamedTempFile::new().unwrap();
     fs::write(document.path(), "RUNTIMES.").unwrap();
