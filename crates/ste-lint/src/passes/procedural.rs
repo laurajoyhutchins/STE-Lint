@@ -261,11 +261,16 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         let Some(matched) =
             analysis.leading_dictionary_match_in_span(block.content_start, block.content_end, 8)
         else {
-            let end = block.content_start + content.split_whitespace().next().map_or(0, str::len);
-            diagnostics.push(safety_error(
-                block.content_start,
-                end.max(block.content_start + 1),
-            ));
+            if let Some((_, token)) =
+                analysis.first_token_in_span(block.content_start, block.content_end)
+            {
+                diagnostics.push(safety_error(token.start, token.end));
+            } else {
+                diagnostics.push(safety_error(
+                    block.content_start,
+                    (block.content_start + 1).min(block.content_end),
+                ));
+            }
             continue;
         };
 
