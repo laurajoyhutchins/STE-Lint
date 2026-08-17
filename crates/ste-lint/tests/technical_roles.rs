@@ -56,8 +56,9 @@ fn technical_noun_in_clear_command_role_is_rejected() {
         .expect("technical noun used as an imperative verb must be diagnosed");
     assert_eq!(diagnostic.rules, vec!["1.7"]);
     let evidence = diagnostic.evidence.as_ref().unwrap();
-    assert_eq!(evidence["canonical_term"], "oil");
-    assert_eq!(evidence["governed_kind"], "technical_noun");
+    assert_eq!(evidence["term_id"], "oil");
+    assert_eq!(evidence["canonical"], "oil");
+    assert_eq!(evidence["governed_roles"], serde_json::json!(["noun"]));
     assert_eq!(evidence["observed_role"], "verbal");
 }
 
@@ -81,8 +82,9 @@ fn technical_verb_in_determiner_governed_noun_role_is_rejected() {
         .expect("technical verb used after a determiner as a noun must be diagnosed");
     assert_eq!(diagnostic.rules, vec!["1.13"]);
     let evidence = diagnostic.evidence.as_ref().unwrap();
-    assert_eq!(evidence["canonical_term"], "ream");
-    assert_eq!(evidence["governed_kind"], "technical_verb");
+    assert_eq!(evidence["term_id"], "ream");
+    assert_eq!(evidence["canonical"], "ream");
+    assert_eq!(evidence["governed_roles"], serde_json::json!(["verb"]));
     assert_eq!(evidence["observed_role"], "nominal");
 }
 
