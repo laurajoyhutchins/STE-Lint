@@ -25,6 +25,8 @@ pub struct TechnicalTerm {
     pub definition: String,
     pub domain: String,
     pub preferred: bool,
+    #[serde(default)]
+    pub forms: Vec<String>,
     pub aliases: Vec<String>,
     pub examples: Vec<String>,
     pub provenance: Vec<String>,
@@ -46,9 +48,10 @@ impl Glossary {
         self.terms.iter().find(|term| {
             normalize_identity(&term.term) == wanted
                 || term
-                    .aliases
+                    .forms
                     .iter()
-                    .any(|alias| normalize_identity(alias) == wanted)
+                    .chain(term.aliases.iter())
+                    .any(|identity| normalize_identity(identity) == wanted)
         })
     }
 
@@ -56,13 +59,29 @@ impl Glossary {
         self.lookup_term(value).is_some()
     }
 
+    pub fn compose(glossaries: &[Glossary]) -> Result<Self, Vec<Diagnostic>> {
+        let glossary = Self {
+            terms: glossaries
+                .iter()
+                .flat_map(|glossary| glossary.terms.iter().cloned())
+                .collect(),
+        };
+        let diagnostics = glossary.validate();
+        if diagnostics.is_empty() {
+            Ok(glossary)
+        } else {
+            Err(diagnostics)
+        }
+    }
+
     pub fn validate(&self) -> Vec<Diagnostic> {
-        let mut seen: HashMap<String, &str> = HashMap::new();
+        let mut canonical_seen: HashMap<String, &str> = HashMap::new();
+        let mut identity_seen: HashMap<String, (usize, &str, &str)> = HashMap::new();
         let mut diagnostics = Vec::new();
 
-        for term in &self.terms {
-            let identity = normalize_identity(&term.term);
-            if let Some(first) = seen.get(&identity) {
+        for (index, term) in self.terms.iter().enumerate() {
+            let canonical = normalize_identity(&term.term);
+            if let Some(first) = canonical_seen.get(&canonical) {
                 diagnostics.push(Diagnostic {
                     code: "TERM-DUP-001".into(),
                     severity: Severity::Error,
@@ -72,16 +91,71 @@ impl Glossary {
                     evidence: Some(serde_json::json!({
                         "first": first,
                         "second": term.term,
-                        "normalized": identity,
+                        "normalized": canonical,
                     })),
                     autofix: None,
                 });
             } else {
-                seen.insert(identity, &term.term);
+                canonical_seen.insert(canonical, &term.term);
+            }
+
+            for (kind, value) in term_identities(term) {
+                let normalized = normalize_identity(value);
+                if let Some((first_index, first_term, first_kind)) = identity_seen.get(&normalized)
+                {
+                    if *first_index == index || !(*first_kind == "term" && kind == "term") {
+                        diagnostics.push(identity_conflict(
+                            first_term,
+                            first_kind,
+                            &term.term,
+                            kind,
+                            &normalized,
+                        ));
+                    }
+                } else {
+                    identity_seen.insert(normalized, (index, &term.term, kind));
+                }
             }
         }
 
         diagnostics
+    }
+}
+
+fn term_identities(term: &TechnicalTerm) -> Vec<(&str, &str)> {
+    std::iter::once(("term", term.term.as_str()))
+        .chain(term.aliases.iter().map(|value| ("alias", value.as_str())))
+        .chain(term.forms.iter().map(|value| ("form", value.as_str())))
+        .collect()
+}
+
+fn identity_conflict(
+    first_term: &str,
+    first_kind: &str,
+    second_term: &str,
+    second_kind: &str,
+    normalized: &str,
+) -> Diagnostic {
+    Diagnostic {
+        code: "TERM-ID-CONFLICT-001".into(),
+        severity: Severity::Error,
+        message:
+            "Technical glossary contains a conflicting canonical term, alias, or form identity."
+                .into(),
+        span: Span { start: 0, end: 0 },
+        rules: Vec::new(),
+        evidence: Some(serde_json::json!({
+            "first": {
+                "term": first_term,
+                "identity_kind": first_kind,
+            },
+            "second": {
+                "term": second_term,
+                "identity_kind": second_kind,
+            },
+            "normalized": normalized,
+        })),
+        autofix: None,
     }
 }
 

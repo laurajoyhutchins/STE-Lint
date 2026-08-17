@@ -23,7 +23,11 @@ pub(crate) fn check(
             glossary
                 .terms
                 .iter()
-                .flat_map(|term| std::iter::once(&term.term).chain(term.aliases.iter()))
+                .flat_map(|term| {
+                    std::iter::once(&term.term)
+                        .chain(term.aliases.iter())
+                        .chain(term.forms.iter())
+                })
                 .map(|term| term.split_whitespace().count())
                 .max()
                 .unwrap_or(1)

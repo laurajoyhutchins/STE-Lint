@@ -37,7 +37,8 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - explicit runtime selection with `--lexicon` or `STE_LINT_LEXICON`, with fail-closed lint/dictionary operation;
 - ambiguity-preserving, longest-match dictionary and glossary phrase lookup;
 - source-backed approved verb paradigms that preserve lexical, irregular-auxiliary, and defective-modal distinctions;
-- governed project technical terminology, including technical nouns, technical verbs, and dual-use terms;
+- governed reusable and repo-local technical terminology, including technical nouns, technical verbs, dual-use terms, explicit forms, aliases, provenance, and lifecycle status;
+- deterministic composition of opt-in `software-core`, `git`, and `github` terminology profiles with repo-local `.ste/terms.json`;
 - repo-local `.ste/context.json` evidence for bounded sense, terminology-scope, and spelling decisions that raw text cannot safely establish;
 - semicolon detection with a whitelisted deterministic autofix;
 - contraction detection for the deterministic portion of Rule 4.2;
@@ -125,6 +126,14 @@ Inspect the active runtime lexicon:
 ste dictionary lookup acceptable --format json
 ```
 
+Inspect built-in terminology profiles and the effective terminology environment for a document:
+
+```bash
+ste profile list
+ste profile show github --format json
+ste glossary effective docs/example.md --format json
+```
+
 Validate a project technical glossary:
 
 ```bash
@@ -138,8 +147,42 @@ Exit codes:
 | `0` | Clean, accepted, safely fixed, or coverage reported |
 | `1` | Error diagnostics remain or a rewrite was rejected |
 | `2` | Lint result is blocked by unresolved terminology, grammar, or sense |
-| `3` | Required runtime language, glossary, or project-context data is missing or invalid |
+| `3` | Required runtime language, glossary, profile configuration, or project-context data is missing or invalid |
 | `4` | I/O or internal failure |
+
+## Reusable terminology profiles
+
+A repository can opt into source-backed built-in terminology profiles through the nearest ancestor `.ste/config.json`:
+
+```json
+{
+  "profiles": ["software-core", "git", "github"]
+}
+```
+
+The initial built-in profiles have deliberately narrow ownership:
+
+- `software-core` contains common software-engineering concepts intended to be portable across unrelated codebases;
+- `git` contains Git version-control concepts;
+- `github` contains GitHub work-surface concepts that are not owned by the generic Git profile.
+
+GitHub Actions terminology is not part of the initial `github` profile. A narrower profile can be added later if the corpus demonstrates that need.
+
+Profiles are explicit opt-ins. If `.ste/config.json` is absent, STE-Lint enables no reusable profiles and preserves the existing runtime-plus-project-glossary behavior. Unknown profile IDs, duplicate profile selections, malformed configuration, malformed profile data, or identity conflicts fail closed as invalid data.
+
+Effective terminology is composed in this order:
+
+```text
+ASD-STE100 runtime dictionary
+        +
+selected reusable profiles
+        +
+repo-local .ste/terms.json
+```
+
+The order does not create override precedence. Two sources cannot silently define the same normalized canonical term, alias, or explicit form differently. Canonical duplicates retain `TERM-DUP-001`; conflicting canonical/alias/form identities produce `TERM-ID-CONFLICT-001`.
+
+Profiles extend terminology authority only. They do not exempt profile terms from applicable ASD-STE100 grammar rules, and they do not authorize unknown words automatically. Code and verbatim identifiers are a structural parsing concern rather than vocabulary that should be admitted through a glossary merely to suppress diagnostics.
 
 ## Repo-local technical terminology
 
@@ -154,6 +197,7 @@ A repository can extend the effective lexicon with `.ste/terms.json` without cha
       "definition": "A project term for an electrical distribution assembly.",
       "domain": "electrical",
       "preferred": true,
+      "forms": ["busways"],
       "aliases": [],
       "examples": ["Inspect the busway."],
       "provenance": ["project authority"],
@@ -164,6 +208,8 @@ A repository can extend the effective lexicon with `.ste/terms.json` without cha
 ```
 
 `kind` can be `technical_noun`, `technical_verb`, or `technical_noun_and_verb` when project or subject-field authority establishes both uses. The current linter does not yet prove noun-versus-verb use from sentence grammar.
+
+`forms` is optional for backward compatibility. When supplied, it is an explicit list of governed grammatical spellings. STE-Lint does not stem terms or generate noun plurals or verb conjugations from a glossary entry. `aliases` are alternate identities for the same governed concept and are not a substitute for forms.
 
 Unknown words are not added automatically. `STE-TERM-001` means the term needs classification, not that it is necessarily wrong. A governed term with `status: deprecated` produces `STE-TERM-002`.
 
@@ -189,7 +235,7 @@ The current vocabulary supports `dictionary_meaning`, `technical_noun_scope`, an
 
 ## Agent use
 
-`skills/STE.SKILL.md` describes the lint-repair-verify loop and requires coverage inspection before broader compliance claims. `skills/STE-GLOSSARY.SKILL.md` describes technical-term maintenance. Mechanical policy belongs in the executable rather than copied into agent prompts.
+`skills/STE.SKILL.md` describes the lint-repair-verify loop and requires coverage inspection before broader compliance claims. `skills/STE-GLOSSARY.SKILL.md` describes reusable-profile and repo-local technical-term maintenance. Mechanical policy belongs in the executable rather than copied into agent prompts.
 
 ## Runtime data and ASD-STE100
 
