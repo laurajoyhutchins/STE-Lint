@@ -20,7 +20,10 @@ fn explicit_forms_resolve_to_the_governed_term() {
     )
     .unwrap();
 
-    assert_eq!(glossary.lookup_term("repositories").unwrap().term, "repository");
+    assert_eq!(
+        glossary.lookup_term("repositories").unwrap().term,
+        "repository"
+    );
 }
 
 #[test]
@@ -56,7 +59,11 @@ fn alias_collision_with_another_canonical_term_is_rejected() {
     .unwrap();
 
     let diagnostics = glossary.validate();
-    assert!(diagnostics.iter().any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001"));
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001")
+    );
 }
 
 #[test]
@@ -93,5 +100,9 @@ fn form_collision_with_another_alias_is_rejected() {
     .unwrap();
 
     let diagnostics = glossary.validate();
-    assert!(diagnostics.iter().any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001"));
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001")
+    );
 }

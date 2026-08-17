@@ -29,7 +29,11 @@ fn profile_show_exposes_profile_metadata_and_terms() {
 fn unknown_profile_fails_closed() {
     let root = tempfile::tempdir().unwrap();
     fs::create_dir_all(root.path().join(".ste")).unwrap();
-    fs::write(root.path().join(".ste/config.json"), r#"{"profiles":["does-not-exist"]}"#).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["does-not-exist"]}"#,
+    )
+    .unwrap();
     let document = root.path().join("sample.txt");
     fs::write(&document, "USE THIS.").unwrap();
 
@@ -45,7 +49,11 @@ fn unknown_profile_fails_closed() {
 fn duplicate_profile_selection_fails_closed() {
     let root = tempfile::tempdir().unwrap();
     fs::create_dir_all(root.path().join(".ste")).unwrap();
-    fs::write(root.path().join(".ste/config.json"), r#"{"profiles":["git","git"]}"#).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["git","git"]}"#,
+    )
+    .unwrap();
     let document = root.path().join("sample.txt");
     fs::write(&document, "USE THIS.").unwrap();
 
@@ -77,7 +85,11 @@ fn malformed_project_profile_config_fails_closed() {
 fn configured_software_profile_resolves_explicit_technical_forms() {
     let root = tempfile::tempdir().unwrap();
     fs::create_dir_all(root.path().join(".ste")).unwrap();
-    fs::write(root.path().join(".ste/config.json"), r#"{"profiles":["software-core"]}"#).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["software-core"]}"#,
+    )
+    .unwrap();
     let document = root.path().join("sample.txt");
     fs::write(&document, "RUNTIMES.").unwrap();
 
@@ -117,7 +129,11 @@ fn no_config_does_not_enable_profiles_implicitly() {
 fn effective_glossary_reports_selected_profiles_and_project_terms() {
     let root = tempfile::tempdir().unwrap();
     fs::create_dir_all(root.path().join(".ste")).unwrap();
-    fs::write(root.path().join(".ste/config.json"), r#"{"profiles":["git","github"]}"#).unwrap();
+    fs::write(
+        root.path().join(".ste/config.json"),
+        r#"{"profiles":["git","github"]}"#,
+    )
+    .unwrap();
     fs::write(
         root.path().join(".ste/terms.json"),
         r#"{"terms":[{"term":"capsule","kind":"technical_noun","definition":"A project-specific capsule.","domain":"project","preferred":true,"aliases":[],"examples":[],"provenance":["project authority"],"status":"approved"}]}"#,
