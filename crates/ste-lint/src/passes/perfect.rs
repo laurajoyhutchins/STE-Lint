@@ -6,7 +6,7 @@ use crate::{AnalysisDocument, VerbFormRole};
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     let text = analysis.text();
-    let words = analysis.word_tokens();
+    let words = analysis.hyphen_aware_tokens();
     let max_participle_words = analysis
         .lexicon()
         .entries()
@@ -86,13 +86,13 @@ fn find_participle(
     start_index: usize,
     max_words: usize,
 ) -> Option<(usize, usize, bool)> {
-    if start_index >= analysis.word_tokens().len() {
+    if start_index >= analysis.hyphen_aware_tokens().len() {
         return None;
     }
-    let max_width = max_words.min(analysis.word_tokens().len() - start_index);
+    let max_width = max_words.min(analysis.hyphen_aware_tokens().len() - start_index);
 
     for width in (1..=max_width).rev() {
-        let Some(matched) = analysis.word_dictionary_match_at(start_index, width) else {
+        let Some(matched) = analysis.hyphen_aware_dictionary_match_at(start_index, width) else {
             continue;
         };
         let matching = matched.verb_forms.iter().any(|candidate| {
