@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::PathBuf;
 
@@ -83,5 +83,41 @@ fn coverage_manifest_is_evidence_complete_and_path_valid() {
                 "non-implemented rule {id} must state what remains unresolved"
             );
         }
+    }
+}
+
+#[test]
+fn coverage_guide_inventory_matches_executable_manifest() {
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let manifest: Value = serde_json::from_str(
+        &fs::read_to_string(repo.join("data/rules.json")).expect("coverage manifest"),
+    )
+    .expect("valid coverage manifest");
+    let guide = fs::read_to_string(repo.join("docs/rule-coverage.md")).expect("coverage guide");
+
+    let mut counts = BTreeMap::<&str, usize>::new();
+    for rule in manifest["rules"].as_array().expect("rules array") {
+        *counts
+            .entry(rule["status"].as_str().expect("rule status"))
+            .or_default() += 1;
+    }
+
+    let inventory = format!(
+        "The 53 rules classify as:\n\n- {} `implemented`;\n- {} `partial`;\n- {} `context_required`;\n- {} `not_implemented`.",
+        counts.get("implemented").copied().unwrap_or_default(),
+        counts.get("partial").copied().unwrap_or_default(),
+        counts.get("context_required").copied().unwrap_or_default(),
+        counts.get("not_implemented").copied().unwrap_or_default(),
+    );
+    assert!(
+        guide.contains(&inventory),
+        "public coverage inventory must match data/rules.json: {inventory}"
+    );
+
+    if counts.get("not_implemented").copied().unwrap_or_default() > 0 {
+        assert!(
+            !guide.contains("The current manifest has zero entries in this state."),
+            "coverage guide must not claim zero not-implemented rules when the manifest contains some"
+        );
     }
 }
