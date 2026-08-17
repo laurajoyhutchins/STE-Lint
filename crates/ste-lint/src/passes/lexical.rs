@@ -1,7 +1,7 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
-use ste_glossary::{Glossary, TechnicalTerm, TechnicalTermKind, TermStatus};
+use ste_glossary::{Glossary, TechnicalTerm, TermRole, TermStatus};
 
 use super::semantic::dictionary_evidence;
 
@@ -18,21 +18,7 @@ pub(crate) fn check(
         .map(|form| form.split_whitespace().count())
         .max()
         .unwrap_or(1);
-    let max_glossary_words = glossary
-        .map(|glossary| {
-            glossary
-                .terms
-                .iter()
-                .flat_map(|term| {
-                    std::iter::once(&term.term)
-                        .chain(term.aliases.iter())
-                        .chain(term.forms.iter())
-                })
-                .map(|term| term.split_whitespace().count())
-                .max()
-                .unwrap_or(1)
-        })
-        .unwrap_or(1);
+    let max_glossary_words = glossary.map(Glossary::max_identity_words).unwrap_or(1);
     let max_phrase_words = max_dictionary_words.max(max_glossary_words);
 
     let mut diagnostics = Vec::new();
@@ -65,17 +51,17 @@ pub(crate) fn check(
                 .map(|token| token.text)
                 .collect::<Vec<_>>()
                 .join(" ");
-            let glossary_term = glossary.and_then(|glossary| glossary.lookup_term(&phrase));
+            let glossary_match = glossary.and_then(|glossary| glossary.lookup_identity(&phrase));
             let candidates = lexicon.lookup_form_candidates(&phrase);
 
-            if glossary_term.is_none() && candidates.is_empty() {
+            if glossary_match.is_none() && candidates.is_empty() {
                 continue;
             }
 
             let start = window[0].start;
             let end = window[width - 1].end;
-            if let Some(term) = glossary_term {
-                if let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, term) {
+            if let Some(matched) = glossary_match {
+                if let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, matched.term) {
                     diagnostics.push(diagnostic);
                 }
             } else if let Some(diagnostic) = dictionary_diagnostic(&phrase, start, end, &candidates)
@@ -92,8 +78,9 @@ pub(crate) fn check(
             continue;
         }
 
-        if let Some(term) = glossary.and_then(|glossary| glossary.lookup_term(token.text)) {
-            if let Some(diagnostic) = glossary_diagnostic(token.text, token.start, token.end, term)
+        if let Some(matched) = glossary.and_then(|glossary| glossary.lookup_identity(token.text)) {
+            if let Some(diagnostic) =
+                glossary_diagnostic(token.text, token.start, token.end, matched.term)
             {
                 diagnostics.push(diagnostic);
             }
@@ -126,12 +113,7 @@ pub(crate) fn check(
             rules: vec!["1.1".into()],
             evidence: Some(json!({
                 "term": token.text,
-                "required_classification": [
-                    "technical_noun",
-                    "technical_verb",
-                    "technical_noun_and_verb",
-                    "not_a_term"
-                ]
+                "required_classification": ["noun", "verb", "not_a_term"]
             })),
             autofix: None,
         });
@@ -195,7 +177,7 @@ fn glossary_diagnostic(
         return None;
     }
 
-    let rules = if term.kind == TechnicalTermKind::TechnicalNoun {
+    let rules = if term.has_role(TermRole::Noun) {
         vec!["1.8".into()]
     } else {
         Vec::new()
@@ -208,11 +190,12 @@ fn glossary_diagnostic(
         span: Span { start, end },
         rules,
         evidence: Some(json!({
-            "canonical_term": term.term,
-            "kind": term.kind,
+            "term_id": term.id,
+            "canonical": term.canonical,
+            "roles": term.roles,
             "domain": term.domain,
-            "preferred": term.preferred,
             "status": term.status,
+            "replacement": term.replacement,
         })),
         autofix: None,
     })

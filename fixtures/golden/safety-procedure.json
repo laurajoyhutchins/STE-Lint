@@ -4,9 +4,8 @@
       "code": "STE-TERM-001",
       "evidence": {
         "required_classification": [
-          "technical_noun",
-          "technical_verb",
-          "technical_noun_and_verb",
+          "noun",
+          "verb",
           "not_a_term"
         ],
         "term": "WARNING"

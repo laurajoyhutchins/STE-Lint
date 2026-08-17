@@ -1,58 +1,1460 @@
 {
+  "schema": "ste-terminology/v2",
   "profile": {
     "id": "github",
     "version": 2,
-    "description": "Common GitHub work-surface and GitHub Actions terminology that is not owned by the generic Git or software-core profiles.",
-    "sources": [
-      "https://docs.github.com/en/get-started/learning-about-github/github-glossary",
-      "https://docs.github.com/en/actions/concepts/workflows-and-actions",
-      "https://docs.github.com/en/actions/reference/contexts-reference",
-      "https://docs.github.com/en/actions/reference/events-that-trigger-workflows"
-    ]
+    "domain": "github",
+    "description": "Common GitHub work-surface and GitHub Actions terminology that is not owned by the generic Git or software-core profiles."
+  },
+  "sources": {
+    "docs-github-com": {
+      "title": "https://docs.github.com/en/get-started/learning-about-github/github-glossary",
+      "url": "https://docs.github.com/en/get-started/learning-about-github/github-glossary"
+    },
+    "docs-github-com-1": {
+      "title": "https://docs.github.com/en/actions/concepts/workflows-and-actions",
+      "url": "https://docs.github.com/en/actions/concepts/workflows-and-actions"
+    },
+    "docs-github-com-2": {
+      "title": "https://docs.github.com/en/actions/reference/contexts-reference",
+      "url": "https://docs.github.com/en/actions/reference/contexts-reference"
+    },
+    "docs-github-com-3": {
+      "title": "https://docs.github.com/en/actions/reference/events-that-trigger-workflows",
+      "url": "https://docs.github.com/en/actions/reference/events-that-trigger-workflows"
+    },
+    "github-docs-github-glossary": {
+      "title": "GitHub Docs, GitHub glossary",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-documentation": {
+      "title": "GitHub Actions documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-workflows-and-actions-documentati": {
+      "title": "GitHub Actions workflows and actions documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-reusable-workflows-documentation": {
+      "title": "GitHub Actions reusable workflows documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-events-documentation": {
+      "title": "GitHub Actions events documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-runner-documentation": {
+      "title": "GitHub Actions runner documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-matrix-strategy-documentation": {
+      "title": "GitHub Actions matrix strategy documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-contexts-reference": {
+      "title": "GitHub Actions contexts reference",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-expressions-and-contexts-referenc": {
+      "title": "GitHub Actions expressions and contexts reference",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-workflow-input-documentation": {
+      "title": "GitHub Actions workflow input documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-workflow-syntax-documentation": {
+      "title": "GitHub Actions workflow syntax documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-workflow-commands-documentation": {
+      "title": "GitHub Actions workflow commands documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-concurrency-documentation": {
+      "title": "GitHub Actions concurrency documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-deployment-environments-documenta": {
+      "title": "GitHub Actions deployment environments documentation",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-events-documentation-for-workflow": {
+      "title": "GitHub Actions events documentation for workflow_dispatch",
+      "reviewed_on": "2026-08-17"
+    },
+    "github-actions-events-documentation-for-reposito": {
+      "title": "GitHub Actions events documentation for repository_dispatch",
+      "reviewed_on": "2026-08-17"
+    }
   },
   "terms": [
-    {"term":"assignee","kind":"technical_noun","definition":"A GitHub user assigned responsibility for an issue or pull request.","domain":"github","preferred":true,"forms":["assignees"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"base branch","kind":"technical_noun","definition":"The branch that receives changes when a GitHub pull request is merged.","domain":"github","preferred":true,"forms":["base branches"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"code owner","kind":"technical_noun","definition":"A GitHub-designated owner whose review can be requested for matching repository paths.","domain":"github","preferred":true,"forms":["code owners"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"collaborator","kind":"technical_noun","definition":"A person granted access to collaborate on a GitHub repository.","domain":"github","preferred":true,"forms":["collaborators"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"compare branch","kind":"technical_noun","definition":"The branch containing proposed changes in a GitHub pull request.","domain":"github","preferred":true,"forms":["compare branches"],"aliases":["head branch"],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"default branch","kind":"technical_noun","definition":"The repository branch GitHub uses by default for new pull requests and related operations.","domain":"github","preferred":true,"forms":["default branches"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"draft pull request","kind":"technical_noun","definition":"A GitHub pull request explicitly marked as not ready for final review.","domain":"github","preferred":true,"forms":["draft pull requests"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"fork","kind":"technical_noun_and_verb","definition":"A repository copy associated with another GitHub repository, or the operation that creates it.","domain":"github","preferred":true,"forms":["forks","forked","forking"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"issue","kind":"technical_noun","definition":"A GitHub work item used to track a task, question, defect, or proposed improvement.","domain":"github","preferred":true,"forms":["issues"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"label","kind":"technical_noun_and_verb","definition":"A GitHub classification attached to an issue or pull request, or the act of attaching it.","domain":"github","preferred":true,"forms":["labels","labeled","labeling"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"milestone","kind":"technical_noun","definition":"A GitHub grouping used to track progress for a set of issues or pull requests.","domain":"github","preferred":true,"forms":["milestones"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"protected branch","kind":"technical_noun","definition":"A GitHub branch with configured restrictions on changes or integration.","domain":"github","preferred":true,"forms":["protected branches"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"pull request","kind":"technical_noun","definition":"A GitHub proposal to review and integrate changes from one branch into another.","domain":"github","preferred":true,"forms":["pull requests"],"aliases":["PR","PRs"],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"pull request review","kind":"technical_noun","definition":"A GitHub review that comments on, approves, or requests changes to a pull request.","domain":"github","preferred":true,"forms":["pull request reviews"],"aliases":["PR review","PR reviews"],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"repository owner","kind":"technical_noun","definition":"The GitHub user or organization that owns a repository.","domain":"github","preferred":true,"forms":["repository owners"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"review comment","kind":"technical_noun","definition":"A comment made as part of review activity on a GitHub pull request.","domain":"github","preferred":true,"forms":["review comments"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"status check","kind":"technical_noun","definition":"A GitHub-reported result used to indicate whether a commit or pull request satisfies a configured check.","domain":"github","preferred":true,"forms":["status checks"],"aliases":[],"examples":[],"provenance":["GitHub Docs, GitHub glossary; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"GitHub Actions","kind":"technical_noun","definition":"The GitHub automation system that runs configured workflows in response to events or manual invocation.","domain":"github","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["GitHub Actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"action","kind":"technical_noun","definition":"A reusable GitHub Actions task that can be included in a workflow step.","domain":"github","preferred":true,"forms":["actions"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflows and actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"composite action","kind":"technical_noun","definition":"A GitHub Action that combines multiple workflow steps into one reusable action.","domain":"github","preferred":true,"forms":["composite actions"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflows and actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow","kind":"technical_noun","definition":"A configurable automated process defined for a GitHub repository and composed of one or more jobs.","domain":"github","preferred":true,"forms":["workflows"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflows and actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"reusable workflow","kind":"technical_noun","definition":"A GitHub Actions workflow that another workflow can call.","domain":"github","preferred":true,"forms":["reusable workflows"],"aliases":[],"examples":[],"provenance":["GitHub Actions reusable workflows documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow file","kind":"technical_noun","definition":"A YAML file in a GitHub repository that defines a GitHub Actions workflow.","domain":"github","preferred":true,"forms":["workflow files"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflows and actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow run","kind":"technical_noun","definition":"One execution of a GitHub Actions workflow.","domain":"github","preferred":true,"forms":["workflow runs"],"aliases":[],"examples":[],"provenance":["GitHub Actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow trigger","kind":"technical_noun","definition":"An event or configured condition that causes a GitHub Actions workflow to run.","domain":"github","preferred":true,"forms":["workflow triggers"],"aliases":[],"examples":[],"provenance":["GitHub Actions events documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"step","kind":"technical_noun","definition":"An individual task within a GitHub Actions job.","domain":"github","preferred":true,"forms":["steps"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflows and actions documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"runner","kind":"technical_noun","definition":"A machine that executes jobs in a GitHub Actions workflow.","domain":"github","preferred":true,"forms":["runners"],"aliases":[],"examples":[],"provenance":["GitHub Actions runner documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"GitHub-hosted runner","kind":"technical_noun","definition":"A GitHub-managed runner used to execute GitHub Actions jobs.","domain":"github","preferred":true,"forms":["GitHub-hosted runners"],"aliases":[],"examples":[],"provenance":["GitHub Actions runner documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"self-hosted runner","kind":"technical_noun","definition":"A runner managed by the repository owner or organization rather than by GitHub.","domain":"github","preferred":true,"forms":["self-hosted runners"],"aliases":[],"examples":[],"provenance":["GitHub Actions runner documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"runner group","kind":"technical_noun","definition":"A GitHub grouping used to control access to self-hosted runners.","domain":"github","preferred":true,"forms":["runner groups"],"aliases":[],"examples":[],"provenance":["GitHub Actions runner documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"matrix","kind":"technical_noun","definition":"A set of parameter combinations used by a GitHub Actions strategy to create related job runs.","domain":"github","preferred":true,"forms":["matrices"],"aliases":[],"examples":[],"provenance":["GitHub Actions matrix strategy documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"matrix strategy","kind":"technical_noun","definition":"A GitHub Actions strategy that expands one job definition across combinations of matrix values.","domain":"github","preferred":true,"forms":["matrix strategies"],"aliases":[],"examples":[],"provenance":["GitHub Actions matrix strategy documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"context","kind":"technical_noun","definition":"A named GitHub Actions object that exposes information to workflow expressions.","domain":"github","preferred":true,"forms":["contexts"],"aliases":[],"examples":[],"provenance":["GitHub Actions contexts reference; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"expression","kind":"technical_noun","definition":"GitHub Actions syntax that evaluates values, operators, functions, and context data.","domain":"github","preferred":true,"forms":["expressions"],"aliases":[],"examples":[],"provenance":["GitHub Actions expressions and contexts reference; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow input","kind":"technical_noun","definition":"A declared value supplied to a reusable or manually dispatched GitHub Actions workflow.","domain":"github","preferred":true,"forms":["workflow inputs"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflow input documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow output","kind":"technical_noun","definition":"A declared value exposed by a reusable GitHub Actions workflow.","domain":"github","preferred":true,"forms":["workflow outputs"],"aliases":[],"examples":[],"provenance":["GitHub Actions reusable workflows documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"job output","kind":"technical_noun","definition":"A value exposed by a GitHub Actions job for use by dependent jobs or workflow outputs.","domain":"github","preferred":true,"forms":["job outputs"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflow syntax documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"step output","kind":"technical_noun","definition":"A value exposed by a GitHub Actions step for use by later workflow logic.","domain":"github","preferred":true,"forms":["step outputs"],"aliases":[],"examples":[],"provenance":["GitHub Actions contexts reference; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow command","kind":"technical_noun","definition":"A command used by a GitHub Actions step to communicate with the runner during a workflow.","domain":"github","preferred":true,"forms":["workflow commands"],"aliases":[],"examples":[],"provenance":["GitHub Actions workflow commands documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"concurrency group","kind":"technical_noun","definition":"A GitHub Actions grouping key used to limit concurrent workflow runs or jobs.","domain":"github","preferred":true,"forms":["concurrency groups"],"aliases":[],"examples":[],"provenance":["GitHub Actions concurrency documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"deployment environment","kind":"technical_noun","definition":"A GitHub environment used to govern deployment jobs, protection rules, and environment-scoped values.","domain":"github","preferred":true,"forms":["deployment environments"],"aliases":[],"examples":[],"provenance":["GitHub Actions deployment environments documentation; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"workflow dispatch","kind":"technical_noun","definition":"The GitHub Actions manual-dispatch event used to start a workflow explicitly.","domain":"github","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["GitHub Actions events documentation for workflow_dispatch; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"repository dispatch","kind":"technical_noun","definition":"The GitHub repository-dispatch event that can trigger workflows from external activity.","domain":"github","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["GitHub Actions events documentation for repository_dispatch; reviewed 2026-08-17"],"status":"approved"}
+    {
+      "id": "assignee",
+      "canonical": "assignee",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub user assigned responsibility for an issue or pull request.",
+      "forms": [
+        {
+          "text": "assignees",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "base-branch",
+      "canonical": "base branch",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The branch that receives changes when a GitHub pull request is merged.",
+      "forms": [
+        {
+          "text": "base branches",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "code-owner",
+      "canonical": "code owner",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub-designated owner whose review can be requested for matching repository paths.",
+      "forms": [
+        {
+          "text": "code owners",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "collaborator",
+      "canonical": "collaborator",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A person granted access to collaborate on a GitHub repository.",
+      "forms": [
+        {
+          "text": "collaborators",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "compare-branch",
+      "canonical": "compare branch",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The branch containing proposed changes in a GitHub pull request.",
+      "forms": [
+        {
+          "text": "compare branches",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "head branch",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "default-branch",
+      "canonical": "default branch",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The repository branch GitHub uses by default for new pull requests and related operations.",
+      "forms": [
+        {
+          "text": "default branches",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "draft-pull-request",
+      "canonical": "draft pull request",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub pull request explicitly marked as not ready for final review.",
+      "forms": [
+        {
+          "text": "draft pull requests",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "fork",
+      "canonical": "fork",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A repository copy associated with another GitHub repository, or the operation that creates it.",
+      "forms": [
+        {
+          "text": "forks",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "forked",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "forking",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "issue",
+      "canonical": "issue",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub work item used to track a task, question, defect, or proposed improvement.",
+      "forms": [
+        {
+          "text": "issues",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "label",
+      "canonical": "label",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A GitHub classification attached to an issue or pull request, or the act of attaching it.",
+      "forms": [
+        {
+          "text": "labels",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "labeled",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "labeling",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "milestone",
+      "canonical": "milestone",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub grouping used to track progress for a set of issues or pull requests.",
+      "forms": [
+        {
+          "text": "milestones",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "protected-branch",
+      "canonical": "protected branch",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub branch with configured restrictions on changes or integration.",
+      "forms": [
+        {
+          "text": "protected branches",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "pull-request",
+      "canonical": "pull request",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub proposal to review and integrate changes from one branch into another.",
+      "forms": [
+        {
+          "text": "pull requests",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "PR",
+          "kind": "abbreviation"
+        },
+        {
+          "text": "PRs",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "pull-request-review",
+      "canonical": "pull request review",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub review that comments on, approves, or requests changes to a pull request.",
+      "forms": [
+        {
+          "text": "pull request reviews",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "PR review",
+          "kind": "short_form"
+        },
+        {
+          "text": "PR reviews",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "repository-owner",
+      "canonical": "repository owner",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The GitHub user or organization that owns a repository.",
+      "forms": [
+        {
+          "text": "repository owners",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "review-comment",
+      "canonical": "review comment",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A comment made as part of review activity on a GitHub pull request.",
+      "forms": [
+        {
+          "text": "review comments",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "status-check",
+      "canonical": "status check",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub-reported result used to indicate whether a commit or pull request satisfies a configured check.",
+      "forms": [
+        {
+          "text": "status checks",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-docs-github-glossary",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "github-actions",
+      "canonical": "GitHub Actions",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The GitHub automation system that runs configured workflows in response to events or manual invocation.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "action",
+      "canonical": "action",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A reusable GitHub Actions task that can be included in a workflow step.",
+      "forms": [
+        {
+          "text": "actions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflows-and-actions-documentati",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "composite-action",
+      "canonical": "composite action",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub Action that combines multiple workflow steps into one reusable action.",
+      "forms": [
+        {
+          "text": "composite actions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflows-and-actions-documentati",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow",
+      "canonical": "workflow",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A configurable automated process defined for a GitHub repository and composed of one or more jobs.",
+      "forms": [
+        {
+          "text": "workflows",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflows-and-actions-documentati",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "reusable-workflow",
+      "canonical": "reusable workflow",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub Actions workflow that another workflow can call.",
+      "forms": [
+        {
+          "text": "reusable workflows",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-reusable-workflows-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-file",
+      "canonical": "workflow file",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A YAML file in a GitHub repository that defines a GitHub Actions workflow.",
+      "forms": [
+        {
+          "text": "workflow files",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflows-and-actions-documentati",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-run",
+      "canonical": "workflow run",
+      "roles": [
+        "noun"
+      ],
+      "definition": "One execution of a GitHub Actions workflow.",
+      "forms": [
+        {
+          "text": "workflow runs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-trigger",
+      "canonical": "workflow trigger",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An event or configured condition that causes a GitHub Actions workflow to run.",
+      "forms": [
+        {
+          "text": "workflow triggers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-events-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "step",
+      "canonical": "step",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An individual task within a GitHub Actions job.",
+      "forms": [
+        {
+          "text": "steps",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflows-and-actions-documentati",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "runner",
+      "canonical": "runner",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A machine that executes jobs in a GitHub Actions workflow.",
+      "forms": [
+        {
+          "text": "runners",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-runner-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "github-hosted-runner",
+      "canonical": "GitHub-hosted runner",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub-managed runner used to execute GitHub Actions jobs.",
+      "forms": [
+        {
+          "text": "GitHub-hosted runners",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-runner-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "self-hosted-runner",
+      "canonical": "self-hosted runner",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A runner managed by the repository owner or organization rather than by GitHub.",
+      "forms": [
+        {
+          "text": "self-hosted runners",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-runner-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "runner-group",
+      "canonical": "runner group",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub grouping used to control access to self-hosted runners.",
+      "forms": [
+        {
+          "text": "runner groups",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-runner-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "matrix",
+      "canonical": "matrix",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A set of parameter combinations used by a GitHub Actions strategy to create related job runs.",
+      "forms": [
+        {
+          "text": "matrices",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-matrix-strategy-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "matrix-strategy",
+      "canonical": "matrix strategy",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub Actions strategy that expands one job definition across combinations of matrix values.",
+      "forms": [
+        {
+          "text": "matrix strategies",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-matrix-strategy-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "context",
+      "canonical": "context",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named GitHub Actions object that exposes information to workflow expressions.",
+      "forms": [
+        {
+          "text": "contexts",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-contexts-reference",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "expression",
+      "canonical": "expression",
+      "roles": [
+        "noun"
+      ],
+      "definition": "GitHub Actions syntax that evaluates values, operators, functions, and context data.",
+      "forms": [
+        {
+          "text": "expressions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-expressions-and-contexts-referenc",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-input",
+      "canonical": "workflow input",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A declared value supplied to a reusable or manually dispatched GitHub Actions workflow.",
+      "forms": [
+        {
+          "text": "workflow inputs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflow-input-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-output",
+      "canonical": "workflow output",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A declared value exposed by a reusable GitHub Actions workflow.",
+      "forms": [
+        {
+          "text": "workflow outputs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-reusable-workflows-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "job-output",
+      "canonical": "job output",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A value exposed by a GitHub Actions job for use by dependent jobs or workflow outputs.",
+      "forms": [
+        {
+          "text": "job outputs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflow-syntax-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "step-output",
+      "canonical": "step output",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A value exposed by a GitHub Actions step for use by later workflow logic.",
+      "forms": [
+        {
+          "text": "step outputs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-contexts-reference",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-command",
+      "canonical": "workflow command",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A command used by a GitHub Actions step to communicate with the runner during a workflow.",
+      "forms": [
+        {
+          "text": "workflow commands",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-workflow-commands-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "concurrency-group",
+      "canonical": "concurrency group",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub Actions grouping key used to limit concurrent workflow runs or jobs.",
+      "forms": [
+        {
+          "text": "concurrency groups",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-concurrency-documentation",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "deployment-environment",
+      "canonical": "deployment environment",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A GitHub environment used to govern deployment jobs, protection rules, and environment-scoped values.",
+      "forms": [
+        {
+          "text": "deployment environments",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-deployment-environments-documenta",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "workflow-dispatch",
+      "canonical": "workflow dispatch",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The GitHub Actions manual-dispatch event used to start a workflow explicitly.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-events-documentation-for-workflow",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "repository-dispatch",
+      "canonical": "repository dispatch",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The GitHub repository-dispatch event that can trigger workflows from external activity.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "github-actions-events-documentation-for-reposito",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    }
   ]
 }

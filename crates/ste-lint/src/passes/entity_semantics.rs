@@ -1,6 +1,6 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_glossary::{TechnicalTermKind, TermStatus};
+use ste_glossary::{TermRole, TermStatus};
 
 use crate::{AnalysisDocument, EntityIdentity, EntityMention};
 
@@ -18,16 +18,14 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         let Some(governed) = glossary.lookup_term(term) else {
             continue;
         };
-        if governed.kind != TechnicalTermKind::TechnicalNoun
-            || governed.status != TermStatus::Approved
-        {
+        if !governed.has_role(TermRole::Noun) || governed.status != TermStatus::Approved {
             continue;
         }
 
-        let canonical_word_count = word_count(&governed.term);
+        let canonical_word_count = word_count(&governed.canonical);
         let alias_word_count = word_count(&mention.surface);
         if canonical_word_count <= 3
-            || surfaces_match(&mention.surface, &governed.term)
+            || surfaces_match(&mention.surface, &governed.canonical)
             || alias_word_count > 3
             || alias_word_count >= canonical_word_count
         {
@@ -37,7 +35,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         let full_form_seen_before = mentions.iter().any(|candidate| {
             candidate.span.start < mention.span.start
                 && candidate.identity == mention.identity
-                && surfaces_match(&candidate.surface, &governed.term)
+                && surfaces_match(&candidate.surface, &governed.canonical)
         });
         if full_form_seen_before {
             continue;
@@ -45,7 +43,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 
         diagnostics.push(alias_before_full_form_diagnostic(
             mention,
-            &governed.term,
+            &governed.canonical,
             domain,
             canonical_word_count,
             alias_word_count,

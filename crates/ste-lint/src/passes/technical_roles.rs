@@ -1,6 +1,6 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_glossary::{TechnicalTerm, TechnicalTermKind, TermStatus};
+use ste_glossary::{TechnicalTerm, TermRole, TermStatus};
 
 use crate::{AnalysisDocument, ObservedRole};
 
@@ -46,25 +46,27 @@ fn role_diagnostic(
     observed_role: ObservedRole,
     role_basis: &str,
 ) -> Option<Diagnostic> {
-    let role_name = match observed_role {
-        ObservedRole::Nominal => "nominal",
-        ObservedRole::Verbal => "verbal",
-    };
-    let (code, rule, message) = match (term.kind, observed_role) {
-        (TechnicalTermKind::TechnicalNoun, ObservedRole::Verbal) => (
+    let (required_role, role_name, code, rule, message) = match observed_role {
+        ObservedRole::Nominal => (
+            TermRole::Noun,
+            "nominal",
+            "STE-TERM-004",
+            "1.13",
+            format!("Technical verb '{matched_text}' is used in a bounded noun position."),
+        ),
+        ObservedRole::Verbal => (
+            TermRole::Verb,
+            "verbal",
             "STE-TERM-003",
             "1.7",
             format!(
                 "Technical noun '{matched_text}' is used in a bounded imperative verb position."
             ),
         ),
-        (TechnicalTermKind::TechnicalVerb, ObservedRole::Nominal) => (
-            "STE-TERM-004",
-            "1.13",
-            format!("Technical verb '{matched_text}' is used in a bounded noun position."),
-        ),
-        _ => return None,
     };
+    if term.has_role(required_role) {
+        return None;
+    }
 
     Some(Diagnostic {
         code: code.into(),
@@ -73,13 +75,14 @@ fn role_diagnostic(
         span: Span { start, end },
         rules: vec![rule.into()],
         evidence: Some(json!({
-            "canonical_term": &term.term,
+            "term_id": &term.id,
+            "canonical": &term.canonical,
             "matched_text": matched_text,
-            "governed_kind": term.kind,
+            "governed_roles": &term.roles,
             "observed_role": role_name,
             "role_basis": role_basis,
             "domain": &term.domain,
-            "provenance": &term.provenance,
+            "sources": &term.sources,
         })),
         autofix: None,
     })

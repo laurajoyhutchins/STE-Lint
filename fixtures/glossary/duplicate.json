@@ -1,25 +1,58 @@
 {
+  "schema": "ste-terminology/v2",
+  "domain": "fixture",
+  "sources": {
+    "fixture": {
+      "title": "STE-Lint glossary fixture"
+    }
+  },
   "terms": [
     {
-      "term": "busway",
-      "kind": "technical_noun",
+      "id": "busway",
+      "canonical": "busway",
+      "roles": [
+        "noun"
+      ],
       "definition": "First definition.",
-      "domain": "electrical",
-      "preferred": true,
+      "forms": [],
       "aliases": [],
-      "examples": [],
-      "provenance": ["fixture A"],
+      "sources": [
+        {
+          "source": "fixture",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
       "status": "approved"
     },
     {
-      "term": "BUSWAY",
-      "kind": "technical_noun",
+      "id": "busway",
+      "canonical": "BUSWAY",
+      "roles": [
+        "noun"
+      ],
       "definition": "Second definition.",
-      "domain": "electrical",
-      "preferred": false,
+      "forms": [],
       "aliases": [],
-      "examples": [],
-      "provenance": ["fixture B"],
+      "sources": [
+        {
+          "source": "fixture",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
       "status": "approved"
     }
   ]

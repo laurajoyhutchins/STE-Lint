@@ -39,7 +39,7 @@ fn analysis_document_preserves_spans_sentence_identity_and_runtime_evidence() {
 
     let busway = analysis.longest_glossary_match_at(1).unwrap();
     assert_eq!(busway.text, "busway");
-    assert_eq!(busway.term.term, "busway");
+    assert_eq!(busway.term.canonical, "busway");
 
     assert!(matches!(
         analysis.dictionary_resolution_at(3, 1),

@@ -21,7 +21,7 @@ fn explicit_forms_resolve_to_the_governed_term() {
     .unwrap();
 
     assert_eq!(
-        glossary.lookup_term("repositories").unwrap().term,
+        glossary.lookup_term("repositories").unwrap().canonical,
         "repository"
     );
 }
