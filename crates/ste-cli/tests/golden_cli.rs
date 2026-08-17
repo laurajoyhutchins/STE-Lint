@@ -1,3 +1,4 @@
+#![rustfmt::skip]
 use std::fs;
 use std::path::PathBuf;
 
