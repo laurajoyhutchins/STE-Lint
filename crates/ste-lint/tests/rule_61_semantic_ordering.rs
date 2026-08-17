@@ -1,5 +1,5 @@
 use ste_data::RuntimeLexicon;
-use ste_lint::{lint_text_with_context, LintContext, LintMode, LintOptions};
+use ste_lint::{LintContext, LintMode, LintOptions, lint_text_with_context};
 
 #[test]
 fn reversed_resolved_project_ordering_reports_rule_61() {
