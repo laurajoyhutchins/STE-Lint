@@ -1,4 +1,5 @@
 mod coverage;
+mod profiles;
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -6,6 +7,7 @@ use std::process::ExitCode;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use coverage::{CoverageStatus, RuleCoverageManifest};
+use profiles::{builtin_profile, builtin_profiles, resolve_effective_glossary};
 use serde::Serialize;
 use ste_core::{Diagnostic, Severity};
 use ste_data::{LexiconEntry, RuntimeLexicon};
@@ -52,6 +54,10 @@ enum Commands {
         #[command(subcommand)]
         command: GlossaryCommands,
     },
+    Profile {
+        #[command(subcommand)]
+        command: ProfileCommands,
+    },
     Coverage {
         #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
         format: OutputFormat,
@@ -72,6 +78,24 @@ enum DictionaryCommands {
 enum GlossaryCommands {
     Check {
         path: Option<PathBuf>,
+        #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
+        format: OutputFormat,
+    },
+    Effective {
+        path: PathBuf,
+        #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
+        format: OutputFormat,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum ProfileCommands {
+    List {
+        #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
+        format: OutputFormat,
+    },
+    Show {
+        id: String,
         #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
         format: OutputFormat,
     },
@@ -158,6 +182,7 @@ fn run(cli: Cli) -> Result<u8, AppFailure> {
             run_dictionary(command, lexicon.as_deref(), allow_test_lexicon)
         }
         Commands::Glossary { command } => run_glossary(command),
+        Commands::Profile { command } => run_profile(command),
         Commands::Coverage { format } => run_coverage(format),
         Commands::Version => run_version(lexicon.as_deref()),
     }
@@ -173,12 +198,12 @@ fn run_lint(
 ) -> Result<u8, AppFailure> {
     let (lexicon, _) = runtime_lexicon(lexicon_path, allow_test_lexicon)?;
     let original = read_text(path)?;
-    let glossary = find_project_glossary(path)?;
+    let effective = resolve_effective_glossary(path).map_err(AppFailure::invalid_data)?;
     let context = find_project_context(path)?;
     let result = lint_text_with_context(
         &original,
         &lexicon,
-        glossary.as_ref(),
+        effective.glossary.as_ref(),
         context.as_ref(),
         LintOptions { mode, fix },
     );
@@ -315,6 +340,77 @@ fn run_glossary(command: GlossaryCommands) -> Result<u8, AppFailure> {
             print_diagnostics(&diagnostics, format)?;
             Ok(exit_code_for_diagnostics(&diagnostics))
         }
+        GlossaryCommands::Effective { path, format } => {
+            let effective = resolve_effective_glossary(&path).map_err(AppFailure::invalid_data)?;
+            match format {
+                OutputFormat::Json => print_json(&effective.report)?,
+                OutputFormat::Human => {
+                    if effective.report.profiles.is_empty() {
+                        println!("profiles: none");
+                    } else {
+                        println!(
+                            "profiles: {}",
+                            effective
+                                .report
+                                .profiles
+                                .iter()
+                                .map(|profile| profile.id.as_str())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        );
+                    }
+                    println!(
+                        "project glossary: {}",
+                        effective.report.project_glossary.as_deref().unwrap_or("none")
+                    );
+                    println!("effective terms: {}", effective.report.terms.len());
+                }
+            }
+            Ok(0)
+        }
+    }
+}
+
+fn run_profile(command: ProfileCommands) -> Result<u8, AppFailure> {
+    match command {
+        ProfileCommands::List { format } => {
+            let profiles = builtin_profiles().map_err(AppFailure::invalid_data)?;
+            match format {
+                OutputFormat::Json => {
+                    let metadata = profiles
+                        .iter()
+                        .map(|profile| &profile.profile)
+                        .collect::<Vec<_>>();
+                    print_json(&metadata)?;
+                }
+                OutputFormat::Human => {
+                    for profile in profiles {
+                        println!(
+                            "{} v{}: {}",
+                            profile.profile.id, profile.profile.version, profile.profile.description
+                        );
+                    }
+                }
+            }
+            Ok(0)
+        }
+        ProfileCommands::Show { id, format } => {
+            let profile = builtin_profile(&id).map_err(AppFailure::invalid_data)?;
+            match format {
+                OutputFormat::Json => print_json(&profile)?,
+                OutputFormat::Human => {
+                    println!(
+                        "{} v{}: {}",
+                        profile.profile.id, profile.profile.version, profile.profile.description
+                    );
+                    println!("terms: {}", profile.terms.len());
+                    for term in profile.terms {
+                        println!("- {} [{}]", term.term, serialized_label(&term.kind));
+                    }
+                }
+            }
+            Ok(0)
+        }
     }
 }
 
@@ -429,27 +525,6 @@ fn project_file(path: &Path, relative: &str) -> Option<PathBuf> {
         .ancestors()
         .map(|ancestor| ancestor.join(relative))
         .find(|candidate| candidate.is_file())
-}
-
-fn find_project_glossary(path: &Path) -> Result<Option<Glossary>, AppFailure> {
-    let Some(candidate) = project_file(path, ".ste/terms.json") else {
-        return Ok(None);
-    };
-
-    let glossary = parse_glossary(&candidate)?;
-    let diagnostics = glossary.validate();
-    if !diagnostics.is_empty() {
-        let codes = diagnostics
-            .iter()
-            .map(|diagnostic| diagnostic.code.as_str())
-            .collect::<Vec<_>>()
-            .join(", ");
-        return Err(AppFailure::invalid_data(format!(
-            "project glossary {} failed validation: {codes}",
-            candidate.display()
-        )));
-    }
-    Ok(Some(glossary))
 }
 
 fn find_project_context(path: &Path) -> Result<Option<LintContext>, AppFailure> {
