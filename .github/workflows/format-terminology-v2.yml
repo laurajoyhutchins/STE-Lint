@@ -1,0 +1,56 @@
+name: Format terminology v2 propagation
+
+on:
+  push:
+    branches:
+      - issue-52-terminology-v2
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-52-terminology-v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Update profile human output for v2
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('crates/ste-cli/src/main.rs')
+          text = p.read_text()
+          old = '''                    for term in profile.terms {
+                        println!("- {} [{}]", term.term, serialized_label(&term.kind));
+                    }
+'''
+          new = '''                    for term in profile.terms {
+                        let roles = term
+                            .roles
+                            .iter()
+                            .map(serialized_label)
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        println!("- {} [{}]", term.canonical, roles);
+                    }
+'''
+          if old not in text:
+              raise SystemExit('expected profile output block not found')
+          p.write_text(text.replace(old, new))
+          PY
+      - name: Format Rust changes
+        run: cargo fmt --all
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/format-terminology-v2.yml
+      - name: Commit formatted propagation
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Format terminology v2 propagation"
+          git push origin HEAD:issue-52-terminology-v2
