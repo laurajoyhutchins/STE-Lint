@@ -7,6 +7,8 @@ license.workspace = true
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
+pulldown-cmark.workspace = true
+harper-core.workspace = true
 ste-core = { path = "../ste-core" }
 ste-data = { path = "../ste-data" }
 ste-glossary = { path = "../ste-glossary" }
