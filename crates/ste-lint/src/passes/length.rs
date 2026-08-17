@@ -104,16 +104,14 @@ fn length_diagnostic(
     rule: &str,
     note: bool,
 ) -> Diagnostic {
-    let mut rules = vec![
+    let rules = vec![
+        "4.1".into(),
         rule.into(),
         "8.4".into(),
         "8.5".into(),
         "8.6".into(),
         "8.7".into(),
     ];
-    if note {
-        rules.insert(0, "5.5".into());
-    }
     Diagnostic {
         code: code.into(),
         severity: Severity::Error,
