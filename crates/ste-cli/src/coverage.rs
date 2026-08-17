@@ -25,6 +25,7 @@ impl CoverageStatus {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub(crate) struct RuleCoverage {
     pub id: String,
+    pub semantic_key: String,
     pub status: CoverageStatus,
     pub diagnostic_codes: Vec<String>,
     pub evidence_artifacts: Vec<String>,
@@ -83,6 +84,14 @@ impl RuleCoverageManifest {
         if ids.len() != self.rules.len() {
             return Err("rule coverage manifest contains duplicate rule ids".into());
         }
+        let semantic_keys = self
+            .rules
+            .iter()
+            .map(|rule| rule.semantic_key.as_str())
+            .collect::<HashSet<_>>();
+        if semantic_keys.len() != self.rules.len() {
+            return Err("rule coverage manifest contains duplicate semantic keys".into());
+        }
         for expected in [
             "1.1", "1.14", "2.1", "2.2", "3.1", "3.7", "4.1", "4.5", "5.1", "5.5", "6.1", "6.6",
             "7.1", "7.3", "8.1", "8.7", "9.1", "9.4",
@@ -93,6 +102,12 @@ impl RuleCoverageManifest {
         }
 
         for rule in &self.rules {
+            if rule.semantic_key.trim().is_empty() {
+                return Err(format!(
+                    "rule {} must state a non-empty semantic_key",
+                    rule.id
+                ));
+            }
             if rule.claim_scope.trim().is_empty() {
                 return Err(format!(
                     "rule {} must state a non-empty claim_scope",
@@ -177,7 +192,7 @@ mod tests {
             manifest
                 .rules
                 .iter()
-                .all(|rule| !rule.claim_scope.is_empty())
+                .all(|rule| !rule.semantic_key.is_empty() && !rule.claim_scope.is_empty())
         );
     }
 
@@ -199,14 +214,15 @@ mod tests {
         assert_eq!(status("1.14"), CoverageStatus::Partial);
         assert_eq!(status("3.4"), CoverageStatus::Partial);
         assert_eq!(status("5.3"), CoverageStatus::Partial);
-        assert_eq!(status("9.3"), CoverageStatus::Partial);
+        assert_eq!(status("9.2"), CoverageStatus::Partial);
+        assert_eq!(status("9.3"), CoverageStatus::NotImplemented);
         assert_eq!(
             manifest
                 .status_counts()
                 .get(&CoverageStatus::NotImplemented)
                 .copied()
                 .unwrap_or(0),
-            0
+            3
         );
     }
 }
