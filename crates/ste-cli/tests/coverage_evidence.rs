@@ -12,6 +12,7 @@ fn coverage_json_exposes_rule_evidence_and_claim_scope() {
         .args(["coverage", "--format", "json"])
         .assert()
         .success()
+        .stdout(predicate::str::contains("\"semantic_key\""))
         .stdout(predicate::str::contains("\"evidence_artifacts\""))
         .stdout(predicate::str::contains("\"unresolved_requirements\""))
         .stdout(predicate::str::contains("\"claim_scope\""));
@@ -40,6 +41,11 @@ fn coverage_manifest_is_evidence_complete_and_path_valid() {
     for rule in rules {
         let id = rule["id"].as_str().expect("rule id");
         let status = rule["status"].as_str().expect("rule status");
+        let semantic_key = rule["semantic_key"].as_str().unwrap_or("").trim();
+        assert!(
+            !semantic_key.is_empty(),
+            "rule {id} must state its source-audited semantic key"
+        );
         let claim_scope = rule["claim_scope"].as_str().unwrap_or("").trim();
         assert!(
             !claim_scope.is_empty(),

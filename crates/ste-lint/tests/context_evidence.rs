@@ -18,7 +18,7 @@ fn existing_lint_api_is_unchanged_without_context() {
 }
 
 #[test]
-fn nonapproved_meaning_evidence_enforces_rule_1_3() {
+fn nonapproved_meaning_evidence_enforces_rules_1_3_and_9_2() {
     let context = LintContext::from_json(
         r#"{
           "occurrences": [{
@@ -45,7 +45,7 @@ fn nonapproved_meaning_evidence_enforces_rule_1_3() {
         .iter()
         .find(|item| item.code == "STE-CTX-001")
         .expect("explicit non-approved meaning evidence must be enforced");
-    assert_eq!(diagnostic.rules, vec!["1.3"]);
+    assert_eq!(diagnostic.rules, vec!["1.3", "9.2"]);
     assert_eq!(
         diagnostic.evidence.as_ref().unwrap()["source"],
         "human-sense-review"
