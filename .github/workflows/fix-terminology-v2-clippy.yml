@@ -1,0 +1,34 @@
+name: Apply terminology v2 compile fix
+
+on:
+  push:
+    branches:
+      - issue-52-terminology-v2
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-52-terminology-v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Add explicit compiled identity index type
+        run: sed -i 's/let mut identities = HashMap::new();/let mut identities: HashMap<String, IdentityRecord> = HashMap::new();/' crates/ste-glossary/src/lib.rs
+      - name: Format
+        run: cargo fmt --all
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/fix-terminology-v2-clippy.yml
+      - name: Commit fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Fix compiled glossary identity index typing"
+          git push origin HEAD:issue-52-terminology-v2
