@@ -244,11 +244,11 @@ impl Glossary {
     }
 
     fn from_legacy(legacy: LegacyGlossary) -> Self {
-        let domain = legacy
+        let domains = legacy
             .terms
-            .first()
+            .iter()
             .map(|term| term.domain.clone())
-            .unwrap_or_else(|| "legacy".to_owned());
+            .collect::<Vec<_>>();
         let mut sources = BTreeMap::new();
         let mut terms = Vec::new();
         for (index, term) in legacy.terms.into_iter().enumerate() {
@@ -313,7 +313,11 @@ impl Glossary {
                 examples: term.examples,
             });
         }
-        Self::compile(None, &domain, sources, terms)
+        let mut glossary = Self::compile(None, "legacy", sources, terms);
+        for (term, domain) in glossary.terms.iter_mut().zip(domains) {
+            term.domain = domain;
+        }
+        glossary
     }
 
     pub fn compose(glossaries: &[Glossary]) -> Result<Self, Vec<Diagnostic>> {

@@ -176,7 +176,14 @@ fn mention_from_glossary(matched: GlossaryMatch<'_>) -> EntityMention {
             .term
             .sources
             .iter()
-            .map(|source| source.source.clone())
+            .map(|source| {
+                matched
+                    .term
+                    .source_catalog
+                    .get(&source.source)
+                    .map(|catalog_source| catalog_source.title.clone())
+                    .unwrap_or_else(|| source.source.clone())
+            })
             .collect(),
     }
 }
