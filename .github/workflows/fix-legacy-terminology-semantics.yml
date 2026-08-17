@@ -1,0 +1,38 @@
+name: Preserve legacy terminology semantics
+
+on:
+  push:
+    branches:
+      - issue-52-terminology-v2
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: issue-52-terminology-v2
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Preserve per-term legacy domains
+        run: |
+          python -c 'from pathlib import Path; p=Path("crates/ste-glossary/src/lib.rs"); s=p.read_text(); s=s.replace("        let domain = legacy\n            .terms\n            .first()\n            .map(|term| term.domain.clone())\n            .unwrap_or_else(|| \"legacy\".to_owned());\n        let mut sources = BTreeMap::new();\n", "        let domains = legacy\n            .terms\n            .iter()\n            .map(|term| term.domain.clone())\n            .collect::<Vec<_>>();\n        let mut sources = BTreeMap::new();\n", 1); s=s.replace("        Self::compile(None, &domain, sources, terms)\n    }\n", "        let mut glossary = Self::compile(None, \"legacy\", sources, terms);\n        for (term, domain) in glossary.terms.iter_mut().zip(domains) {\n            term.domain = domain;\n        }\n        glossary\n    }\n", 1); p.write_text(s)'
+      - name: Resolve structured source refs to provenance titles
+        run: |
+          python -c 'from pathlib import Path; p=Path("crates/ste-lint/src/analysis/entity.rs"); s=p.read_text(); old="            .map(|source| source.source.clone())\n            .collect(),\n"; new="            .map(|source| {\n                matched\n                    .term\n                    .source_catalog\n                    .get(&source.source)\n                    .map(|catalog_source| catalog_source.title.clone())\n                    .unwrap_or_else(|| source.source.clone())\n            })\n            .collect(),\n"; assert old in s; p.write_text(s.replace(old,new,1))'
+      - name: Format
+        run: cargo fmt --all
+      - name: Remove one-shot workflow
+        run: rm .github/workflows/fix-legacy-terminology-semantics.yml
+      - name: Commit fix
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Preserve legacy terminology semantics"
+          git push origin HEAD:issue-52-terminology-v2
