@@ -11,6 +11,12 @@ struct LineSpan {
     end: usize,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct ProtectedSpan {
+    start: usize,
+    end: usize,
+}
+
 pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
     let lines = line_spans(text);
     let mut units = Vec::new();
@@ -148,6 +154,8 @@ fn sentence_spans(
     let mut sentence_start = start;
     let mut paren_depth = 0usize;
     let mut quote_end: Option<char> = None;
+    let protected_spans = markdown_inline_code_spans(text, start, end);
+    let mut protected_index = 0usize;
 
     for (relative, character) in text[start..end].char_indices() {
         let absolute = start + relative;
@@ -155,6 +163,18 @@ fn sentence_spans(
             if character == expected {
                 quote_end = None;
             }
+            continue;
+        }
+
+        while protected_index < protected_spans.len()
+            && absolute >= protected_spans[protected_index].end
+        {
+            protected_index += 1;
+        }
+        if protected_spans
+            .get(protected_index)
+            .is_some_and(|span| absolute >= span.start && absolute < span.end)
+        {
             continue;
         }
 
@@ -201,6 +221,57 @@ fn sentence_spans(
     if sentence_start < end && !text[sentence_start..end].trim().is_empty() {
         spans.push((trim_start(text, sentence_start, end), end));
     }
+    spans
+}
+
+fn markdown_inline_code_spans(text: &str, start: usize, end: usize) -> Vec<ProtectedSpan> {
+    let bytes = text.as_bytes();
+    let mut spans = Vec::new();
+    let mut cursor = start;
+
+    while cursor < end {
+        if bytes[cursor] != b'`' {
+            cursor += 1;
+            continue;
+        }
+
+        let open_start = cursor;
+        let mut delimiter_width = 1usize;
+        while open_start + delimiter_width < end && bytes[open_start + delimiter_width] == b'`' {
+            delimiter_width += 1;
+        }
+
+        let mut search = open_start + delimiter_width;
+        let mut close_end = None;
+        while search < end && bytes[search] != b'\n' && bytes[search] != b'\r' {
+            if bytes[search] != b'`' {
+                search += 1;
+                continue;
+            }
+
+            let close_start = search;
+            let mut close_width = 1usize;
+            while close_start + close_width < end && bytes[close_start + close_width] == b'`' {
+                close_width += 1;
+            }
+            if close_width == delimiter_width {
+                close_end = Some(close_start + close_width);
+                break;
+            }
+            search = close_start + close_width;
+        }
+
+        if let Some(span_end) = close_end {
+            spans.push(ProtectedSpan {
+                start: open_start,
+                end: span_end,
+            });
+            cursor = span_end;
+        } else {
+            cursor = open_start + delimiter_width;
+        }
+    }
+
     spans
 }
 
