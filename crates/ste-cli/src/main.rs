@@ -411,7 +411,13 @@ fn run_profile(command: ProfileCommands) -> Result<u8, AppFailure> {
                     );
                     println!("terms: {}", profile.terms.len());
                     for term in profile.terms {
-                        println!("- {} [{}]", term.term, serialized_label(&term.kind));
+                        let roles = term
+                            .roles
+                            .iter()
+                            .map(serialized_label)
+                            .collect::<Vec<_>>()
+                            .join(", ");
+                        println!("- {} [{}]", term.canonical, roles);
                     }
                 }
             }

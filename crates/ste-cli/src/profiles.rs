@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use ste_glossary::{
-    Glossary, ProfileMetadata, TermRole, TermStatus, TerminologyProfile, TERMINOLOGY_SCHEMA_V2,
+    Glossary, ProfileMetadata, TERMINOLOGY_SCHEMA_V2, TermRole, TermStatus, TerminologyProfile,
 };
 
 const BUILTIN_PROFILE_DATA: &[(&str, &str)] = &[

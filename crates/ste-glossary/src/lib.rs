@@ -231,7 +231,8 @@ impl Glossary {
             })
             .collect::<Vec<_>>();
         diagnostics.extend(validate_terms(&compiled_terms));
-        let (identities, max_identity_words, identity_diagnostics) = build_identity_index(&compiled_terms);
+        let (identities, max_identity_words, identity_diagnostics) =
+            build_identity_index(&compiled_terms);
         diagnostics.extend(identity_diagnostics);
 
         Self {
@@ -249,7 +250,9 @@ impl Glossary {
             let roles = match term.kind {
                 LegacyTechnicalTermKind::TechnicalNoun => vec![TermRole::Noun],
                 LegacyTechnicalTermKind::TechnicalVerb => vec![TermRole::Verb],
-                LegacyTechnicalTermKind::TechnicalNounAndVerb => vec![TermRole::Noun, TermRole::Verb],
+                LegacyTechnicalTermKind::TechnicalNounAndVerb => {
+                    vec![TermRole::Noun, TermRole::Verb]
+                }
             };
             let source_refs = term
                 .provenance
@@ -460,12 +463,7 @@ fn validate_terms(terms: &[TechnicalTerm]) -> Vec<Diagnostic> {
             ));
         }
         for form in &term.forms {
-            if form.roles.is_empty()
-                || form
-                    .roles
-                    .iter()
-                    .any(|role| !term.roles.contains(role))
-            {
+            if form.roles.is_empty() || form.roles.iter().any(|role| !term.roles.contains(role)) {
                 diagnostics.push(simple_diagnostic(
                     "TERM-FORM-001",
                     "Technical term form roles must be non-empty and governed by the term roles.",
@@ -660,6 +658,10 @@ mod tests {
         let glossary =
             Glossary::from_json(include_str!("../../../fixtures/glossary/duplicate.json")).unwrap();
         let diagnostics = glossary.validate();
-        assert!(diagnostics.iter().any(|diagnostic| diagnostic.code == "TERM-DUP-001"));
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "TERM-DUP-001")
+        );
     }
 }
