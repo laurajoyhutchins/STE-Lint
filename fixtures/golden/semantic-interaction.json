@@ -1,1 +1,32 @@
-{}
+{
+  "diagnostics": [
+    {
+      "code": "STE-DISC-001",
+      "evidence": {
+        "expected_after": {
+          "end": 9,
+          "index": 0,
+          "kind": "sentence",
+          "start": 0
+        },
+        "expected_before": {
+          "end": 19,
+          "index": 1,
+          "kind": "sentence",
+          "start": 10
+        },
+        "resolution": "resolved_reversed",
+        "source": "project-information-order"
+      },
+      "rules": [
+        "6.1"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 19,
+        "start": 0
+      }
+    }
+  ],
+  "outcome": "error"
+}

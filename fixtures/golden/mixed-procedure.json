@@ -1,1 +1,62 @@
-{}
+{
+  "diagnostics": [
+    {
+      "autofix": {
+        "replacement": ".",
+        "span": {
+          "end": 9,
+          "start": 8
+        }
+      },
+      "code": "STE-PUNC-001",
+      "rules": [
+        "8.1"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 9,
+        "start": 8
+      }
+    },
+    {
+      "code": "STE-LEX-001",
+      "evidence": {
+        "candidates": [
+          {
+            "alternatives": [
+              {
+                "kind": "approved_phrase",
+                "part_of_speech": "verb",
+                "strategy": "phrase_replacement",
+                "text": "MAKE SURE"
+              }
+            ],
+            "interpretation_state": "interpreted",
+            "lemma": "ensure",
+            "part_of_speech": "verb",
+            "provenance": null,
+            "restrictions": [],
+            "senses": [],
+            "status": "unapproved"
+          }
+        ],
+        "possible_parts_of_speech": [
+          "verb"
+        ],
+        "requires_disambiguation": false,
+        "role_evidence": [
+          "verbal"
+        ]
+      },
+      "rules": [
+        "1.1"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 16,
+        "start": 10
+      }
+    }
+  ],
+  "outcome": "error"
+}
