@@ -7,7 +7,7 @@ description: Use when STE-Lint reports unknown technical terminology, when selec
 
 ## Overview
 
-STE-Lint has layered terminology authority. The ASD-STE100 runtime remains the general controlled-language authority. Reusable profiles provide narrow, source-backed technical vocabulary for common domains, and `.ste/terms.json` remains the repository-specific terminology authority.
+STE-Lint has layered terminology authority. The ASD-STE100 runtime remains the general controlled-language authority. Reusable profiles provide narrow, source-backed subject-field terminology for common domains, and `.ste/terms.json` remains the repository-specific terminology authority.
 
 An unknown token is a classification request, not permission to add a term. A governed technical term can be valid even when the same spelling is unapproved for general dictionary use, but every reusable or repo-local admission needs an explicit technical meaning and source support.
 
@@ -19,11 +19,30 @@ Classify an unresolved token in this order:
 
 1. If it is code, a path, an identifier, verbatim syntax, or another literal software entity, treat it as a structural parsing concern rather than glossary vocabulary.
 2. If the verified ASD-STE100 runtime resolves the intended ordinary-language meaning, use that authority.
-3. If it is an established generic software concept, determine whether `software-core` governs the intended technical meaning.
+3. If it names a specified software subject-field concept or process, determine whether `software-core` governs that bounded technical meaning.
 4. If it is a Git version-control concept, determine whether `git` governs it.
 5. If it is a GitHub work-surface or GitHub Actions concept, determine whether `github` governs it.
 6. If it is specific to the repository, product, organization, industry, or subject field, govern it in `.ste/terms.json` only when repository or subject-field evidence supports the classification.
 7. Otherwise leave the diagnostic blocked. Do not invent authority to make the lint pass.
+
+## software-core admission policy
+
+Treat `software-core` as a shared software subject-field termbase, not as an extension of the general STE dictionary.
+
+Admit a term only when all of these are true:
+
+1. It names a specified software concept or irreducible software process.
+2. The concept is stable across unrelated codebases.
+3. Ordinary approved STE vocabulary would lose material technical precision or require unnatural circumlocution.
+4. The admitted meaning, grammatical role, forms, aliases, and lifecycle status can be bounded explicitly.
+
+Technical verbs receive the stricter test. If an approved general verb communicates the same operation accurately, use the approved verb rather than adding a technical verb.
+
+Corpus frequency can trigger terminology review. Frequency never establishes terminology authority. Do not add a word merely because software engineers use it often or because adding it would reduce `STE-TERM-001` findings.
+
+Prefer one canonical technical term for one concept. Do not admit casual shortening, regional wording, slang, jargon, fashionable developer metaphor, or redundant synonyms merely for convenience.
+
+The durable admission and exclusion decisions for `software-core` are recorded in `docs/software-core-term-decisions.md`. Check that ledger before proposing a new shared term. An explicit exclusion is a decision to preserve, not a backlog of words to re-add.
 
 ## Reusable profiles
 
@@ -47,7 +66,22 @@ ste glossary effective path/to/document.md --format json
 
 Profiles are explicit opt-ins. No `.ste/config.json` means no reusable profiles. Do not add a profile merely to suppress one diagnostic if its domain is not genuinely applicable to the repository.
 
-The `github` profile includes stable GitHub Actions-specific concepts such as workflows, workflow runs, runners, contexts, expressions, matrix strategies, and dispatch events. Generic software concepts used by Actions, such as jobs, artifacts, caches, environments, variables, and secrets, remain governed by `software-core`; do not duplicate them in `github` or a repo-local glossary.
+The `github` profile includes stable GitHub Actions-specific concepts such as workflows, workflow runs, runners, contexts, expressions, matrix strategies, and dispatch events. Generic software concepts used by Actions remain in `software-core` only when they satisfy the software subject-field admission policy. Do not duplicate identities across profiles.
+
+## Terminology metalanguage
+
+Terminology documentation is metalanguage, not governed target technical prose.
+
+Definitions, admission rationales, source notes, rejected alternatives, grammatical explanations, maintenance instructions, and other material used to define or maintain technical terminology do not have to use only the terminology that they govern or otherwise conform to STE-Lint's target-language restrictions. The documentation needs enough language to explain why a spelling is admitted, rejected, narrowed, or replaced.
+
+This boundary is narrow:
+
+- ordinary target technical prose remains governed normally;
+- terminology-maintenance documentation is explanatory metalanguage;
+- a compliant example must satisfy the constraints that it claims to demonstrate;
+- a non-STE example or counterexample is intentionally outside those constraints and must be identified as such.
+
+Do not implement the metalanguage boundary by adding per-line lint suppressions to a terminology ledger.
 
 ## Terminology v2 schema
 
@@ -95,7 +129,7 @@ A repo-local v2 glossary declares its schema and domain once, then provides sour
 
 `status` is `approved` or `deprecated`. Do not use a separate preferred flag. A deprecated entry can name an explicit `replacement` term ID when the authority establishes the replacement relationship.
 
-Source references are structured. `supports` can contain `admission`, `definition`, `role`, `forms`, `alias`, and `status`. Do not claim a source supports evidence that it does not establish.
+Source references are structured. `supports` can contain `admission`, `definition`, `role`, `forms`, `alias`, and `status`. Do not claim a source supports evidence that it does not establish. Prior inclusion in a STE-Lint curated baseline is history, not independent admission authority.
 
 Reusable profiles use the same term schema. Their top-level `profile.version` is the vocabulary revision, while `schema: ste-terminology/v2` identifies the serialization and interpretation contract. Do not conflate those two versions.
 
@@ -103,11 +137,12 @@ Reusable profiles use the same term schema. Their top-level `profile.version` is
 
 1. Inspect the `STE-TERM-001` diagnostic and the source context.
 2. Inspect `ste glossary effective` so you do not duplicate terminology already governed by an inherited profile.
-3. Find repository or subject-field evidence that establishes the concept identity, meaning, roles, forms or aliases, and lifecycle status you intend to claim.
-4. If it is legitimate and repo-specific, update `.ste/terms.json` using the v2 schema and only the evidence that is actually established.
-5. Run `ste glossary check .ste/terms.json --format json`.
-6. Run `ste glossary effective` again to verify that profile and project terminology compile without identity conflicts.
-7. Run `ste lint` on the original text again with the verified Issue 9 runtime configured.
+3. Classify the spelling against the verified ASD-STE100 runtime and applicable reusable profiles before proposing new authority.
+4. Find repository or subject-field evidence that establishes the concept identity, meaning, roles, forms or aliases, and lifecycle status you intend to claim.
+5. If it is legitimate and repo-specific, update `.ste/terms.json` using the v2 schema and only the evidence that is actually established.
+6. Run `ste glossary check .ste/terms.json --format json`.
+7. Run `ste glossary effective` again to verify that profile and project terminology compile without identity conflicts.
+8. Run `ste lint` on the original text again with the verified Issue 9 runtime configured.
 
 A bounded legacy `.ste/terms.json` input can still be read for compatibility, but it is compiled into the same runtime glossary. Do not create new legacy-format glossaries.
 
