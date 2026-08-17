@@ -39,13 +39,14 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             continue;
         }
         let participle = &text[participle_start..participle_end];
-        let (code, severity, message) = if ambiguous {
+        let (code, severity, message, rules) = if ambiguous {
             (
                 "STE-VERB-002",
                 Severity::Blocked,
                 format!(
                     "'{auxiliary} {participle}' can be a prohibited perfect-tense construction, but '{participle}' has another approved dictionary identity; resolve its grammatical use."
                 ),
+                vec!["3.2".into(), "3.4".into()],
             )
         } else {
             (
@@ -54,6 +55,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
                 format!(
                     "Do not use '{auxiliary} {participle}' to make a perfect-tense construction."
                 ),
+                vec!["3.2".into(), "3.3".into(), "3.4".into()],
             )
         };
         diagnostics.push(Diagnostic {
@@ -64,7 +66,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
                 start: word.start,
                 end: participle_end,
             },
-            rules: vec!["3.2".into(), "3.4".into()],
+            rules,
             evidence: Some(json!({
                 "coverage": "direct_have_plus_approved_participle_v1",
                 "auxiliary": auxiliary,
