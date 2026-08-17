@@ -19,7 +19,7 @@ Classify an unresolved token in this order:
 2. If the verified ASD-STE100 runtime resolves the intended ordinary-language meaning, use that authority.
 3. If it is an established generic software concept, determine whether `software-core` governs the intended technical meaning.
 4. If it is a Git version-control concept, determine whether `git` governs it.
-5. If it is a GitHub work-surface concept, determine whether `github` governs it.
+5. If it is a GitHub work-surface or GitHub Actions concept, determine whether `github` governs it.
 6. If it is specific to the repository, product, organization, industry, or subject field, govern it in `.ste/terms.json` only when repository or subject-field evidence supports the classification.
 7. Otherwise leave the diagnostic blocked. Do not invent authority to make the lint pass.
 
@@ -45,7 +45,7 @@ ste glossary effective path/to/document.md --format json
 
 Profiles are explicit opt-ins. No `.ste/config.json` means no reusable profiles. Do not add a profile merely to suppress one diagnostic if its domain is not genuinely applicable to the repository.
 
-The initial `github` profile does not include GitHub Actions terminology. Treat Actions-specific terms as unresolved unless another applicable authority or repo-local glossary governs them.
+The `github` profile includes stable GitHub Actions-specific concepts such as workflows, workflow runs, runners, contexts, expressions, matrix strategies, and dispatch events. Generic software concepts used by Actions, such as jobs, artifacts, caches, environments, variables, and secrets, remain governed by `software-core`; do not duplicate them in `github` or a repo-local glossary.
 
 ## Repo-local workflow
 
