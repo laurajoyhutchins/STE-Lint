@@ -51,12 +51,18 @@ fn reports_short_governed_alias_before_long_full_form() {
     assert_eq!(diagnostic.rules, vec!["2.2"]);
     assert_eq!((diagnostic.span.start, diagnostic.span.end), (0, 14));
     let evidence = diagnostic.evidence.as_ref().unwrap();
-    assert_eq!(evidence["canonical_term"], "hydraulic pressure control valve");
+    assert_eq!(
+        evidence["canonical_term"],
+        "hydraulic pressure control valve"
+    );
     assert_eq!(evidence["alias_surface"], "PRESSURE VALVE");
     assert_eq!(evidence["canonical_word_count"], 4);
     assert_eq!(evidence["alias_word_count"], 2);
     assert_eq!(evidence["domain"], "hydraulic");
-    assert_eq!(evidence["provenance"], serde_json::json!(["fixture:rule-2.2"]));
+    assert_eq!(
+        evidence["provenance"],
+        serde_json::json!(["fixture:rule-2.2"])
+    );
     assert_eq!(evidence["full_form_seen_before"], false);
 }
 
