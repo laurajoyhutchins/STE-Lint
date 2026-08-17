@@ -1,0 +1,21 @@
+name: Generate lockfile
+
+on:
+  push:
+    branches: ["feat/ljh-362-repro-builds"]
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal --no-self-update
+      - name: Generate Cargo lockfile
+        run: cargo +1.97.1 generate-lockfile
+      - name: Emit Cargo lockfile
+        run: |
+          echo 'CARGO_LOCK_BASE64_BEGIN'
+          base64 -w0 Cargo.lock
+          echo
+          echo 'CARGO_LOCK_BASE64_END'
