@@ -5,9 +5,7 @@ use crate::{LintContext, LintMode};
 
 use super::grammar::{self, ObservedRoleEvidence};
 use super::sentence::{AnalysisSentence, build_sentences};
-use super::token::{
-    AnalysisToken, HyphenAwareToken, hyphen_aware_tokens, lexical_tokens,
-};
+use super::token::{AnalysisToken, HyphenAwareToken, hyphen_aware_tokens, lexical_tokens};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerbFormRole {
