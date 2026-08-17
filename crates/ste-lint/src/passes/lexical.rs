@@ -1,7 +1,7 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_data::{ApprovalStatus, LexiconEntry, PartOfSpeech, RuntimeLexicon};
-use ste_glossary::{Glossary, TechnicalTerm, TermStatus};
+use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
+use ste_glossary::{Glossary, TechnicalTerm, TechnicalTermKind, TermStatus};
 
 use super::semantic::dictionary_evidence;
 
@@ -160,27 +160,19 @@ fn dictionary_diagnostic(
                 "'{matched_text}' has both approved and unapproved runtime dictionary records; grammatical or sense disambiguation is required."
             ),
             span: Span { start, end },
-            rules: vec!["1.1".into(), "9.2".into()],
+            rules: vec!["1.1".into()],
             evidence: Some(evidence),
             autofix: None,
         });
     }
 
     if has_unapproved {
-        let mut rules = vec!["1.1".into(), "9.2".into()];
-        if matched_text.split_whitespace().count() > 1
-            && candidates
-                .iter()
-                .any(|entry| entry.part_of_speech == Some(PartOfSpeech::Verb))
-        {
-            rules.push("9.3".into());
-        }
         return Some(Diagnostic {
             code: "STE-LEX-001".into(),
             severity: Severity::Error,
             message: format!("'{matched_text}' is not approved in the runtime STE lexicon."),
             span: Span { start, end },
-            rules,
+            rules: vec!["1.1".into()],
             evidence: Some(dictionary_evidence(candidates, candidates.len() > 1)),
             autofix: None,
         });
@@ -199,12 +191,18 @@ fn glossary_diagnostic(
         return None;
     }
 
+    let rules = if term.kind == TechnicalTermKind::TechnicalNoun {
+        vec!["1.8".into()]
+    } else {
+        Vec::new()
+    };
+
     Some(Diagnostic {
         code: "STE-TERM-002".into(),
         severity: Severity::Error,
         message: format!("'{matched_text}' is deprecated in the project technical glossary."),
         span: Span { start, end },
-        rules: Vec::new(),
+        rules,
         evidence: Some(json!({
             "canonical_term": term.term,
             "kind": term.kind,
