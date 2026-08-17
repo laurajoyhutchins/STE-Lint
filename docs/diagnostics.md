@@ -33,6 +33,7 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | `STE-LEN-002` | error | A descriptive sentence unit exceeds 25 words, including recognized note sentences. | 4.1, 6.3; 8.4–8.7 counting | none |
 | `STE-PARA-001` | error | A descriptive blank-line paragraph contains more than six prose sentences. | 6.6 | none |
 | `STE-PARA-002` | error | Project topic evidence resolves more than one distinct topic inside one descriptive paragraph. | 6.5 | none |
+| `STE-DISC-001` | error | A descriptive document places one uniquely resolved project-supplied semantic-ordering target wholly before a target that project authority requires to precede it. | 6.1 | none |
 | `STE-LEX-001` | error | Every runtime dictionary record for a matched word or phrase is unapproved. | 1.1 | none |
 | `STE-LEX-002` | blocked | A matched word or phrase has both approved and unapproved runtime records, so grammar or sense must be resolved. | 1.1 | none |
 | `STE-TERM-001` | blocked | A prose token is absent from both the runtime lexicon and governed project glossary and needs classification. | 1.1 | none |
@@ -54,13 +55,13 @@ The linter intentionally blocks or requires explicit project evidence where raw 
 
 Issue 9 sentence-length diagnostics use the `issue9_mechanical_v1` analyzer. It handles recognized list boundaries, parenthetical groups, quoted text, identifiers, number-plus-unit groups, decimals, and hyphenated groups mechanically. Explicit Rule 8.6 `count_group` evidence can additionally identify abbreviations, titles, headings, placards, labels, and proper nouns without guessing from typography or capitalization.
 
-`NOTE:`, simple-list, paragraph, procedural, safety, grammar, and entity-semantic diagnostics all operate on bounded structural or governed-identity models. Rule 2.2 currently evaluates only explicit approved glossary aliases for governed long technical nouns; it does not infer aliases or generate hyphen-based clarifications. Rule 3.3 attribution is likewise fail-closed: it is attached only when the existing perfect/passive analyzers prove a past-participle use is non-adjectival. Competing approved adjective identity and other unresolved participle roles do not claim Rule 3.3. Nested or wrapped list grammar, general sentence parsing, topic progression, risk semantics, and other unresolved areas remain visible in `data/rules.json` rather than being inferred heuristically.
+`NOTE:`, simple-list, paragraph, procedural, safety, grammar, entity-semantic, and discourse-semantic diagnostics all operate on bounded structural or governed-identity models. Rule 2.2 currently evaluates only explicit approved glossary aliases for governed long technical nouns; it does not infer aliases or generate hyphen-based clarifications. Rule 3.3 attribution is likewise fail-closed: it is attached only when the existing perfect/passive analyzers prove a past-participle use is non-adjectival. Rule 6.1 only consumes explicit project semantic-ordering facts whose graph targets resolve uniquely, are distinct, and do not overlap; it does not infer information order or gradual progression from prose. Competing approved adjective identity and other unresolved participle roles do not claim Rule 3.3. Nested or wrapped list grammar, general sentence parsing, topic progression, risk semantics, and other unresolved areas remain visible in `data/rules.json` rather than being inferred heuristically.
 
 The runtime dictionary preserves ambiguity instead of selecting an arbitrary record. Mixed approved/unapproved identity produces `STE-LEX-002`; context-backed or grammar-backed rules likewise block when their required identity cannot be selected safely. An unapproved multi-word dictionary entry is not by itself treated as proof of a Rule 9.3 phrasal verb.
 
 ## Autofix boundary
 
-Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes `STE-PUNC-001` semicolons. Grammar, terminology, verb, note, list, context, safety, entity-semantic, and semantic-rewrite diagnostics do not receive automatic edits when a safe repair can depend on meaning or document context.
+Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes `STE-PUNC-001` semicolons. Grammar, terminology, verb, note, list, context, safety, entity-semantic, discourse-semantic, and semantic-rewrite diagnostics do not receive automatic edits when a safe repair can depend on meaning or document context.
 
 ## Coverage relationship
 
