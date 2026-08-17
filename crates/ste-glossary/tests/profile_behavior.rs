@@ -106,3 +106,31 @@ fn form_collision_with_another_alias_is_rejected() {
             .any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001")
     );
 }
+
+#[test]
+fn alias_and_form_collision_within_one_term_is_rejected() {
+    let glossary = Glossary::from_json(
+        r#"{
+          "terms": [{
+            "term": "repository",
+            "kind": "technical_noun",
+            "definition": "A repository.",
+            "domain": "software-core",
+            "preferred": true,
+            "forms": ["repositories"],
+            "aliases": ["repositories"],
+            "examples": [],
+            "provenance": ["test authority"],
+            "status": "approved"
+          }]
+        }"#,
+    )
+    .unwrap();
+
+    let diagnostics = glossary.validate();
+    assert!(
+        diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001")
+    );
+}
