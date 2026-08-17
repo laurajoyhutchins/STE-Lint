@@ -1,13 +1,10 @@
 name: CI
 
-on:
-  push:
-    branches: [main, "feat/**"]
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   authority-ingest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,15 +21,19 @@ jobs:
         run: python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
 
   rust:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+      - name: Install pinned Rust toolchain
+        run: >-
+          rustup toolchain install 1.97.1
+          --profile minimal
+          --component rustfmt
+          --component clippy
+          --no-self-update
       - name: Format
-        run: cargo fmt --all -- --check
+        run: cargo +1.97.1 fmt --all -- --check
       - name: Clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
       - name: Test
-        run: cargo test --workspace
+        run: cargo +1.97.1 test --workspace --locked
