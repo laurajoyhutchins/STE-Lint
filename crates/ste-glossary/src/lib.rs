@@ -370,7 +370,7 @@ impl Glossary {
 fn build_identity_index(
     terms: &[TechnicalTerm],
 ) -> (HashMap<String, IdentityRecord>, usize, Vec<Diagnostic>) {
-    let mut identities = HashMap::new();
+    let mut identities: HashMap<String, IdentityRecord> = HashMap::new();
     let mut diagnostics = Vec::new();
     let mut max_words = 1;
 
