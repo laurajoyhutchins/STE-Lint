@@ -159,7 +159,7 @@ impl<'a> AnalysisDocument<'a> {
 fn mention_from_glossary(matched: GlossaryMatch<'_>) -> EntityMention {
     EntityMention {
         identity: EntityIdentity::GovernedTerm {
-            term: matched.term.term.clone(),
+            term: matched.term.canonical.clone(),
             domain: matched.term.domain.clone(),
         },
         kind: EntityMentionKind::GovernedTechnicalTerm,
@@ -172,7 +172,12 @@ fn mention_from_glossary(matched: GlossaryMatch<'_>) -> EntityMention {
         surface: matched.text,
         definition: (!matched.term.definition.trim().is_empty())
             .then(|| matched.term.definition.clone()),
-        provenance: matched.term.provenance.clone(),
+        provenance: matched
+            .term
+            .sources
+            .iter()
+            .map(|source| source.source.clone())
+            .collect(),
     }
 }
 
