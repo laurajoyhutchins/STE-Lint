@@ -12,10 +12,10 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | `STE-SYN-001` | error | A deterministic contraction form is present. | 4.2 | none |
 | `STE-GRAM-001` | error | An approved dictionary word is used in a bounded grammatical role incompatible with its approved part of speech. | 1.2; verbal cases also 3.7 | none |
 | `STE-GRAM-002` | error | Shared Grammar v1 uniquely resolves a progressive `-ing` verb use. | 3.5 | none |
-| `STE-GRAM-003` | error | Shared Grammar v1 uniquely resolves a passive-verb participle in procedural mode. | 3.6 | none |
+| `STE-GRAM-003` | error | Shared Grammar v1 uniquely resolves a passive-verb participle in procedural mode. | 3.3, 3.6 | none |
 | `STE-NOUN-001` | error | Shared Grammar v1 uniquely resolves a determiner-led multi-word noun with more than three content words after the determiner. | 2.1 | none |
 | `STE-NOUN-002` | error | An approved governed technical noun has a canonical form longer than three words, and an explicit no-more-than-three-word shorter glossary alias appears before the first canonical full-form mention. | 2.2 | none |
-| `STE-VERB-001` | error | Direct `HAVE`/`HAS`/`HAD` plus an unambiguous approved past participle forms the bounded prohibited perfect-tense pattern. | 3.2, 3.4 | none |
+| `STE-VERB-001` | error | Direct `HAVE`/`HAS`/`HAD` plus an unambiguous approved past participle forms the bounded prohibited perfect-tense pattern. | 3.2, 3.3, 3.4 | none |
 | `STE-VERB-002` | blocked | A participle-looking form in that direct pattern has competing approved dictionary identity, so grammatical use is unresolved. | 3.2, 3.4 | none |
 | `STE-PROC-001` | error | A procedural instruction begins with a source-backed lexical verb form that is not its base form. | 5.3 | none |
 | `STE-PROC-002` | error | A leading procedural condition lacks the comma that separates it from the command. | 5.4 | none |
@@ -54,7 +54,7 @@ The linter intentionally blocks or requires explicit project evidence where raw 
 
 Issue 9 sentence-length diagnostics use the `issue9_mechanical_v1` analyzer. It handles recognized list boundaries, parenthetical groups, quoted text, identifiers, number-plus-unit groups, decimals, and hyphenated groups mechanically. Explicit Rule 8.6 `count_group` evidence can additionally identify abbreviations, titles, headings, placards, labels, and proper nouns without guessing from typography or capitalization.
 
-`NOTE:`, simple-list, paragraph, procedural, safety, grammar, and entity-semantic diagnostics all operate on bounded structural or governed-identity models. Rule 2.2 currently evaluates only explicit approved glossary aliases for governed long technical nouns; it does not infer aliases or generate hyphen-based clarifications. Nested or wrapped list grammar, general sentence parsing, topic progression, risk semantics, and other unresolved areas remain visible in `data/rules.json` rather than being inferred heuristically.
+`NOTE:`, simple-list, paragraph, procedural, safety, grammar, and entity-semantic diagnostics all operate on bounded structural or governed-identity models. Rule 2.2 currently evaluates only explicit approved glossary aliases for governed long technical nouns; it does not infer aliases or generate hyphen-based clarifications. Rule 3.3 attribution is likewise fail-closed: it is attached only when the existing perfect/passive analyzers prove a past-participle use is non-adjectival. Competing approved adjective identity and other unresolved participle roles do not claim Rule 3.3. Nested or wrapped list grammar, general sentence parsing, topic progression, risk semantics, and other unresolved areas remain visible in `data/rules.json` rather than being inferred heuristically.
 
 The runtime dictionary preserves ambiguity instead of selecting an arbitrary record. Mixed approved/unapproved identity produces `STE-LEX-002`; context-backed or grammar-backed rules likewise block when their required identity cannot be selected safely. An unapproved multi-word dictionary entry is not by itself treated as proof of a Rule 9.3 phrasal verb.
 
