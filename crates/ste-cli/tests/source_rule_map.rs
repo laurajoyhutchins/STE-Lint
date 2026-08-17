@@ -69,7 +69,10 @@ fn all_issue_nine_rules_have_source_audited_semantic_keys() {
         ("8.5", "parenthetical_text_counts_one_word"),
         ("8.6", "specified_elements_count_one_word"),
         ("8.7", "hyphenated_words_count_one_word"),
-        ("9.1", "different_sentence_construction_when_replacement_insufficient"),
+        (
+            "9.1",
+            "different_sentence_construction_when_replacement_insufficient",
+        ),
         ("9.2", "use_approved_words_correctly"),
         ("9.3", "no_phrasal_verbs"),
         ("9.4", "consistent_terminology_and_wording"),
@@ -96,7 +99,10 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
     }
 
     assert_eq!(rules["9.2"]["status"], "partial");
-    assert_eq!(rules["9.2"]["diagnostic_codes"], serde_json::json!(["STE-CTX-001"]));
+    assert_eq!(
+        rules["9.2"]["diagnostic_codes"],
+        serde_json::json!(["STE-CTX-001"])
+    );
     assert_eq!(
         rules["9.2"]["evidence_artifacts"],
         serde_json::json!(["crates/ste-lint/tests/context_evidence.rs"])
@@ -106,16 +112,20 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
         rules["5.5"]["diagnostic_codes"],
         serde_json::json!(["STE-NOTE-001", "STE-NOTE-002"])
     );
-    assert!(!rules["1.1"]["diagnostic_codes"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|code| code == "STE-TERM-002"));
-    assert!(rules["1.8"]["diagnostic_codes"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|code| code == "STE-TERM-002"));
+    assert!(
+        !rules["1.1"]["diagnostic_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|code| code == "STE-TERM-002")
+    );
+    assert!(
+        rules["1.8"]["diagnostic_codes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|code| code == "STE-TERM-002")
+    );
 
     let mut counts = BTreeMap::<&str, usize>::new();
     for rule in rules.values() {
