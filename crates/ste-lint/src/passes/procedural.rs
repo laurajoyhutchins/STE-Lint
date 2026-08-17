@@ -286,7 +286,6 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             continue;
         }
 
-        let span_end = block.content_start + matched.text.len();
         if base_verbs > 0 {
             diagnostics.push(Diagnostic {
                 code: "STE-SAFE-002".into(),
@@ -296,8 +295,8 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
                     matched.text
                 ),
                 span: Span {
-                    start: block.content_start,
-                    end: span_end,
+                    start: matched.start,
+                    end: matched.end,
                 },
                 rules: vec!["7.2".into()],
                 evidence: Some(json!({
@@ -309,7 +308,7 @@ fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
                 autofix: None,
             });
         } else {
-            diagnostics.push(safety_error(block.content_start, span_end));
+            diagnostics.push(safety_error(matched.start, matched.end));
         }
     }
 
