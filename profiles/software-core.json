@@ -1,141 +1,4304 @@
 {
+  "schema": "ste-terminology/v2",
   "profile": {
     "id": "software-core",
     "version": 2,
-    "description": "Common software engineering terminology intended for reuse across unrelated codebases.",
-    "sources": [
-      "https://developers.google.com/style/",
-      "https://developers.google.com/style/api-reference-comments",
-      "https://developer.mozilla.org/en-US/docs/Glossary",
-      "STE-Lint issue #43 cross-project software terminology review",
-      "STE-Lint issue #48 cross-project software terminology review"
-    ]
+    "domain": "software-core",
+    "description": "Common software engineering terminology intended for reuse across unrelated codebases."
+  },
+  "sources": {
+    "developers-google-com": {
+      "title": "https://developers.google.com/style/",
+      "url": "https://developers.google.com/style/"
+    },
+    "developers-google-com-1": {
+      "title": "https://developers.google.com/style/api-reference-comments",
+      "url": "https://developers.google.com/style/api-reference-comments"
+    },
+    "developer-mozilla-org": {
+      "title": "https://developer.mozilla.org/en-US/docs/Glossary",
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary"
+    },
+    "ste-lint-issue-43-cross-project-software-termino": {
+      "title": "STE-Lint issue #43 cross-project software terminology review"
+    },
+    "ste-lint-issue-48-cross-project-software-termino": {
+      "title": "STE-Lint issue #48 cross-project software terminology review"
+    },
+    "ste-lint-software-core-v1-curated-baseline": {
+      "title": "STE-Lint software-core v1 curated baseline",
+      "reviewed_on": "2026-08-17"
+    },
+    "ste-lint-software-core-v2-curated-baseline": {
+      "title": "STE-Lint software-core v2 curated baseline",
+      "reviewed_on": "2026-08-17"
+    },
+    "mdn-glossary-and-ste-lint-software-core-v2-revie": {
+      "title": "MDN glossary and STE-Lint software-core v2 review",
+      "reviewed_on": "2026-08-17"
+    },
+    "google-developer-documentation-style-and-ste-lin": {
+      "title": "Google developer documentation style and STE-Lint software-core v2 review",
+      "reviewed_on": "2026-08-17"
+    }
   },
   "terms": [
-    {"term":"API","kind":"technical_noun","definition":"A defined interface through which software components communicate.","domain":"software-core","preferred":true,"forms":["APIs"],"aliases":["application programming interface"],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"application","kind":"technical_noun","definition":"A software program designed to perform one or more functions.","domain":"software-core","preferred":true,"forms":["applications"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"argument","kind":"technical_noun","definition":"A value supplied to a command, function, or program.","domain":"software-core","preferred":true,"forms":["arguments"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"artifact","kind":"technical_noun","definition":"A file or collection of files produced or retained by a software process.","domain":"software-core","preferred":true,"forms":["artifacts"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"binary","kind":"technical_noun","definition":"An executable or other machine-readable software file.","domain":"software-core","preferred":true,"forms":["binaries"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"cache","kind":"technical_noun_and_verb","definition":"Stored data used to avoid repeating an operation, or the act of storing data for that purpose.","domain":"software-core","preferred":true,"forms":["caches","cached","caching"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"class","kind":"technical_noun","definition":"A software type that defines data or behavior for its instances.","domain":"software-core","preferred":true,"forms":["classes"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"client","kind":"technical_noun","definition":"Software that sends requests to another software component or service.","domain":"software-core","preferred":true,"forms":["clients"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"code","kind":"technical_noun","definition":"Instructions or declarations written in a programming language.","domain":"software-core","preferred":true,"forms":[],"aliases":["source code"],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"command","kind":"technical_noun","definition":"An instruction submitted to a program or command-line interface.","domain":"software-core","preferred":true,"forms":["commands"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"component","kind":"technical_noun","definition":"A distinct part of a software system.","domain":"software-core","preferred":true,"forms":["components"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"configuration","kind":"technical_noun","definition":"Settings that control software behavior.","domain":"software-core","preferred":true,"forms":["configurations"],"aliases":["config"],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"constant","kind":"technical_noun","definition":"A named software value intended not to change during its defined scope.","domain":"software-core","preferred":true,"forms":["constants"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"data","kind":"technical_noun","definition":"Information represented or processed by software.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"database","kind":"technical_noun","definition":"An organized collection of data managed for software access.","domain":"software-core","preferred":true,"forms":["databases"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"dependency","kind":"technical_noun","definition":"A software package, component, or resource required by another component.","domain":"software-core","preferred":true,"forms":["dependencies"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"directory","kind":"technical_noun","definition":"A file-system container for files or other directories.","domain":"software-core","preferred":true,"forms":["directories"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"endpoint","kind":"technical_noun","definition":"A defined interface location at which a software service accepts communication.","domain":"software-core","preferred":true,"forms":["endpoints"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"environment","kind":"technical_noun","definition":"A set of runtime conditions and configuration in which software operates.","domain":"software-core","preferred":true,"forms":["environments"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"error","kind":"technical_noun","definition":"A software condition that indicates an operation did not complete as intended.","domain":"software-core","preferred":true,"forms":["errors"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"event","kind":"technical_noun","definition":"A represented occurrence that software can record or process.","domain":"software-core","preferred":true,"forms":["events"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"execution","kind":"technical_noun","definition":"One performance of software instructions or a software operation.","domain":"software-core","preferred":true,"forms":["executions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"file","kind":"technical_noun","definition":"A named collection of data stored by a file system.","domain":"software-core","preferred":true,"forms":["files"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"function","kind":"technical_noun","definition":"A named unit of software behavior that can accept input and produce a result.","domain":"software-core","preferred":true,"forms":["functions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"identifier","kind":"technical_noun","definition":"A value or name used to distinguish one software entity from another.","domain":"software-core","preferred":true,"forms":["identifiers"],"aliases":["ID","IDs"],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"implementation","kind":"technical_noun","definition":"Software that realizes a defined behavior, interface, or design.","domain":"software-core","preferred":true,"forms":["implementations"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"input","kind":"technical_noun","definition":"Data supplied to a software operation.","domain":"software-core","preferred":true,"forms":["inputs"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"interface","kind":"technical_noun","definition":"A defined boundary through which software components interact.","domain":"software-core","preferred":true,"forms":["interfaces"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"job","kind":"technical_noun","definition":"A bounded unit of software work submitted for execution.","domain":"software-core","preferred":true,"forms":["jobs"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"library","kind":"technical_noun","definition":"Reusable software made available for use by other software.","domain":"software-core","preferred":true,"forms":["libraries"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"log","kind":"technical_noun_and_verb","definition":"A recorded sequence of software events, or the act of recording such events.","domain":"software-core","preferred":true,"forms":["logs","logged","logging"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"message","kind":"technical_noun","definition":"A unit of information passed between software components.","domain":"software-core","preferred":true,"forms":["messages"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"method","kind":"technical_noun","definition":"A software operation associated with a type or object.","domain":"software-core","preferred":true,"forms":["methods"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"module","kind":"technical_noun","definition":"A named unit that groups related software.","domain":"software-core","preferred":true,"forms":["modules"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"object","kind":"technical_noun","definition":"A software entity represented according to a defined type or structure.","domain":"software-core","preferred":true,"forms":["objects"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"output","kind":"technical_noun","definition":"Data produced by a software operation.","domain":"software-core","preferred":true,"forms":["outputs"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"package","kind":"technical_noun","definition":"A distributable or managed unit of software.","domain":"software-core","preferred":true,"forms":["packages"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"parameter","kind":"technical_noun","definition":"A named input defined by a function, command, or interface.","domain":"software-core","preferred":true,"forms":["parameters"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"path","kind":"technical_noun","definition":"A representation of a location in a file system or software namespace.","domain":"software-core","preferred":true,"forms":["paths"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"process","kind":"technical_noun_and_verb","definition":"A running software instance or the act of applying defined operations to data.","domain":"software-core","preferred":true,"forms":["processes","processed","processing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"program","kind":"technical_noun","definition":"A set of software instructions designed for execution.","domain":"software-core","preferred":true,"forms":["programs"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"property","kind":"technical_noun","definition":"A named value associated with a software object or configuration.","domain":"software-core","preferred":true,"forms":["properties"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"request","kind":"technical_noun_and_verb","definition":"A message or operation that asks a software component to perform work or return information.","domain":"software-core","preferred":true,"forms":["requests","requested","requesting"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"response","kind":"technical_noun","definition":"Information returned in reply to a software request.","domain":"software-core","preferred":true,"forms":["responses"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"runtime","kind":"technical_noun","definition":"The software or execution environment in which a program operates.","domain":"software-core","preferred":true,"forms":["runtimes"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"schema","kind":"technical_noun","definition":"A formal definition of the structure or constraints of data.","domain":"software-core","preferred":true,"forms":["schemas"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"server","kind":"technical_noun","definition":"Software that receives requests and provides a service or resource.","domain":"software-core","preferred":true,"forms":["servers"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"service","kind":"technical_noun","definition":"A software capability exposed for use by other software or users.","domain":"software-core","preferred":true,"forms":["services"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"state","kind":"technical_noun","definition":"The represented condition of a software entity at a point in time.","domain":"software-core","preferred":true,"forms":["states"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"status","kind":"technical_noun","definition":"A represented condition used to report software progress or outcome.","domain":"software-core","preferred":true,"forms":["statuses"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"string","kind":"technical_noun","definition":"A sequence of characters represented as a software value.","domain":"software-core","preferred":true,"forms":["strings"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"task","kind":"technical_noun","definition":"A bounded unit of work represented by software.","domain":"software-core","preferred":true,"forms":["tasks"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"test","kind":"technical_noun_and_verb","definition":"A defined verification activity, or the act of performing that activity.","domain":"software-core","preferred":true,"forms":["tests","tested","testing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"test case","kind":"technical_noun","definition":"A defined set of conditions and expectations used to verify software behavior.","domain":"software-core","preferred":true,"forms":["test cases"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"value","kind":"technical_noun","definition":"Data represented by a software expression, field, parameter, or variable.","domain":"software-core","preferred":true,"forms":["values"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"variable","kind":"technical_noun","definition":"A named software location or binding that refers to a value.","domain":"software-core","preferred":true,"forms":["variables"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"version","kind":"technical_noun","definition":"A distinct identified state of software or data.","domain":"software-core","preferred":true,"forms":["versions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"warning","kind":"technical_noun","definition":"A software diagnostic that reports a condition that may require attention.","domain":"software-core","preferred":true,"forms":["warnings"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"worker","kind":"technical_noun","definition":"A software component that performs assigned work.","domain":"software-core","preferred":true,"forms":["workers"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"compile","kind":"technical_verb","definition":"Transform source code into another executable or machine-processable form.","domain":"software-core","preferred":true,"forms":["compiles","compiled","compiling"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"configure","kind":"technical_verb","definition":"Set software options or parameters for an intended environment or behavior.","domain":"software-core","preferred":true,"forms":["configures","configured","configuring"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"deploy","kind":"technical_verb","definition":"Make software available in a target execution environment.","domain":"software-core","preferred":true,"forms":["deploys","deployed","deploying"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"deserialize","kind":"technical_verb","definition":"Convert serialized data into an in-memory software representation.","domain":"software-core","preferred":true,"forms":["deserializes","deserialized","deserializing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"execute","kind":"technical_verb","definition":"Cause software instructions or an operation to run.","domain":"software-core","preferred":true,"forms":["executes","executed","executing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"export","kind":"technical_noun_and_verb","definition":"Data made available outside a software boundary, or the act of making it available.","domain":"software-core","preferred":true,"forms":["exports","exported","exporting"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"import","kind":"technical_noun_and_verb","definition":"Software or data brought into a software boundary, or the act of bringing it in.","domain":"software-core","preferred":true,"forms":["imports","imported","importing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"install","kind":"technical_verb","definition":"Place and configure software so that it can be used.","domain":"software-core","preferred":true,"forms":["installs","installed","installing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"load","kind":"technical_verb","definition":"Bring software or data into an active processing context.","domain":"software-core","preferred":true,"forms":["loads","loaded","loading"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"parse","kind":"technical_verb","definition":"Analyze structured input according to defined syntax.","domain":"software-core","preferred":true,"forms":["parses","parsed","parsing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"serialize","kind":"technical_verb","definition":"Convert a software representation into a form suitable for storage or transfer.","domain":"software-core","preferred":true,"forms":["serializes","serialized","serializing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"validate","kind":"technical_verb","definition":"Check software or data against defined requirements or constraints.","domain":"software-core","preferred":true,"forms":["validates","validated","validating"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"verify","kind":"technical_verb","definition":"Establish through evidence that software or data satisfies a defined condition.","domain":"software-core","preferred":true,"forms":["verifies","verified","verifying"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v1 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"alias","kind":"technical_noun","definition":"An alternate name that refers to an existing software entity or identity.","domain":"software-core","preferred":true,"forms":["aliases"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"array","kind":"technical_noun","definition":"An ordered collection of software values addressed by position.","domain":"software-core","preferred":true,"forms":["arrays"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"assertion","kind":"technical_noun","definition":"A condition that software or a test requires to be true.","domain":"software-core","preferred":true,"forms":["assertions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"authentication","kind":"technical_noun","definition":"The process of establishing the identity associated with a software request or user.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"authorization","kind":"technical_noun","definition":"The process of determining whether an identity has permission to perform an operation.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"benchmark","kind":"technical_noun_and_verb","definition":"A defined performance measurement, or the act of measuring software performance against it.","domain":"software-core","preferred":true,"forms":["benchmarks","benchmarked","benchmarking"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"Boolean","kind":"technical_noun","definition":"A data value or type with two logical states, true and false.","domain":"software-core","preferred":true,"forms":["Booleans"],"aliases":[],"examples":[],"provenance":["MDN glossary and STE-Lint software-core v2 review; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"buffer","kind":"technical_noun_and_verb","definition":"A temporary region used to hold data during processing or transfer, or the act of holding data there.","domain":"software-core","preferred":true,"forms":["buffers","buffered","buffering"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"build","kind":"technical_noun_and_verb","definition":"A produced software result, or the process that transforms source inputs into that result.","domain":"software-core","preferred":true,"forms":["builds","built","building"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"byte","kind":"technical_noun","definition":"A unit of digital data commonly composed of eight bits.","domain":"software-core","preferred":true,"forms":["bytes"],"aliases":[],"examples":[],"provenance":["MDN glossary and STE-Lint software-core v2 review; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"CLI","kind":"technical_noun","definition":"A command-line interface through which a user or program supplies textual commands.","domain":"software-core","preferred":true,"forms":["CLIs"],"aliases":["command-line interface"],"examples":[],"provenance":["Google developer documentation style and STE-Lint software-core v2 review; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"compatibility","kind":"technical_noun","definition":"The ability of software components, versions, or interfaces to operate together as specified.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"compiler","kind":"technical_noun","definition":"Software that translates source code into another executable or machine-processable form.","domain":"software-core","preferred":true,"forms":["compilers"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"coverage","kind":"technical_noun","definition":"A measurement of how much specified software behavior or code is exercised by tests.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"credential","kind":"technical_noun","definition":"Information used to establish or prove an identity to software.","domain":"software-core","preferred":true,"forms":["credentials"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"deserialization","kind":"technical_noun","definition":"The conversion of serialized data into an in-memory software representation.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"entity","kind":"technical_noun","definition":"A distinct software-domain object represented with its own identity or state.","domain":"software-core","preferred":true,"forms":["entities"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"field","kind":"technical_noun","definition":"A named part of a structured software record, object, or message.","domain":"software-core","preferred":true,"forms":["fields"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"fixture","kind":"technical_noun","definition":"Controlled data or setup used to establish repeatable test conditions.","domain":"software-core","preferred":true,"forms":["fixtures"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"framework","kind":"technical_noun","definition":"A reusable software structure that provides conventions and capabilities for building applications or components.","domain":"software-core","preferred":true,"forms":["frameworks"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"header","kind":"technical_noun","definition":"Structured metadata placed before or alongside a software message, file, or protocol payload.","domain":"software-core","preferred":true,"forms":["headers"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"identity","kind":"technical_noun","definition":"The stable information by which software distinguishes one represented subject or entity from another.","domain":"software-core","preferred":true,"forms":["identities"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"index","kind":"technical_noun_and_verb","definition":"A structure used to locate software data efficiently, or the act of creating or updating such a structure.","domain":"software-core","preferred":true,"forms":["indexes","indices","indexed","indexing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"integration","kind":"technical_noun","definition":"A connection or combined behavior between software components or systems.","domain":"software-core","preferred":true,"forms":["integrations"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"manifest","kind":"technical_noun","definition":"A structured file or record that declares the contents, identity, configuration, or dependencies of software or data.","domain":"software-core","preferred":true,"forms":["manifests"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"metadata","kind":"technical_noun","definition":"Data that describes other software data, artifacts, resources, or entities.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"metric","kind":"technical_noun","definition":"A measured value used to describe software behavior, performance, or operation.","domain":"software-core","preferred":true,"forms":["metrics"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"migration","kind":"technical_noun","definition":"A controlled change that moves software data, schema, configuration, or state from one representation to another.","domain":"software-core","preferred":true,"forms":["migrations"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"namespace","kind":"technical_noun","definition":"A named scope used to distinguish software identifiers from otherwise similar identifiers.","domain":"software-core","preferred":true,"forms":["namespaces"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"parser","kind":"technical_noun","definition":"Software that analyzes structured input according to defined syntax.","domain":"software-core","preferred":true,"forms":["parsers"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"payload","kind":"technical_noun","definition":"The application data carried by a software message, request, event, or protocol unit.","domain":"software-core","preferred":true,"forms":["payloads"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"permission","kind":"technical_noun","definition":"An authorization rule or grant that allows a software identity to perform an operation.","domain":"software-core","preferred":true,"forms":["permissions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"persistence","kind":"technical_noun","definition":"The retention of software data or state beyond the operation that created it.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"plugin","kind":"technical_noun","definition":"A software component designed to extend another application or framework through a defined extension mechanism.","domain":"software-core","preferred":true,"forms":["plugins"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"protocol","kind":"technical_noun","definition":"A defined set of rules for communication or interaction between software components.","domain":"software-core","preferred":true,"forms":["protocols"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"query","kind":"technical_noun_and_verb","definition":"A structured request for data, or the act of submitting such a request to a software data source.","domain":"software-core","preferred":true,"forms":["queries","queried","querying"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"queue","kind":"technical_noun_and_verb","definition":"An ordered collection of pending software work or messages, or the act of adding an item to it.","domain":"software-core","preferred":true,"forms":["queues","queued","queuing","queueing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"record","kind":"technical_noun","definition":"A structured collection of related named data fields.","domain":"software-core","preferred":true,"forms":["records"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"regression","kind":"technical_noun","definition":"A previously working software behavior that becomes incorrect after a change.","domain":"software-core","preferred":true,"forms":["regressions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"release","kind":"technical_noun_and_verb","definition":"An identified software version made available for use, or the act of making it available.","domain":"software-core","preferred":true,"forms":["releases","released","releasing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"result","kind":"technical_noun","definition":"A value or outcome produced by a software operation.","domain":"software-core","preferred":true,"forms":["results"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"retry","kind":"technical_noun_and_verb","definition":"A repeated attempt to perform a software operation, or the act of making that attempt again.","domain":"software-core","preferred":true,"forms":["retries","retried","retrying"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"secret","kind":"technical_noun","definition":"Sensitive software configuration data that must be protected from unauthorized disclosure.","domain":"software-core","preferred":true,"forms":["secrets"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"serialization","kind":"technical_noun","definition":"The conversion of a software representation into a form suitable for storage or transfer.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"session","kind":"technical_noun","definition":"A bounded period of related interaction maintained by software for a client, user, or process.","domain":"software-core","preferred":true,"forms":["sessions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"stream","kind":"technical_noun_and_verb","definition":"A sequence of data processed over time, or the act of transferring or processing data as such a sequence.","domain":"software-core","preferred":true,"forms":["streams","streamed","streaming"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"table","kind":"technical_noun","definition":"A structured collection of data organized into rows and fields.","domain":"software-core","preferred":true,"forms":["tables"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"telemetry","kind":"technical_noun","definition":"Operational data collected from software for observation and analysis.","domain":"software-core","preferred":true,"forms":[],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"thread","kind":"technical_noun","definition":"A sequence of software execution scheduled within a process.","domain":"software-core","preferred":true,"forms":["threads"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"timeout","kind":"technical_noun","definition":"A configured time limit after which a software operation is treated as incomplete or failed.","domain":"software-core","preferred":true,"forms":["timeouts"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"trace","kind":"technical_noun_and_verb","definition":"A recorded path of software execution or distributed activity, or the act of recording that path.","domain":"software-core","preferred":true,"forms":["traces","traced","tracing"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"transaction","kind":"technical_noun","definition":"A bounded set of software operations treated as one unit for consistency or completion.","domain":"software-core","preferred":true,"forms":["transactions"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"},
-    {"term":"persist","kind":"technical_verb","definition":"Retain software data or state beyond the operation that created it.","domain":"software-core","preferred":true,"forms":["persists","persisted","persisting"],"aliases":[],"examples":[],"provenance":["STE-Lint software-core v2 curated baseline; reviewed 2026-08-17"],"status":"approved"}
+    {
+      "id": "api",
+      "canonical": "API",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A defined interface through which software components communicate.",
+      "forms": [
+        {
+          "text": "APIs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "application programming interface",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "application",
+      "canonical": "application",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software program designed to perform one or more functions.",
+      "forms": [
+        {
+          "text": "applications",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "argument",
+      "canonical": "argument",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A value supplied to a command, function, or program.",
+      "forms": [
+        {
+          "text": "arguments",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "artifact",
+      "canonical": "artifact",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A file or collection of files produced or retained by a software process.",
+      "forms": [
+        {
+          "text": "artifacts",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "binary",
+      "canonical": "binary",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An executable or other machine-readable software file.",
+      "forms": [
+        {
+          "text": "binaries",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "cache",
+      "canonical": "cache",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "Stored data used to avoid repeating an operation, or the act of storing data for that purpose.",
+      "forms": [
+        {
+          "text": "caches",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "cached",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "caching",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "class",
+      "canonical": "class",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software type that defines data or behavior for its instances.",
+      "forms": [
+        {
+          "text": "classes",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "client",
+      "canonical": "client",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Software that sends requests to another software component or service.",
+      "forms": [
+        {
+          "text": "clients",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "code",
+      "canonical": "code",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Instructions or declarations written in a programming language.",
+      "forms": [],
+      "aliases": [
+        {
+          "text": "source code",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "command",
+      "canonical": "command",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An instruction submitted to a program or command-line interface.",
+      "forms": [
+        {
+          "text": "commands",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "component",
+      "canonical": "component",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A distinct part of a software system.",
+      "forms": [
+        {
+          "text": "components",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "configuration",
+      "canonical": "configuration",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Settings that control software behavior.",
+      "forms": [
+        {
+          "text": "configurations",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "config",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "constant",
+      "canonical": "constant",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named software value intended not to change during its defined scope.",
+      "forms": [
+        {
+          "text": "constants",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "data",
+      "canonical": "data",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Information represented or processed by software.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "database",
+      "canonical": "database",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An organized collection of data managed for software access.",
+      "forms": [
+        {
+          "text": "databases",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "dependency",
+      "canonical": "dependency",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software package, component, or resource required by another component.",
+      "forms": [
+        {
+          "text": "dependencies",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "directory",
+      "canonical": "directory",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A file-system container for files or other directories.",
+      "forms": [
+        {
+          "text": "directories",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "endpoint",
+      "canonical": "endpoint",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A defined interface location at which a software service accepts communication.",
+      "forms": [
+        {
+          "text": "endpoints",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "environment",
+      "canonical": "environment",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A set of runtime conditions and configuration in which software operates.",
+      "forms": [
+        {
+          "text": "environments",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "error",
+      "canonical": "error",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software condition that indicates an operation did not complete as intended.",
+      "forms": [
+        {
+          "text": "errors",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "event",
+      "canonical": "event",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A represented occurrence that software can record or process.",
+      "forms": [
+        {
+          "text": "events",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "execution",
+      "canonical": "execution",
+      "roles": [
+        "noun"
+      ],
+      "definition": "One performance of software instructions or a software operation.",
+      "forms": [
+        {
+          "text": "executions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "file",
+      "canonical": "file",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named collection of data stored by a file system.",
+      "forms": [
+        {
+          "text": "files",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "function",
+      "canonical": "function",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named unit of software behavior that can accept input and produce a result.",
+      "forms": [
+        {
+          "text": "functions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "identifier",
+      "canonical": "identifier",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A value or name used to distinguish one software entity from another.",
+      "forms": [
+        {
+          "text": "identifiers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "ID",
+          "kind": "abbreviation"
+        },
+        {
+          "text": "IDs",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "implementation",
+      "canonical": "implementation",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Software that realizes a defined behavior, interface, or design.",
+      "forms": [
+        {
+          "text": "implementations",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "input",
+      "canonical": "input",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Data supplied to a software operation.",
+      "forms": [
+        {
+          "text": "inputs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "interface",
+      "canonical": "interface",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A defined boundary through which software components interact.",
+      "forms": [
+        {
+          "text": "interfaces",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "job",
+      "canonical": "job",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A bounded unit of software work submitted for execution.",
+      "forms": [
+        {
+          "text": "jobs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "library",
+      "canonical": "library",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Reusable software made available for use by other software.",
+      "forms": [
+        {
+          "text": "libraries",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "log",
+      "canonical": "log",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A recorded sequence of software events, or the act of recording such events.",
+      "forms": [
+        {
+          "text": "logs",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "logged",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "logging",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "message",
+      "canonical": "message",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A unit of information passed between software components.",
+      "forms": [
+        {
+          "text": "messages",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "method",
+      "canonical": "method",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software operation associated with a type or object.",
+      "forms": [
+        {
+          "text": "methods",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "module",
+      "canonical": "module",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named unit that groups related software.",
+      "forms": [
+        {
+          "text": "modules",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "object",
+      "canonical": "object",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software entity represented according to a defined type or structure.",
+      "forms": [
+        {
+          "text": "objects",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "output",
+      "canonical": "output",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Data produced by a software operation.",
+      "forms": [
+        {
+          "text": "outputs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "package",
+      "canonical": "package",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A distributable or managed unit of software.",
+      "forms": [
+        {
+          "text": "packages",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "parameter",
+      "canonical": "parameter",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named input defined by a function, command, or interface.",
+      "forms": [
+        {
+          "text": "parameters",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "path",
+      "canonical": "path",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A representation of a location in a file system or software namespace.",
+      "forms": [
+        {
+          "text": "paths",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "process",
+      "canonical": "process",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A running software instance or the act of applying defined operations to data.",
+      "forms": [
+        {
+          "text": "processes",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "processed",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "processing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "program",
+      "canonical": "program",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A set of software instructions designed for execution.",
+      "forms": [
+        {
+          "text": "programs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "property",
+      "canonical": "property",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named value associated with a software object or configuration.",
+      "forms": [
+        {
+          "text": "properties",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "request",
+      "canonical": "request",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A message or operation that asks a software component to perform work or return information.",
+      "forms": [
+        {
+          "text": "requests",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "requested",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "requesting",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "response",
+      "canonical": "response",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Information returned in reply to a software request.",
+      "forms": [
+        {
+          "text": "responses",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "runtime",
+      "canonical": "runtime",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The software or execution environment in which a program operates.",
+      "forms": [
+        {
+          "text": "runtimes",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "schema",
+      "canonical": "schema",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A formal definition of the structure or constraints of data.",
+      "forms": [
+        {
+          "text": "schemas",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "server",
+      "canonical": "server",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Software that receives requests and provides a service or resource.",
+      "forms": [
+        {
+          "text": "servers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "service",
+      "canonical": "service",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software capability exposed for use by other software or users.",
+      "forms": [
+        {
+          "text": "services",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "state",
+      "canonical": "state",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The represented condition of a software entity at a point in time.",
+      "forms": [
+        {
+          "text": "states",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "status",
+      "canonical": "status",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A represented condition used to report software progress or outcome.",
+      "forms": [
+        {
+          "text": "statuses",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "string",
+      "canonical": "string",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A sequence of characters represented as a software value.",
+      "forms": [
+        {
+          "text": "strings",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "task",
+      "canonical": "task",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A bounded unit of work represented by software.",
+      "forms": [
+        {
+          "text": "tasks",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "test",
+      "canonical": "test",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A defined verification activity, or the act of performing that activity.",
+      "forms": [
+        {
+          "text": "tests",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "tested",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "testing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "test-case",
+      "canonical": "test case",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A defined set of conditions and expectations used to verify software behavior.",
+      "forms": [
+        {
+          "text": "test cases",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "value",
+      "canonical": "value",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Data represented by a software expression, field, parameter, or variable.",
+      "forms": [
+        {
+          "text": "values",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "variable",
+      "canonical": "variable",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named software location or binding that refers to a value.",
+      "forms": [
+        {
+          "text": "variables",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "version",
+      "canonical": "version",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A distinct identified state of software or data.",
+      "forms": [
+        {
+          "text": "versions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "warning",
+      "canonical": "warning",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software diagnostic that reports a condition that may require attention.",
+      "forms": [
+        {
+          "text": "warnings",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "worker",
+      "canonical": "worker",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software component that performs assigned work.",
+      "forms": [
+        {
+          "text": "workers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "compile",
+      "canonical": "compile",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Transform source code into another executable or machine-processable form.",
+      "forms": [
+        {
+          "text": "compiles",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "compiled",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "compiling",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "configure",
+      "canonical": "configure",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Set software options or parameters for an intended environment or behavior.",
+      "forms": [
+        {
+          "text": "configures",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "configured",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "configuring",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "deploy",
+      "canonical": "deploy",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Make software available in a target execution environment.",
+      "forms": [
+        {
+          "text": "deploys",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "deployed",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "deploying",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "deserialize",
+      "canonical": "deserialize",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Convert serialized data into an in-memory software representation.",
+      "forms": [
+        {
+          "text": "deserializes",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "deserialized",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "deserializing",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "execute",
+      "canonical": "execute",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Cause software instructions or an operation to run.",
+      "forms": [
+        {
+          "text": "executes",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "executed",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "executing",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "export",
+      "canonical": "export",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "Data made available outside a software boundary, or the act of making it available.",
+      "forms": [
+        {
+          "text": "exports",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "exported",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "exporting",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "import",
+      "canonical": "import",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "Software or data brought into a software boundary, or the act of bringing it in.",
+      "forms": [
+        {
+          "text": "imports",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "imported",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "importing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "install",
+      "canonical": "install",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Place and configure software so that it can be used.",
+      "forms": [
+        {
+          "text": "installs",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "installed",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "installing",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "load",
+      "canonical": "load",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Bring software or data into an active processing context.",
+      "forms": [
+        {
+          "text": "loads",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "loaded",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "loading",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "parse",
+      "canonical": "parse",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Analyze structured input according to defined syntax.",
+      "forms": [
+        {
+          "text": "parses",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "parsed",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "parsing",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "serialize",
+      "canonical": "serialize",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Convert a software representation into a form suitable for storage or transfer.",
+      "forms": [
+        {
+          "text": "serializes",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "serialized",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "serializing",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "validate",
+      "canonical": "validate",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Check software or data against defined requirements or constraints.",
+      "forms": [
+        {
+          "text": "validates",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "validated",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "validating",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "verify",
+      "canonical": "verify",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Establish through evidence that software or data satisfies a defined condition.",
+      "forms": [
+        {
+          "text": "verifies",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "verified",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "verifying",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v1-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "alias",
+      "canonical": "alias",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An alternate name that refers to an existing software entity or identity.",
+      "forms": [
+        {
+          "text": "aliases",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "array",
+      "canonical": "array",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An ordered collection of software values addressed by position.",
+      "forms": [
+        {
+          "text": "arrays",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "assertion",
+      "canonical": "assertion",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A condition that software or a test requires to be true.",
+      "forms": [
+        {
+          "text": "assertions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "authentication",
+      "canonical": "authentication",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The process of establishing the identity associated with a software request or user.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "authorization",
+      "canonical": "authorization",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The process of determining whether an identity has permission to perform an operation.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "benchmark",
+      "canonical": "benchmark",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A defined performance measurement, or the act of measuring software performance against it.",
+      "forms": [
+        {
+          "text": "benchmarks",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "benchmarked",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "benchmarking",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "boolean",
+      "canonical": "Boolean",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A data value or type with two logical states, true and false.",
+      "forms": [
+        {
+          "text": "Booleans",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "mdn-glossary-and-ste-lint-software-core-v2-revie",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "buffer",
+      "canonical": "buffer",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A temporary region used to hold data during processing or transfer, or the act of holding data there.",
+      "forms": [
+        {
+          "text": "buffers",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "buffered",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "buffering",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "build",
+      "canonical": "build",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A produced software result, or the process that transforms source inputs into that result.",
+      "forms": [
+        {
+          "text": "builds",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "built",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "building",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "byte",
+      "canonical": "byte",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A unit of digital data commonly composed of eight bits.",
+      "forms": [
+        {
+          "text": "bytes",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "mdn-glossary-and-ste-lint-software-core-v2-revie",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "cli",
+      "canonical": "CLI",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A command-line interface through which a user or program supplies textual commands.",
+      "forms": [
+        {
+          "text": "CLIs",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [
+        {
+          "text": "command-line interface",
+          "kind": "short_form"
+        }
+      ],
+      "sources": [
+        {
+          "source": "google-developer-documentation-style-and-ste-lin",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "compatibility",
+      "canonical": "compatibility",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The ability of software components, versions, or interfaces to operate together as specified.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "compiler",
+      "canonical": "compiler",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Software that translates source code into another executable or machine-processable form.",
+      "forms": [
+        {
+          "text": "compilers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "coverage",
+      "canonical": "coverage",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A measurement of how much specified software behavior or code is exercised by tests.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "credential",
+      "canonical": "credential",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Information used to establish or prove an identity to software.",
+      "forms": [
+        {
+          "text": "credentials",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "deserialization",
+      "canonical": "deserialization",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The conversion of serialized data into an in-memory software representation.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "entity",
+      "canonical": "entity",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A distinct software-domain object represented with its own identity or state.",
+      "forms": [
+        {
+          "text": "entities",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "field",
+      "canonical": "field",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named part of a structured software record, object, or message.",
+      "forms": [
+        {
+          "text": "fields",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "fixture",
+      "canonical": "fixture",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Controlled data or setup used to establish repeatable test conditions.",
+      "forms": [
+        {
+          "text": "fixtures",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "framework",
+      "canonical": "framework",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A reusable software structure that provides conventions and capabilities for building applications or components.",
+      "forms": [
+        {
+          "text": "frameworks",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "header",
+      "canonical": "header",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Structured metadata placed before or alongside a software message, file, or protocol payload.",
+      "forms": [
+        {
+          "text": "headers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "identity",
+      "canonical": "identity",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The stable information by which software distinguishes one represented subject or entity from another.",
+      "forms": [
+        {
+          "text": "identities",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "index",
+      "canonical": "index",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A structure used to locate software data efficiently, or the act of creating or updating such a structure.",
+      "forms": [
+        {
+          "text": "indexes",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "indices",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "indexed",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "indexing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "integration",
+      "canonical": "integration",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A connection or combined behavior between software components or systems.",
+      "forms": [
+        {
+          "text": "integrations",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "manifest",
+      "canonical": "manifest",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A structured file or record that declares the contents, identity, configuration, or dependencies of software or data.",
+      "forms": [
+        {
+          "text": "manifests",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "metadata",
+      "canonical": "metadata",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Data that describes other software data, artifacts, resources, or entities.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "metric",
+      "canonical": "metric",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A measured value used to describe software behavior, performance, or operation.",
+      "forms": [
+        {
+          "text": "metrics",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "migration",
+      "canonical": "migration",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A controlled change that moves software data, schema, configuration, or state from one representation to another.",
+      "forms": [
+        {
+          "text": "migrations",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "namespace",
+      "canonical": "namespace",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A named scope used to distinguish software identifiers from otherwise similar identifiers.",
+      "forms": [
+        {
+          "text": "namespaces",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "parser",
+      "canonical": "parser",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Software that analyzes structured input according to defined syntax.",
+      "forms": [
+        {
+          "text": "parsers",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "payload",
+      "canonical": "payload",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The application data carried by a software message, request, event, or protocol unit.",
+      "forms": [
+        {
+          "text": "payloads",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "permission",
+      "canonical": "permission",
+      "roles": [
+        "noun"
+      ],
+      "definition": "An authorization rule or grant that allows a software identity to perform an operation.",
+      "forms": [
+        {
+          "text": "permissions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "persistence",
+      "canonical": "persistence",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The retention of software data or state beyond the operation that created it.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "plugin",
+      "canonical": "plugin",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A software component designed to extend another application or framework through a defined extension mechanism.",
+      "forms": [
+        {
+          "text": "plugins",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "protocol",
+      "canonical": "protocol",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A defined set of rules for communication or interaction between software components.",
+      "forms": [
+        {
+          "text": "protocols",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "query",
+      "canonical": "query",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A structured request for data, or the act of submitting such a request to a software data source.",
+      "forms": [
+        {
+          "text": "queries",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "queried",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "querying",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "queue",
+      "canonical": "queue",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "An ordered collection of pending software work or messages, or the act of adding an item to it.",
+      "forms": [
+        {
+          "text": "queues",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "queued",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "queuing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "queueing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "record",
+      "canonical": "record",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A structured collection of related named data fields.",
+      "forms": [
+        {
+          "text": "records",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "regression",
+      "canonical": "regression",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A previously working software behavior that becomes incorrect after a change.",
+      "forms": [
+        {
+          "text": "regressions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "release",
+      "canonical": "release",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "An identified software version made available for use, or the act of making it available.",
+      "forms": [
+        {
+          "text": "releases",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "released",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "releasing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "result",
+      "canonical": "result",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A value or outcome produced by a software operation.",
+      "forms": [
+        {
+          "text": "results",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "retry",
+      "canonical": "retry",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A repeated attempt to perform a software operation, or the act of making that attempt again.",
+      "forms": [
+        {
+          "text": "retries",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "retried",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "retrying",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "secret",
+      "canonical": "secret",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Sensitive software configuration data that must be protected from unauthorized disclosure.",
+      "forms": [
+        {
+          "text": "secrets",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "serialization",
+      "canonical": "serialization",
+      "roles": [
+        "noun"
+      ],
+      "definition": "The conversion of a software representation into a form suitable for storage or transfer.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "session",
+      "canonical": "session",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A bounded period of related interaction maintained by software for a client, user, or process.",
+      "forms": [
+        {
+          "text": "sessions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "stream",
+      "canonical": "stream",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A sequence of data processed over time, or the act of transferring or processing data as such a sequence.",
+      "forms": [
+        {
+          "text": "streams",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "streamed",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "streaming",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "table",
+      "canonical": "table",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A structured collection of data organized into rows and fields.",
+      "forms": [
+        {
+          "text": "tables",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "telemetry",
+      "canonical": "telemetry",
+      "roles": [
+        "noun"
+      ],
+      "definition": "Operational data collected from software for observation and analysis.",
+      "forms": [],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "thread",
+      "canonical": "thread",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A sequence of software execution scheduled within a process.",
+      "forms": [
+        {
+          "text": "threads",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "timeout",
+      "canonical": "timeout",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A configured time limit after which a software operation is treated as incomplete or failed.",
+      "forms": [
+        {
+          "text": "timeouts",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "trace",
+      "canonical": "trace",
+      "roles": [
+        "noun",
+        "verb"
+      ],
+      "definition": "A recorded path of software execution or distributed activity, or the act of recording that path.",
+      "forms": [
+        {
+          "text": "traces",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "traced",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        },
+        {
+          "text": "tracing",
+          "roles": [
+            "noun",
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "transaction",
+      "canonical": "transaction",
+      "roles": [
+        "noun"
+      ],
+      "definition": "A bounded set of software operations treated as one unit for consistency or completion.",
+      "forms": [
+        {
+          "text": "transactions",
+          "roles": [
+            "noun"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "persist",
+      "canonical": "persist",
+      "roles": [
+        "verb"
+      ],
+      "definition": "Retain software data or state beyond the operation that created it.",
+      "forms": [
+        {
+          "text": "persists",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "persisted",
+          "roles": [
+            "verb"
+          ]
+        },
+        {
+          "text": "persisting",
+          "roles": [
+            "verb"
+          ]
+        }
+      ],
+      "aliases": [],
+      "sources": [
+        {
+          "source": "ste-lint-software-core-v2-curated-baseline",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
+      "status": "approved"
+    }
   ]
 }

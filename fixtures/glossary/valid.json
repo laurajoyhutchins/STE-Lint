@@ -1,14 +1,34 @@
 {
+  "schema": "ste-terminology/v2",
+  "domain": "fixture",
+  "sources": {
+    "fixture": {
+      "title": "STE-Lint glossary fixture"
+    }
+  },
   "terms": [
     {
-      "term": "busway",
-      "kind": "technical_noun",
+      "id": "busway",
+      "canonical": "busway",
+      "roles": [
+        "noun"
+      ],
       "definition": "A project term for an electrical distribution assembly.",
-      "domain": "electrical",
-      "preferred": true,
+      "forms": [],
       "aliases": [],
-      "examples": ["Inspect the busway."],
-      "provenance": ["project glossary fixture"],
+      "sources": [
+        {
+          "source": "fixture",
+          "supports": [
+            "admission",
+            "definition",
+            "role",
+            "forms",
+            "alias",
+            "status"
+          ]
+        }
+      ],
       "status": "approved"
     }
   ]
