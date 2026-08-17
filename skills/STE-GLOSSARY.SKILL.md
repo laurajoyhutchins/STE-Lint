@@ -9,7 +9,9 @@ description: Use when STE-Lint reports unknown technical terminology, when selec
 
 STE-Lint has layered terminology authority. The ASD-STE100 runtime remains the general controlled-language authority. Reusable profiles provide narrow, source-backed technical vocabulary for common domains, and `.ste/terms.json` remains the repository-specific terminology authority.
 
-An unknown token is a classification request, not permission to add a term. A governed technical term can be valid even when the same spelling is unapproved for general dictionary use, but every reusable or repo-local admission needs an explicit technical meaning and provenance.
+An unknown token is a classification request, not permission to add a term. A governed technical term can be valid even when the same spelling is unapproved for general dictionary use, but every reusable or repo-local admission needs an explicit technical meaning and source support.
+
+Terminology v2 separates authored evidence from runtime lookup. `ste-terminology/v2` documents are validated and compiled into one normalized glossary index before lint analysis. Downstream passes consume the compiled identity, grammatical-role evidence, domain, lifecycle state, replacement, and source references rather than reinterpreting JSON fields independently.
 
 ## Classification hierarchy
 
@@ -47,37 +49,78 @@ Profiles are explicit opt-ins. No `.ste/config.json` means no reusable profiles.
 
 The `github` profile includes stable GitHub Actions-specific concepts such as workflows, workflow runs, runners, contexts, expressions, matrix strategies, and dispatch events. Generic software concepts used by Actions, such as jobs, artifacts, caches, environments, variables, and secrets, remain governed by `software-core`; do not duplicate them in `github` or a repo-local glossary.
 
+## Terminology v2 schema
+
+A repo-local v2 glossary declares its schema and domain once, then provides source-backed terms:
+
+```json
+{
+  "schema": "ste-terminology/v2",
+  "domain": "example-project",
+  "sources": {
+    "project-spec": {
+      "title": "Project specification",
+      "reviewed_on": "2026-08-17"
+    }
+  },
+  "terms": [
+    {
+      "id": "execution-receipt",
+      "canonical": "execution receipt",
+      "roles": ["noun"],
+      "definition": "A durable record of one execution result.",
+      "forms": [
+        {"text": "execution receipts", "roles": ["noun"]}
+      ],
+      "aliases": [
+        {"text": "receipt record", "kind": "short_form"}
+      ],
+      "sources": [
+        {
+          "source": "project-spec",
+          "supports": ["admission", "definition", "role", "forms", "alias", "status"]
+        }
+      ],
+      "status": "approved"
+    }
+  ]
+}
+```
+
+`id` is the stable concept identity. `canonical` is the preferred display spelling and can change without requiring consumers to invent a new concept identity. `roles` is a set containing `noun`, `verb`, or both. Do not add grammatical roles that project or subject-field evidence does not support.
+
+`forms` contains explicit governed spellings and the grammatical roles each spelling can represent. One spelling can legitimately retain more than one role when the evidence supports the ambiguity. STE-Lint does not stem terms or generate plurals, participles, conjugations, or other morphology.
+
+`aliases` are structured alternate identities. Allowed kinds are `abbreviation`, `acronym`, `short_form`, `synonym`, and `legacy`. An alias is not a substitute for a grammatical form.
+
+`status` is `approved` or `deprecated`. Do not use a separate preferred flag. A deprecated entry can name an explicit `replacement` term ID when the authority establishes the replacement relationship.
+
+Source references are structured. `supports` can contain `admission`, `definition`, `role`, `forms`, `alias`, and `status`. Do not claim a source supports evidence that it does not establish.
+
+Reusable profiles use the same term schema. Their top-level `profile.version` is the vocabulary revision, while `schema: ste-terminology/v2` identifies the serialization and interpretation contract. Do not conflate those two versions.
+
 ## Repo-local workflow
 
 1. Inspect the `STE-TERM-001` diagnostic and the source context.
 2. Inspect `ste glossary effective` so you do not duplicate terminology already governed by an inherited profile.
-3. Find repository or subject-field evidence that establishes the term's identity, meaning, domain use, and lifecycle status.
-4. Classify it as `technical_noun`, `technical_verb`, `technical_noun_and_verb`, or not a legitimate technical term.
-5. If it is legitimate and repo-specific, update `.ste/terms.json` with definition, domain, preferred status, explicit forms where established, aliases, examples, provenance, and lifecycle status.
-6. Run `ste glossary check .ste/terms.json --format json`.
-7. Run `ste glossary effective` again to verify that profile and project terminology compose without identity conflicts.
-8. Run `ste lint` on the original text again with the verified Issue 9 runtime configured.
+3. Find repository or subject-field evidence that establishes the concept identity, meaning, roles, forms or aliases, and lifecycle status you intend to claim.
+4. If it is legitimate and repo-specific, update `.ste/terms.json` using the v2 schema and only the evidence that is actually established.
+5. Run `ste glossary check .ste/terms.json --format json`.
+6. Run `ste glossary effective` again to verify that profile and project terminology compile without identity conflicts.
+7. Run `ste lint` on the original text again with the verified Issue 9 runtime configured.
 
-## Forms and aliases
+A bounded legacy `.ste/terms.json` input can still be read for compatibility, but it is compiled into the same runtime glossary. Do not create new legacy-format glossaries.
 
-`forms` is an explicit list of governed grammatical spellings. Do not infer or generate plurals, participles, conjugations, or other morphology merely because the canonical term is governed.
+## Compiled identity behavior
 
-`aliases` are alternate identities for the same technical concept. Do not use an alias as a second canonical identity, and do not use aliases to smuggle unrelated meanings into one entry.
+Composition is fail closed. Canonical spellings, aliases, and forms are normalized once into the compiled glossary index. A repo-local glossary cannot silently override a reusable profile, and one profile cannot silently override another.
 
-Recognition as a technical term does not exempt the text from applicable ASD-STE100 grammar rules. Vocabulary identity and grammatical legality are separate questions.
+`TERM-DUP-001` means two entries normalize to the same canonical identity. `TERM-ID-CONFLICT-001` means a canonical spelling, alias, or explicit form collides with another governed identity. Stable term IDs, role/form evidence, source references, and replacement relationships also validate before linting proceeds.
 
-## Conflict handling
-
-Composition is fail closed. A repo-local glossary cannot silently override a reusable profile, and one profile cannot silently override another.
-
-`TERM-DUP-001` means two entries normalize to the same canonical identity. Resolve the canonical term instead of suppressing the diagnostic.
-
-`TERM-ID-CONFLICT-001` means a canonical term, alias, or explicit form collides with another governed identity. Determine which authority and concept are correct, then remove the conflicting identity. Do not create precedence rules as a local workaround.
+Recognition as a technical term does not exempt the text from applicable ASD-STE100 grammar rules. Vocabulary identity and grammatical legality are separate questions. Preserve genuine ambiguity when the terminology evidence allows more than one grammatical role; do not choose the convenient interpretation merely to make lint pass.
 
 ## Constraints
 
-Do not add a term only because STE-Lint does not know it. Preserve evidence in `provenance`. Prefer one stable term for one technical concept. Do not convert common developer slang into `software-core` or a project glossary without a precise technical meaning and authority.
+Do not add a term only because STE-Lint does not know it. Prefer one stable ID for one technical concept. Do not convert common developer slang into `software-core` or a project glossary without a precise technical meaning and authority. Do not add heuristic morphology, automatic terminology admission, or local precedence rules.
 
-Use `technical_noun_and_verb` only when reusable-profile, project, or subject-field authority establishes both grammatical uses. The current linter does not yet parse sentence grammar deeply enough to prove noun-versus-verb use automatically.
-
-A glossary entry with `status: deprecated` produces `STE-TERM-002` when used. Remove or replace deprecated terminology rather than relying on a coincidentally approved general-dictionary spelling.
+A glossary entry with `status: deprecated` produces `STE-TERM-002` when used. If a governed replacement exists, record its stable term ID so diagnostics can preserve that evidence; semantic rewrite safety remains a separate decision.
