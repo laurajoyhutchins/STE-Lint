@@ -60,7 +60,11 @@ fn curated_golden_documents_match_semantic_contract() {
     let update = std::env::var_os("STE_UPDATE_GOLDENS").is_some();
     let mut mismatches = Vec::new();
 
-    assert_eq!(CASES.len(), 6, "keep the initial golden slice deliberately small");
+    assert_eq!(
+        CASES.len(),
+        6,
+        "keep the initial golden slice deliberately small"
+    );
 
     for case in CASES {
         let text = read_fixture(&root, &format!("{}.txt", case.id));
@@ -101,8 +105,9 @@ fn curated_golden_documents_match_semantic_contract() {
         let expected_path = root.join(format!("{}.json", case.id));
 
         if update {
-            fs::write(&expected_path, pretty_json(&actual))
-                .unwrap_or_else(|error| panic!("could not update {}: {error}", expected_path.display()));
+            fs::write(&expected_path, pretty_json(&actual)).unwrap_or_else(|error| {
+                panic!("could not update {}: {error}", expected_path.display())
+            });
             continue;
         }
 
