@@ -237,9 +237,7 @@ fn markdown_inline_code_spans(text: &str, start: usize, end: usize) -> Vec<Prote
 
         let open_start = cursor;
         let mut delimiter_width = 1usize;
-        while open_start + delimiter_width < end
-            && bytes[open_start + delimiter_width] == b'`'
-        {
+        while open_start + delimiter_width < end && bytes[open_start + delimiter_width] == b'`' {
             delimiter_width += 1;
         }
 
@@ -253,9 +251,7 @@ fn markdown_inline_code_spans(text: &str, start: usize, end: usize) -> Vec<Prote
 
             let close_start = search;
             let mut close_width = 1usize;
-            while close_start + close_width < end
-                && bytes[close_start + close_width] == b'`'
-            {
+            while close_start + close_width < end && bytes[close_start + close_width] == b'`' {
                 close_width += 1;
             }
             if close_width == delimiter_width {
