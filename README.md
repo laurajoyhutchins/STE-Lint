@@ -186,30 +186,51 @@ Profiles extend terminology authority only. They do not exempt profile terms fro
 
 ## Repo-local technical terminology
 
-A repository can extend the effective lexicon with `.ste/terms.json` without changing built-in language data. Exact governed terminology is evaluated before general dictionary approval status because a valid technical noun or technical verb can use a spelling that is not approved for general dictionary use.
+A repository can extend the effective lexicon with `.ste/terms.json` without changing built-in language data. New glossaries use the explicit `ste-terminology/v2` schema. The document declares its domain and source catalog once; each term carries a stable concept ID, canonical spelling, governed grammatical roles, explicit forms or aliases, source support, and lifecycle status.
 
 ```json
 {
+  "schema": "ste-terminology/v2",
+  "domain": "electrical",
+  "sources": {
+    "project-spec": {
+      "title": "Project terminology specification",
+      "reviewed_on": "2026-08-17"
+    }
+  },
   "terms": [
     {
-      "term": "busway",
-      "kind": "technical_noun",
+      "id": "busway",
+      "canonical": "busway",
+      "roles": ["noun"],
       "definition": "A project term for an electrical distribution assembly.",
-      "domain": "electrical",
-      "preferred": true,
-      "forms": ["busways"],
+      "forms": [
+        {"text": "busways", "roles": ["noun"]}
+      ],
       "aliases": [],
-      "examples": ["Inspect the busway."],
-      "provenance": ["project authority"],
+      "sources": [
+        {
+          "source": "project-spec",
+          "supports": ["admission", "definition", "role", "forms", "status"]
+        }
+      ],
       "status": "approved"
     }
   ]
 }
 ```
 
-`kind` can be `technical_noun`, `technical_verb`, or `technical_noun_and_verb` when project or subject-field authority establishes both uses. The current linter does not yet prove noun-versus-verb use from sentence grammar.
+`id` is the stable concept identity and `canonical` is its preferred display spelling. `roles` is a set containing `noun`, `verb`, or both. `forms` are explicit governed spellings and retain the grammatical roles that each spelling can represent. STE-Lint does not stem terms or generate plurals, participles, conjugations, or other morphology.
 
-`forms` is optional for backward compatibility. When supplied, it is an explicit list of governed grammatical spellings. STE-Lint does not stem terms or generate noun plurals or verb conjugations from a glossary entry. `aliases` are alternate identities for the same governed concept and are not a substitute for forms.
+Aliases are structured alternate identities with one of `abbreviation`, `acronym`, `short_form`, `synonym`, or `legacy`. Sources are structured references. A term source can explicitly support `admission`, `definition`, `role`, `forms`, `alias`, and `status`; do not claim support that the source does not establish.
+
+`status` is `approved` or `deprecated`. There is no separate preferred flag. A deprecated term can name a stable `replacement` term ID when authority establishes the relationship. Examples are optional.
+
+Reusable profiles use the same term schema. `schema: ste-terminology/v2` identifies the serialization contract, while `profile.version` identifies the vocabulary revision. Those versions are independent.
+
+Terminology documents compile into one normalized runtime glossary index before linting. The compiled index owns canonical, alias, and form lookup plus maximum phrase width, and glossary matches retain how a spelling matched and which grammatical roles that spelling can represent. Composition remains fail closed: canonical duplicates retain `TERM-DUP-001`, and canonical/alias/form identity collisions produce `TERM-ID-CONFLICT-001`.
+
+A bounded legacy `.ste/terms.json` reader remains available so existing repositories do not need an immediate migration, but legacy input is compiled into the same runtime model. Do not create new legacy-format glossaries.
 
 Unknown words are not added automatically. `STE-TERM-001` means the term needs classification, not that it is necessarily wrong. A governed term with `status: deprecated` produces `STE-TERM-002`.
 

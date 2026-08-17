@@ -244,6 +244,11 @@ impl Glossary {
     }
 
     fn from_legacy(legacy: LegacyGlossary) -> Self {
+        let domain = legacy
+            .terms
+            .first()
+            .map(|term| term.domain.clone())
+            .unwrap_or_else(|| "legacy".to_owned());
         let mut sources = BTreeMap::new();
         let mut terms = Vec::new();
         for (index, term) in legacy.terms.into_iter().enumerate() {
@@ -308,7 +313,7 @@ impl Glossary {
                 examples: term.examples,
             });
         }
-        Self::compile(None, "legacy", sources, terms)
+        Self::compile(None, &domain, sources, terms)
     }
 
     pub fn compose(glossaries: &[Glossary]) -> Result<Self, Vec<Diagnostic>> {
@@ -575,7 +580,6 @@ struct LegacyTechnicalTerm {
     term: String,
     kind: LegacyTechnicalTermKind,
     definition: String,
-    #[allow(dead_code)]
     domain: String,
     #[allow(dead_code)]
     preferred: bool,
