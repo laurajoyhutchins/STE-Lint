@@ -72,7 +72,7 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
                     "'{text_value}' is explicitly resolved to a meaning that is not approved for this dictionary word."
                 ),
                 span,
-                rules: vec!["1.3".into()],
+                rules: vec!["1.3".into(), "9.2".into()],
                 evidence: Some(json!({
                     "source": occurrence.source,
                     "fact": "dictionary_meaning",
