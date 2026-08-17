@@ -5,7 +5,9 @@ use crate::{LintContext, LintMode};
 
 use super::grammar::{self, ObservedRoleEvidence};
 use super::sentence::{AnalysisSentence, build_sentences};
-use super::token::{AnalysisToken, WordToken, lexical_tokens, word_tokens};
+use super::token::{
+    AnalysisToken, HyphenAwareToken, hyphen_aware_tokens, lexical_tokens,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerbFormRole {
@@ -55,7 +57,7 @@ pub struct AnalysisDocument<'a> {
     context: Option<&'a LintContext>,
     mode: LintMode,
     tokens: Vec<AnalysisToken<'a>>,
-    word_tokens: Vec<WordToken<'a>>,
+    hyphen_aware_tokens: Vec<HyphenAwareToken<'a>>,
     sentences: Vec<AnalysisSentence>,
     max_dictionary_words: usize,
     max_glossary_words: usize,
@@ -87,7 +89,7 @@ impl<'a> AnalysisDocument<'a> {
             context,
             mode,
             tokens,
-            word_tokens: word_tokens(text),
+            hyphen_aware_tokens: hyphen_aware_tokens(text),
             sentences,
             max_dictionary_words,
             max_glossary_words,
@@ -238,40 +240,42 @@ impl<'a> AnalysisDocument<'a> {
         end: usize,
         max_words: usize,
     ) -> Option<DictionaryMatch<'a>> {
-        if start >= end || end > self.text.len() {
+        if start >= end || end > self.text.len() || max_words == 0 {
             return None;
         }
-        let words = self.text[start..end]
-            .split_whitespace()
-            .take(max_words)
-            .map(|word| word.trim_matches(|character: char| character.is_ascii_punctuation()))
-            .take_while(|word| !word.is_empty())
-            .collect::<Vec<_>>();
-        for width in (1..=words.len()).rev() {
-            let phrase = words[..width].join(" ");
-            if let Some(matched) =
-                self.make_dictionary_match(0, width, phrase.clone(), start, start + phrase.len())
-            {
+        let (token_start, _) = self.first_token_in_span(start, end)?;
+        let available = self.tokens[token_start..]
+            .iter()
+            .take_while(|token| token.end <= end)
+            .count()
+            .min(max_words)
+            .min(self.max_dictionary_words);
+
+        for width in (1..=available).rev() {
+            let Some(matched) = self.dictionary_match_at(token_start, width) else {
+                continue;
+            };
+            if matched.start >= start && matched.end <= end {
                 return Some(matched);
             }
         }
         None
     }
 
-    pub(crate) fn word_tokens(&self) -> &[WordToken<'a>] {
-        &self.word_tokens
+    pub(crate) fn hyphen_aware_tokens(&self) -> &[HyphenAwareToken<'a>] {
+        &self.hyphen_aware_tokens
     }
 
-    pub(crate) fn word_dictionary_match_at(
+    pub(crate) fn hyphen_aware_dictionary_match_at(
         &self,
         token_start: usize,
         token_width: usize,
     ) -> Option<DictionaryMatch<'a>> {
-        if token_width == 0 || token_start + token_width > self.word_tokens.len() {
+        if token_width == 0 || token_start + token_width > self.hyphen_aware_tokens.len() {
             return None;
         }
-        let window = &self.word_tokens[token_start..token_start + token_width];
-        if !word_tokens_whitespace_joined(self.text, window) {
+        let window = &self.hyphen_aware_tokens[token_start..token_start + token_width];
+        if !hyphen_aware_tokens_whitespace_joined(self.text, window) {
             return None;
         }
         let start = window[0].start;
@@ -391,7 +395,7 @@ fn analysis_tokens_whitespace_joined(text: &str, tokens: &[AnalysisToken<'_>]) -
     })
 }
 
-fn word_tokens_whitespace_joined(text: &str, tokens: &[WordToken<'_>]) -> bool {
+fn hyphen_aware_tokens_whitespace_joined(text: &str, tokens: &[HyphenAwareToken<'_>]) -> bool {
     tokens.windows(2).all(|pair| {
         text[pair[0].end..pair[1].start]
             .chars()
