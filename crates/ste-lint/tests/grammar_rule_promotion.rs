@@ -43,7 +43,7 @@ fn progressive_adjectival_ambiguity_is_not_guessed_for_rule_3_5() {
 }
 
 #[test]
-fn resolved_procedural_passive_is_reported_for_rule_3_6() {
+fn resolved_procedural_passive_is_reported_for_rules_3_3_and_3_6() {
     let lexicon = passive_lexicon(false);
     let result = lint("THE UNIT IS CONNECTED.", &lexicon, LintMode::Procedural);
 
@@ -52,7 +52,7 @@ fn resolved_procedural_passive_is_reported_for_rule_3_6() {
         .iter()
         .find(|diagnostic| diagnostic.code == "STE-GRAM-003")
         .expect("resolved procedural passive should be reported");
-    assert_eq!(diagnostic.rules, vec!["3.6"]);
+    assert_eq!(diagnostic.rules, vec!["3.3", "3.6"]);
     assert_eq!((diagnostic.span.start, diagnostic.span.end), (12, 21));
 }
 
