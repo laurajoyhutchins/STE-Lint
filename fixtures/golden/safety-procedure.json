@@ -1,0 +1,42 @@
+{
+  "diagnostics": [
+    {
+      "code": "STE-TERM-001",
+      "evidence": {
+        "required_classification": [
+          "technical_noun",
+          "technical_verb",
+          "technical_noun_and_verb",
+          "not_a_term"
+        ],
+        "term": "WARNING"
+      },
+      "rules": [
+        "1.1"
+      ],
+      "severity": "blocked",
+      "span": {
+        "end": 7,
+        "start": 0
+      }
+    },
+    {
+      "code": "STE-SAFE-001",
+      "evidence": {
+        "required_opening": [
+          "imperative_command",
+          "condition"
+        ]
+      },
+      "rules": [
+        "7.2"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 13,
+        "start": 9
+      }
+    }
+  ],
+  "outcome": "error"
+}

@@ -1,0 +1,50 @@
+{
+  "diagnostics": [
+    {
+      "code": "STE-LEX-001",
+      "evidence": {
+        "candidates": [
+          {
+            "alternatives": [
+              {
+                "kind": "approved_word",
+                "part_of_speech": "verb",
+                "strategy": "word_replacement",
+                "text": "USE"
+              },
+              {
+                "kind": "approved_word",
+                "part_of_speech": "preposition",
+                "strategy": "sentence_reconstruction",
+                "text": "WITH"
+              }
+            ],
+            "interpretation_state": "interpreted",
+            "lemma": "using",
+            "part_of_speech": "verb",
+            "provenance": null,
+            "restrictions": [],
+            "senses": [],
+            "status": "unapproved"
+          }
+        ],
+        "possible_parts_of_speech": [
+          "verb"
+        ],
+        "requires_disambiguation": false,
+        "role_evidence": [
+          "verbal"
+        ]
+      },
+      "rules": [
+        "1.1"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 5,
+        "start": 0
+      }
+    }
+  ],
+  "outcome": "error"
+}

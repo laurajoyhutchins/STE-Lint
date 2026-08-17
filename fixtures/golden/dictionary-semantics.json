@@ -1,0 +1,44 @@
+{
+  "diagnostics": [
+    {
+      "code": "STE-LEX-001",
+      "evidence": {
+        "candidates": [
+          {
+            "alternatives": [
+              {
+                "kind": "approved_word",
+                "part_of_speech": "adjective",
+                "strategy": "word_replacement",
+                "text": "PERMITTED"
+              }
+            ],
+            "interpretation_state": "interpreted",
+            "lemma": "acceptable",
+            "part_of_speech": "adjective",
+            "provenance": null,
+            "restrictions": [],
+            "senses": [],
+            "status": "unapproved"
+          }
+        ],
+        "possible_parts_of_speech": [
+          "adjective"
+        ],
+        "requires_disambiguation": false,
+        "role_evidence": [
+          "modifier"
+        ]
+      },
+      "rules": [
+        "1.1"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 10,
+        "start": 0
+      }
+    }
+  ],
+  "outcome": "error"
+}

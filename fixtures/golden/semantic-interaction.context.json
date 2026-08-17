@@ -1,0 +1,9 @@
+{
+  "semantic_orderings": [
+    {
+      "before": {"kind": "sentence", "start": 10, "end": 19},
+      "after": {"kind": "sentence", "start": 0, "end": 9},
+      "source": "project-information-order"
+    }
+  ]
+}
