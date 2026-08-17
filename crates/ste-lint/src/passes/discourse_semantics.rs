@@ -1,9 +1,13 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 
-use crate::{AnalysisDocument, DocumentNode, DocumentNodeKind, Resolution};
+use crate::{AnalysisDocument, DocumentNode, DocumentNodeKind, LintMode, Resolution};
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    if analysis.mode() != LintMode::Descriptive {
+        return Vec::new();
+    }
+
     let graph = analysis.document_graph();
     let mut diagnostics = Vec::new();
 
