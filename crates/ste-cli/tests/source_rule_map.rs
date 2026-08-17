@@ -103,6 +103,11 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
         rules["2.2"]["diagnostic_codes"],
         serde_json::json!(["STE-NOUN-002"])
     );
+    assert_eq!(rules["3.3"]["status"], "partial");
+    assert_eq!(
+        rules["3.3"]["diagnostic_codes"],
+        serde_json::json!(["STE-VERB-001", "STE-GRAM-003"])
+    );
     assert_eq!(rules["9.2"]["status"], "partial");
     assert_eq!(
         rules["9.2"]["diagnostic_codes"],
@@ -137,7 +142,7 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
         *counts.entry(rule["status"].as_str().unwrap()).or_default() += 1;
     }
     assert_eq!(counts.get("implemented"), Some(&2));
-    assert_eq!(counts.get("partial"), Some(&35));
-    assert_eq!(counts.get("context_required"), Some(&13));
+    assert_eq!(counts.get("partial"), Some(&36));
+    assert_eq!(counts.get("context_required"), Some(&12));
     assert_eq!(counts.get("not_implemented"), Some(&3));
 }
