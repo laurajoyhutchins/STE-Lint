@@ -20,33 +20,11 @@ jobs:
         with:
           components: rustfmt
       - name: Update profile human output for v2
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('crates/ste-cli/src/main.rs')
-          text = p.read_text()
-          old = '''                    for term in profile.terms {
-                        println!("- {} [{}]", term.term, serialized_label(&term.kind));
-                    }
-'''
-          new = '''                    for term in profile.terms {
-                        let roles = term
-                            .roles
-                            .iter()
-                            .map(serialized_label)
-                            .collect::<Vec<_>>()
-                            .join(", ");
-                        println!("- {} [{}]", term.canonical, roles);
-                    }
-'''
-          if old not in text:
-              raise SystemExit('expected profile output block not found')
-          p.write_text(text.replace(old, new))
-          PY
+        run: python scripts/patch-terminology-v2-consumers.py
       - name: Format Rust changes
         run: cargo fmt --all
-      - name: Remove one-shot workflow
-        run: rm .github/workflows/format-terminology-v2.yml
+      - name: Remove one-shot machinery
+        run: rm scripts/patch-terminology-v2-consumers.py .github/workflows/format-terminology-v2.yml
       - name: Commit formatted propagation
         run: |
           git config user.name github-actions[bot]
