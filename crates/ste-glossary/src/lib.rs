@@ -101,7 +101,8 @@ impl Glossary {
 
             for (kind, value) in term_identities(term) {
                 let normalized = normalize_identity(value);
-                if let Some((first_index, first_term, first_kind)) = identity_seen.get(&normalized) {
+                if let Some((first_index, first_term, first_kind)) = identity_seen.get(&normalized)
+                {
                     if *first_index != index && !(*first_kind == "term" && kind == "term") {
                         diagnostics.push(identity_conflict(
                             first_term,
@@ -138,8 +139,9 @@ fn identity_conflict(
     Diagnostic {
         code: "TERM-ID-CONFLICT-001".into(),
         severity: Severity::Error,
-        message: "Technical glossary contains a conflicting canonical term, alias, or form identity."
-            .into(),
+        message:
+            "Technical glossary contains a conflicting canonical term, alias, or form identity."
+                .into(),
         span: Span { start: 0, end: 0 },
         rules: Vec::new(),
         evidence: Some(serde_json::json!({

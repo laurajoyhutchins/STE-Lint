@@ -124,8 +124,9 @@ pub fn resolve_effective_glossary(path: &Path) -> Result<EffectiveGlossary, Stri
 }
 
 fn parse_builtin_profile(expected_id: &str, json: &str) -> Result<TerminologyProfile, String> {
-    let profile: TerminologyProfile = serde_json::from_str(json)
-        .map_err(|error| format!("invalid built-in terminology profile '{expected_id}': {error}"))?;
+    let profile: TerminologyProfile = serde_json::from_str(json).map_err(|error| {
+        format!("invalid built-in terminology profile '{expected_id}': {error}")
+    })?;
     if profile.profile.id != expected_id {
         return Err(format!(
             "built-in terminology profile identity mismatch: expected '{expected_id}', found '{}'",
@@ -136,8 +137,12 @@ fn parse_builtin_profile(expected_id: &str, json: &str) -> Result<TerminologyPro
 }
 
 fn parse_project_config(path: &Path) -> Result<ProjectConfig, String> {
-    let text = fs::read_to_string(path)
-        .map_err(|error| format!("could not read STE project config {}: {error}", path.display()))?;
+    let text = fs::read_to_string(path).map_err(|error| {
+        format!(
+            "could not read STE project config {}: {error}",
+            path.display()
+        )
+    })?;
     serde_json::from_str(&text)
         .map_err(|error| format!("invalid STE project config {}: {error}", path.display()))
 }

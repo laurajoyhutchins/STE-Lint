@@ -361,7 +361,11 @@ fn run_glossary(command: GlossaryCommands) -> Result<u8, AppFailure> {
                     }
                     println!(
                         "project glossary: {}",
-                        effective.report.project_glossary.as_deref().unwrap_or("none")
+                        effective
+                            .report
+                            .project_glossary
+                            .as_deref()
+                            .unwrap_or("none")
                     );
                     println!("effective terms: {}", effective.report.terms.len());
                 }
@@ -387,7 +391,9 @@ fn run_profile(command: ProfileCommands) -> Result<u8, AppFailure> {
                     for profile in profiles {
                         println!(
                             "{} v{}: {}",
-                            profile.profile.id, profile.profile.version, profile.profile.description
+                            profile.profile.id,
+                            profile.profile.version,
+                            profile.profile.description
                         );
                     }
                 }
