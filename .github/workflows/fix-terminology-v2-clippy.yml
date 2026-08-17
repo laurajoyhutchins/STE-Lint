@@ -20,7 +20,8 @@ jobs:
         with:
           components: rustfmt
       - name: Add explicit compiled identity index type
-        run: sed -i 's/let mut identities = HashMap::new();/let mut identities: HashMap<String, IdentityRecord> = HashMap::new();/' crates/ste-glossary/src/lib.rs
+        run: |
+          sed -i 's/let mut identities = HashMap::new();/let mut identities: HashMap<String, IdentityRecord> = HashMap::new();/' crates/ste-glossary/src/lib.rs
       - name: Format
         run: cargo fmt --all
       - name: Remove one-shot workflow
