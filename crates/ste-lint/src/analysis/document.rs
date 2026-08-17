@@ -1,5 +1,5 @@
 use ste_data::{LexiconEntry, PartOfSpeech, RuntimeLexicon};
-use ste_glossary::{Glossary, TechnicalTerm};
+use ste_glossary::{AliasKind, Glossary, GlossaryIdentityKind, TechnicalTerm, TermRole};
 
 use crate::{LintContext, LintMode};
 
@@ -42,6 +42,9 @@ pub struct GlossaryMatch<'a> {
     pub start: usize,
     pub end: usize,
     pub term: &'a TechnicalTerm,
+    pub identity_kind: GlossaryIdentityKind,
+    pub roles: &'a [TermRole],
+    pub alias_kind: Option<AliasKind>,
 }
 
 #[derive(Debug)]
@@ -75,17 +78,7 @@ impl<'a> AnalysisDocument<'a> {
             .map(|form| form.split_whitespace().count())
             .max()
             .unwrap_or(1);
-        let max_glossary_words = glossary
-            .map(|glossary| {
-                glossary
-                    .terms
-                    .iter()
-                    .flat_map(|term| std::iter::once(&term.term).chain(term.aliases.iter()))
-                    .map(|value| value.split_whitespace().count())
-                    .max()
-                    .unwrap_or(1)
-            })
-            .unwrap_or(1);
+        let max_glossary_words = glossary.map(Glossary::max_identity_words).unwrap_or(1);
 
         Self {
             text,
@@ -195,14 +188,17 @@ impl<'a> AnalysisDocument<'a> {
                 .map(|token| token.text)
                 .collect::<Vec<_>>()
                 .join(" ");
-            if let Some(term) = glossary.lookup_term(&phrase) {
+            if let Some(matched) = glossary.lookup_identity(&phrase) {
                 return Some(GlossaryMatch {
                     token_start,
                     token_width: width,
                     text: phrase,
                     start: window[0].start,
                     end: window[width - 1].end,
-                    term,
+                    term: matched.term,
+                    identity_kind: matched.identity_kind,
+                    roles: matched.roles,
+                    alias_kind: matched.alias_kind,
                 });
             }
         }
