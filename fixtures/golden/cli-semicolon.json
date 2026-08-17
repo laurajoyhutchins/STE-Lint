@@ -1,1 +1,25 @@
-{}
+{
+  "text": "USE THIS; USE THIS.\n",
+  "diagnostics": [
+    {
+      "code": "STE-PUNC-001",
+      "severity": "error",
+      "message": "Semicolons are not permitted in STE.",
+      "span": {
+        "start": 8,
+        "end": 9
+      },
+      "rules": [
+        "8.1"
+      ],
+      "autofix": {
+        "span": {
+          "start": 8,
+          "end": 9
+        },
+        "replacement": "."
+      }
+    }
+  ],
+  "outcome": "error"
+}
