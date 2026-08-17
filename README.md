@@ -160,13 +160,13 @@ A repository can opt into source-backed built-in terminology profiles through th
 }
 ```
 
-The initial built-in profiles have deliberately narrow ownership:
+The built-in profiles have deliberately narrow ownership:
 
-- `software-core` contains common software-engineering concepts intended to be portable across unrelated codebases;
+- `software-core` contains common software-engineering and generic-codebase concepts intended to be portable across unrelated codebases;
 - `git` contains Git version-control concepts;
-- `github` contains GitHub work-surface concepts that are not owned by the generic Git profile.
+- `github` contains GitHub work-surface and GitHub Actions concepts that are not owned by the generic Git or software-core profiles.
 
-GitHub Actions terminology is not part of the initial `github` profile. A narrower profile can be added later if the corpus demonstrates that need.
+The `github` profile includes stable Actions-specific concepts such as workflows, workflow runs, runners, contexts, expressions, matrix strategies, and dispatch events. Generic software concepts used by Actions, such as jobs, artifacts, caches, environments, variables, and secrets, remain owned by `software-core` so profile composition does not duplicate identities.
 
 Profiles are explicit opt-ins. If `.ste/config.json` is absent, STE-Lint enables no reusable profiles and preserves the existing runtime-plus-project-glossary behavior. Unknown profile IDs, duplicate profile selections, malformed configuration, malformed profile data, or identity conflicts fail closed as invalid data.
 
