@@ -248,9 +248,9 @@ impl Glossary {
         let mut terms = Vec::new();
         for (index, term) in legacy.terms.into_iter().enumerate() {
             let roles = match term.kind {
-                LegacyTechnicalTermKind::TechnicalNoun => vec![TermRole::Noun],
-                LegacyTechnicalTermKind::TechnicalVerb => vec![TermRole::Verb],
-                LegacyTechnicalTermKind::TechnicalNounAndVerb => {
+                LegacyTechnicalTermKind::Noun => vec![TermRole::Noun],
+                LegacyTechnicalTermKind::Verb => vec![TermRole::Verb],
+                LegacyTechnicalTermKind::NounAndVerb => {
                     vec![TermRole::Noun, TermRole::Verb]
                 }
             };
@@ -480,14 +480,14 @@ fn validate_terms(terms: &[TechnicalTerm]) -> Vec<Diagnostic> {
                 ));
             }
         }
-        if let Some(replacement) = &term.replacement {
-            if term.status != TermStatus::Deprecated || !all_ids.contains(replacement.as_str()) {
-                diagnostics.push(simple_diagnostic(
-                    "TERM-REPLACEMENT-001",
-                    "Technical term replacement must name an existing term and may only be set on a deprecated term.",
-                    serde_json::json!({"term_id": term.id, "replacement": replacement}),
-                ));
-            }
+        if let Some(replacement) = &term.replacement
+            && (term.status != TermStatus::Deprecated || !all_ids.contains(replacement.as_str()))
+        {
+            diagnostics.push(simple_diagnostic(
+                "TERM-REPLACEMENT-001",
+                "Technical term replacement must name an existing term and may only be set on a deprecated term.",
+                serde_json::json!({"term_id": term.id, "replacement": replacement}),
+            ));
         }
     }
 
@@ -562,9 +562,12 @@ fn stable_id(value: &str) -> String {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum LegacyTechnicalTermKind {
-    TechnicalNoun,
-    TechnicalVerb,
-    TechnicalNounAndVerb,
+    #[serde(rename = "technical_noun")]
+    Noun,
+    #[serde(rename = "technical_verb")]
+    Verb,
+    #[serde(rename = "technical_noun_and_verb")]
+    NounAndVerb,
 }
 
 #[derive(Debug, Clone, Deserialize)]
