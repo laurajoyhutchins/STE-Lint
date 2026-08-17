@@ -11,9 +11,9 @@ class TemporaryLockRecovery(unittest.TestCase):
         subprocess.run(["cargo", "+1.97.1", "generate-lockfile"], cwd=root, check=True)
         payload = base64.b64encode((root / "Cargo.lock").read_bytes()).decode("ascii")
         chunks = [payload[i:i + 3000] for i in range(0, len(payload), 3000)]
-        for index in range(9, min(18, len(chunks))):
+        for index in range(18, len(chunks)):
             print(f"::error file=tools/authority-ingest/test_ljh364_lock_annotation.py,line=1,title=LJH364_LOCK_CHUNK_{index:02d}::{chunks[index]}", flush=True)
-        self.fail("emitted Cargo.lock chunks 09-17")
+        self.fail("emitted final Cargo.lock chunks")
 
 
 if __name__ == "__main__":
