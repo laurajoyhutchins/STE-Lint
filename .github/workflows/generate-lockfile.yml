@@ -4,6 +4,9 @@ on:
   push:
     branches: ["feat/ljh-362-repro-builds"]
 
+permissions:
+  contents: write
+
 jobs:
   lockfile:
     runs-on: ubuntu-latest
@@ -13,9 +16,13 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal --no-self-update
       - name: Generate Cargo lockfile
         run: cargo +1.97.1 generate-lockfile
-      - name: Emit Cargo lockfile
+      - name: Commit generated lockfile
         run: |
-          echo 'CARGO_LOCK_BASE64_BEGIN'
-          base64 -w0 Cargo.lock
-          echo
-          echo 'CARGO_LOCK_BASE64_END'
+          if git diff --quiet -- Cargo.lock && git ls-files --error-unmatch Cargo.lock >/dev/null 2>&1; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Cargo.lock
+          git commit -m "chore: commit generated Cargo lockfile"
+          git push origin HEAD:feat/ljh-362-repro-builds
