@@ -3,7 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
-use ste_glossary::{Glossary, TechnicalTerm};
+use ste_glossary::{
+    Glossary, ProfileMetadata, TermRole, TermStatus, TerminologyProfile, TERMINOLOGY_SCHEMA_V2,
+};
 
 const BUILTIN_PROFILE_DATA: &[(&str, &str)] = &[
     (
@@ -14,22 +16,6 @@ const BUILTIN_PROFILE_DATA: &[(&str, &str)] = &[
     ("github", include_str!("../../../profiles/github.json")),
 ];
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ProfileMetadata {
-    pub id: String,
-    pub version: u32,
-    pub description: String,
-    pub sources: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct TerminologyProfile {
-    pub profile: ProfileMetadata,
-    pub terms: Vec<TechnicalTerm>,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ProjectConfig {
@@ -38,10 +24,20 @@ struct ProjectConfig {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct EffectiveTermReport {
+    pub id: String,
+    pub canonical: String,
+    pub roles: Vec<TermRole>,
+    pub domain: String,
+    pub status: TermStatus,
+    pub replacement: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct EffectiveGlossaryReport {
     pub profiles: Vec<ProfileMetadata>,
     pub project_glossary: Option<String>,
-    pub terms: Vec<TechnicalTerm>,
+    pub terms: Vec<EffectiveTermReport>,
 }
 
 pub struct EffectiveGlossary {
@@ -81,9 +77,7 @@ pub fn resolve_effective_glossary(path: &Path) -> Result<EffectiveGlossary, Stri
             return Err(format!("duplicate terminology profile '{id}'"));
         }
         let profile = builtin_profile(&id)?;
-        let glossary = Glossary {
-            terms: profile.terms.clone(),
-        };
+        let glossary = Glossary::from_profile(&profile);
         validate_glossary(&glossary, &format!("built-in terminology profile '{id}'"))?;
         selected_profiles.push(profile.profile);
         glossaries.push(glossary);
@@ -116,7 +110,20 @@ pub fn resolve_effective_glossary(path: &Path) -> Result<EffectiveGlossary, Stri
             project_glossary: project_glossary_path.map(|path| path.display().to_string()),
             terms: glossary
                 .as_ref()
-                .map(|glossary| glossary.terms.clone())
+                .map(|glossary| {
+                    glossary
+                        .terms()
+                        .iter()
+                        .map(|term| EffectiveTermReport {
+                            id: term.id.clone(),
+                            canonical: term.canonical.clone(),
+                            roles: term.roles.clone(),
+                            domain: term.domain.clone(),
+                            status: term.status,
+                            replacement: term.replacement.clone(),
+                        })
+                        .collect()
+                })
                 .unwrap_or_default(),
         },
         glossary,
@@ -127,6 +134,12 @@ fn parse_builtin_profile(expected_id: &str, json: &str) -> Result<TerminologyPro
     let profile: TerminologyProfile = serde_json::from_str(json).map_err(|error| {
         format!("invalid built-in terminology profile '{expected_id}': {error}")
     })?;
+    if profile.schema != TERMINOLOGY_SCHEMA_V2 {
+        return Err(format!(
+            "built-in terminology profile '{expected_id}' uses unsupported schema '{}'",
+            profile.schema
+        ));
+    }
     if profile.profile.id != expected_id {
         return Err(format!(
             "built-in terminology profile identity mismatch: expected '{expected_id}', found '{}'",
@@ -204,9 +217,7 @@ mod tests {
 
         let glossaries = profiles
             .iter()
-            .map(|profile| Glossary {
-                terms: profile.terms.clone(),
-            })
+            .map(Glossary::from_profile)
             .collect::<Vec<_>>();
         assert!(Glossary::compose(&glossaries).is_ok());
     }
