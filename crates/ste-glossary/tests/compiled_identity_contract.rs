@@ -35,4 +35,8 @@ fn compiled_index_preserves_canonical_form_and_alias_evidence() {
     assert_eq!(alias.identity_kind, GlossaryIdentityKind::Alias);
     assert_eq!(alias.alias_kind, Some(AliasKind::ShortForm));
     assert_eq!(alias.term.id, "repository");
+    assert_eq!(
+        alias.term.source_catalog["project"].title,
+        "Project terminology authority"
+    );
 }
