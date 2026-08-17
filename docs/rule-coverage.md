@@ -34,9 +34,9 @@ An evidence path is proof of implementation or regression coverage, not proof th
 - `implemented`: complete for the rule's stated `claim_scope`, with executable evidence and no unresolved requirements inside that scope.
 - `partial`: a bounded source-backed slice is executable and evidenced, but additional applications remain explicitly unresolved.
 - `context_required`: no safe automatic verdict is available without grammar, document structure, identity, terminology authority, discourse, or domain semantics identified in `unresolved_requirements`.
-- `not_implemented`: no executable check exists. The current manifest has zero entries in this state.
+- `not_implemented`: no executable check currently establishes the source-audited rule requirement; the remaining evidence or implementation condition stays explicit in `unresolved_requirements`.
 
-A zero `not_implemented` count does not mean full standards implementation. It means every rule is either executable in some bounded way or has an explicit context boundary.
+A `not_implemented` entry is an explicit capability gap, not a silent pass. Reducing that count does not mean full standards implementation: `partial` and `context_required` entries also preserve unresolved source-defined applications.
 
 ## Project context evidence
 
@@ -87,9 +87,9 @@ This corpus improves regression breadth. It does not change a rule's status by i
 The 53 rules classify as:
 
 - 2 `implemented`;
-- 31 `partial`;
-- 20 `context_required`;
-- 0 `not_implemented`.
+- 36 `partial`;
+- 12 `context_required`;
+- 3 `not_implemented`.
 
 Only Rules 8.5 and 8.7 are marked `implemented`. All other rules carry at least one explicit unresolved requirement. `data/rules.json` is the authority for the exact per-rule claim boundary.
 
