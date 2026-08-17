@@ -9,7 +9,9 @@ fn built_in_profile_exposes_v2_schema_and_stable_term_identity() {
         .args(["profile", "show", "software-core", "--format", "json"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("\"schema\": \"ste-terminology/v2\""))
+        .stdout(predicate::str::contains(
+            "\"schema\": \"ste-terminology/v2\"",
+        ))
         .stdout(predicate::str::contains("\"canonical\": \"runtime\""))
         .stdout(predicate::str::contains("\"roles\": ["))
         .stdout(predicate::str::contains("\"preferred\"").not());
