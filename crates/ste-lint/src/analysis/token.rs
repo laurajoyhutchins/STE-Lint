@@ -45,8 +45,8 @@ fn scan(text: &str, profile: TokenProfile) -> Vec<HyphenAwareToken<'_>> {
     let mut start = None;
 
     for (index, character) in text.char_indices() {
-        let is_word = character.is_alphabetic()
-            || (profile == TokenProfile::HyphenAware && character == '-');
+        let is_word =
+            character.is_alphabetic() || (profile == TokenProfile::HyphenAware && character == '-');
         match (start, is_word) {
             (None, true) => start = Some(index),
             (Some(word_start), false) => {
