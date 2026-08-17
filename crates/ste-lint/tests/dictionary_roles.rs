@@ -157,7 +157,7 @@ fn compatible_approved_candidate_prevents_false_role_error() {
 }
 
 #[test]
-fn explicit_unapproved_multiword_verb_cites_phrasal_verb_rule() {
+fn explicit_unapproved_multiword_verb_does_not_infer_phrasal_verb_rule() {
     let result = lint_text(
         "Turn on the system.",
         &lexicon(),
@@ -172,7 +172,7 @@ fn explicit_unapproved_multiword_verb_cites_phrasal_verb_rule() {
         .iter()
         .find(|item| item.code == "STE-LEX-001" && item.span.start == 0)
         .expect("explicit unapproved multiword verb must retain lexical diagnostic");
-    assert!(diagnostic.rules.contains(&"9.3".to_string()));
+    assert_eq!(diagnostic.rules, vec!["1.1"]);
 }
 
 #[test]
