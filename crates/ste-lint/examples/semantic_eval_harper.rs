@@ -19,7 +19,9 @@ struct Case {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path = env::args().nth(1).ok_or("usage: semantic_eval_harper <cases.json>")?;
+    let path = env::args()
+        .nth(1)
+        .ok_or("usage: semantic_eval_harper <cases.json>")?;
     let corpus: Corpus = serde_json::from_str(&fs::read_to_string(path)?)?;
     if corpus.schema_version != 1 {
         return Err(format!("unsupported corpus schema: {}", corpus.schema_version).into());
@@ -28,7 +30,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let lexicon = RuntimeLexicon::embedded()?;
     let mut cases = Vec::with_capacity(corpus.cases.len());
     for case in corpus.cases {
-        let analysis = AnalysisDocument::new(&case.text, &lexicon, None, None, LintMode::Procedural);
+        let analysis =
+            AnalysisDocument::new(&case.text, &lexicon, None, None, LintMode::Procedural);
         let mut tokens = Vec::new();
         for (index, evidence) in analysis.lexical_evidence().iter().enumerate() {
             let EvidenceTarget::Token(span) = evidence.target else {
@@ -38,11 +41,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let dictionary = analysis.dictionary_match_at(index, 1);
             let possible_parts_of_speech = dictionary
                 .as_ref()
-                .map(|matched| matched.possible_parts_of_speech.iter().map(|part| format!("{part:?}")).collect::<Vec<_>>())
+                .map(|matched| {
+                    matched
+                        .possible_parts_of_speech
+                        .iter()
+                        .map(|part| format!("{part:?}"))
+                        .collect::<Vec<_>>()
+                })
                 .unwrap_or_default();
             let dictionary_verb_roles = dictionary
                 .as_ref()
-                .map(|matched| matched.verb_forms.iter().map(|form| format!("{:?}", form.role)).collect::<Vec<_>>())
+                .map(|matched| {
+                    matched
+                        .verb_forms
+                        .iter()
+                        .map(|form| format!("{:?}", form.role))
+                        .collect::<Vec<_>>()
+                })
                 .unwrap_or_default();
 
             tokens.push(json!({
