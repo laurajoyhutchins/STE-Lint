@@ -2,7 +2,6 @@
 pub(crate) struct CountUnit {
     pub start: usize,
     pub end: usize,
-    pub word_count: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -118,13 +117,11 @@ fn push_regular_units(
 }
 
 fn push_span_and_parentheticals(text: &str, start: usize, end: usize, units: &mut Vec<CountUnit>) {
-    let word_count = count_issue9_words(&text[start..end]);
-    if word_count > 0 {
-        units.push(CountUnit {
-            start,
-            end,
-            word_count,
-        });
+    if text[start..end]
+        .chars()
+        .any(|character| character.is_alphanumeric())
+    {
+        units.push(CountUnit { start, end });
     }
 
     for (inner_start, inner_end) in top_level_parenthetical_spans(text, start, end) {
@@ -247,92 +244,6 @@ fn is_sentence_period(text: &str, period: usize, range_end: usize) -> bool {
     true
 }
 
-fn count_issue9_words(text: &str) -> usize {
-    let collapsed = collapse_groups(text);
-    let tokens = collapsed
-        .split_whitespace()
-        .map(clean_token)
-        .filter(|token| !token.is_empty())
-        .collect::<Vec<_>>();
-    let mut count = 0;
-    let mut index = 0;
-
-    while index < tokens.len() {
-        let token = tokens[index];
-        if token.eq_ignore_ascii_case("no")
-            && tokens
-                .get(index + 1)
-                .is_some_and(|next| is_identifier(next))
-        {
-            count += 1;
-            index += 2;
-            continue;
-        }
-
-        if is_numeric(token)
-            && let Some(next) = tokens.get(index + 1)
-        {
-            if is_clock_abbreviation(next) || is_unit(next) {
-                count += 1;
-                index += 2;
-                continue;
-            }
-            if is_degree_word(next)
-                && tokens
-                    .get(index + 2)
-                    .is_some_and(|third| is_temperature_scale(third))
-            {
-                count += 1;
-                index += 3;
-                continue;
-            }
-        }
-
-        count += 1;
-        index += 1;
-    }
-    count
-}
-
-fn collapse_groups(text: &str) -> String {
-    let mut output = String::with_capacity(text.len());
-    let mut chars = text.chars().peekable();
-
-    while let Some(character) = chars.next() {
-        if character == '(' {
-            output.push_str(" __STE_GROUP__ ");
-            let mut depth = 1usize;
-            for next in chars.by_ref() {
-                match next {
-                    '(' => depth += 1,
-                    ')' => {
-                        depth -= 1;
-                        if depth == 0 {
-                            break;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            continue;
-        }
-
-        if character == '"' || character == '“' {
-            output.push_str(" __STE_GROUP__ ");
-            let closing = if character == '“' { '”' } else { '"' };
-            for next in chars.by_ref() {
-                if next == closing {
-                    break;
-                }
-            }
-            continue;
-        }
-
-        output.push(character);
-    }
-    output
-}
-
 fn top_level_parenthetical_spans(text: &str, start: usize, end: usize) -> Vec<(usize, usize)> {
     let mut spans = Vec::new();
     let mut depth = 0usize;
@@ -357,128 +268,6 @@ fn top_level_parenthetical_spans(text: &str, start: usize, end: usize) -> Vec<(u
         }
     }
     spans
-}
-
-fn clean_token(token: &str) -> &str {
-    token
-        .trim_matches(|character: char| {
-            character.is_ascii_punctuation() && !matches!(character, '-' | '.')
-        })
-        .trim_end_matches(['.', ',', ':', ';', '?', '!'])
-}
-
-fn is_numeric(token: &str) -> bool {
-    token
-        .chars()
-        .all(|character| character.is_ascii_digit() || matches!(character, '.' | ','))
-        && token.chars().any(|character| character.is_ascii_digit())
-}
-
-fn is_identifier(token: &str) -> bool {
-    token.chars().any(|character| character.is_ascii_digit())
-}
-
-fn is_clock_abbreviation(token: &str) -> bool {
-    matches!(
-        token.to_ascii_lowercase().as_str(),
-        "a.m" | "p.m" | "am" | "pm"
-    )
-}
-
-fn is_degree_word(token: &str) -> bool {
-    matches!(token.to_ascii_lowercase().as_str(), "degree" | "degrees")
-}
-
-fn is_temperature_scale(token: &str) -> bool {
-    matches!(
-        token.to_ascii_lowercase().as_str(),
-        "celsius" | "fahrenheit"
-    )
-}
-
-fn is_unit(token: &str) -> bool {
-    if matches!(
-        token,
-        "A" | "mA"
-            | "V"
-            | "mV"
-            | "kV"
-            | "W"
-            | "kW"
-            | "N"
-            | "Nm"
-            | "Hz"
-            | "kHz"
-            | "MHz"
-            | "°C"
-            | "°F"
-            | "Ω"
-            | "Ω"
-    ) {
-        return true;
-    }
-
-    const LOWER_UNITS: &[&str] = &[
-        "mm",
-        "cm",
-        "m",
-        "km",
-        "in",
-        "ft",
-        "g",
-        "kg",
-        "mg",
-        "l",
-        "ml",
-        "pa",
-        "kpa",
-        "mpa",
-        "psi",
-        "bar",
-        "s",
-        "ms",
-        "min",
-        "h",
-        "hr",
-        "ohm",
-        "ohms",
-        "kilogram",
-        "kilograms",
-        "gram",
-        "grams",
-        "meter",
-        "meters",
-        "metre",
-        "metres",
-        "millimeter",
-        "millimeters",
-        "millimetre",
-        "millimetres",
-        "centimeter",
-        "centimeters",
-        "centimetre",
-        "centimetres",
-        "inch",
-        "inches",
-        "foot",
-        "feet",
-        "second",
-        "seconds",
-        "minute",
-        "minutes",
-        "hour",
-        "hours",
-        "volt",
-        "volts",
-        "ampere",
-        "amperes",
-        "watt",
-        "watts",
-        "newton",
-        "newtons",
-    ];
-    let lower = token.to_ascii_lowercase();
-    LOWER_UNITS.contains(&lower.as_str())
 }
 
 fn list_item_content_span(
@@ -571,24 +360,6 @@ fn line_spans(text: &str) -> Vec<LineSpan> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn number_and_unit_count_as_one_word() {
-        assert_eq!(count_issue9_words("USE 10 kg"), 2);
-        assert_eq!(count_issue9_words("USE 10 degrees Celsius"), 2);
-        assert_eq!(count_issue9_words("USE 10 °C"), 2);
-    }
-
-    #[test]
-    fn quoted_text_and_identifier_count_as_one_word() {
-        assert_eq!(count_issue9_words("USE the \"Service Overview\" page"), 4);
-        assert_eq!(count_issue9_words("EXAMINE No. 1 bearing"), 3);
-    }
-
-    #[test]
-    fn time_abbreviation_counts_with_number() {
-        assert_eq!(count_issue9_words("TEST at 10 a.m."), 3);
-    }
 
     #[test]
     fn commonmark_list_item_paragraphs_are_not_prose_paragraphs() {
