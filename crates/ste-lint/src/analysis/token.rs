@@ -10,16 +10,7 @@ pub struct AnalysisToken<'a> {
     pub sentence_id: Option<usize>,
 }
 
-/// Hyphen-aware source-token view retained temporarily for direct perfect-tense matching.
-///
-/// Canonical generic token identity now comes from Harper. This compatibility view remains only
-/// until source-backed compound matching is moved onto the canonical token stream.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct HyphenAwareToken<'a> {
-    pub text: &'a str,
-    pub start: usize,
-    pub end: usize,
-}
+// Dictionary matching uses the canonical Harper token stream.
 
 pub(crate) fn lexical_tokens(text: &str) -> Vec<AnalysisToken<'_>> {
     let source = SourceDocument::new(text);
@@ -42,33 +33,4 @@ pub(crate) fn lexical_tokens(text: &str) -> Vec<AnalysisToken<'_>> {
         .collect()
 }
 
-pub(crate) fn hyphen_aware_tokens(text: &str) -> Vec<HyphenAwareToken<'_>> {
-    let mut tokens = Vec::new();
-    let mut start = None;
-
-    for (index, character) in text.char_indices() {
-        let is_word = character.is_alphabetic() || character == '-';
-        match (start, is_word) {
-            (None, true) => start = Some(index),
-            (Some(word_start), false) => {
-                tokens.push(HyphenAwareToken {
-                    text: &text[word_start..index],
-                    start: word_start,
-                    end: index,
-                });
-                start = None;
-            }
-            _ => {}
-        }
-    }
-
-    if let Some(word_start) = start {
-        tokens.push(HyphenAwareToken {
-            text: &text[word_start..],
-            start: word_start,
-            end: text.len(),
-        });
-    }
-
-    tokens
-}
+// Hyphenated dictionary forms are reconstructed from canonical token source spans.

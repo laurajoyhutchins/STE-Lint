@@ -5,7 +5,7 @@ use crate::{LintContext, LintMode};
 
 use super::grammar::{self, ObservedRoleEvidence};
 use super::sentence::{AnalysisSentence, build_sentences};
-use super::token::{AnalysisToken, HyphenAwareToken, hyphen_aware_tokens, lexical_tokens};
+use super::token::{AnalysisToken, lexical_tokens};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerbFormRole {
@@ -55,7 +55,6 @@ pub struct AnalysisDocument<'a> {
     context: Option<&'a LintContext>,
     mode: LintMode,
     tokens: Vec<AnalysisToken<'a>>,
-    hyphen_aware_tokens: Vec<HyphenAwareToken<'a>>,
     sentences: Vec<AnalysisSentence>,
     max_dictionary_words: usize,
     max_glossary_words: usize,
@@ -75,7 +74,7 @@ impl<'a> AnalysisDocument<'a> {
             .entries()
             .iter()
             .flat_map(|entry| &entry.forms)
-            .map(|form| form.split_whitespace().count())
+            .map(|form| dictionary_token_width(form))
             .max()
             .unwrap_or(1);
         let max_glossary_words = glossary.map(Glossary::max_identity_words).unwrap_or(1);
@@ -87,7 +86,6 @@ impl<'a> AnalysisDocument<'a> {
             context,
             mode,
             tokens,
-            hyphen_aware_tokens: hyphen_aware_tokens(text),
             sentences,
             max_dictionary_words,
             max_glossary_words,
@@ -140,21 +138,13 @@ impl<'a> AnalysisDocument<'a> {
             return None;
         }
         let window = &self.tokens[token_start..token_start + token_width];
-        if !analysis_tokens_whitespace_joined(self.text, window) {
+        if !analysis_tokens_dictionary_joined(self.text, window) {
             return None;
         }
-        let phrase = window
-            .iter()
-            .map(|token| token.text)
-            .collect::<Vec<_>>()
-            .join(" ");
-        self.make_dictionary_match(
-            token_start,
-            token_width,
-            phrase,
-            window[0].start,
-            window[token_width - 1].end,
-        )
+        let start = window[0].start;
+        let end = window[token_width - 1].end;
+        let phrase = self.text[start..end].to_string();
+        self.make_dictionary_match(token_start, token_width, phrase, start, end)
     }
 
     pub fn longest_dictionary_match_at(&self, token_start: usize) -> Option<DictionaryMatch<'a>> {
@@ -260,27 +250,7 @@ impl<'a> AnalysisDocument<'a> {
         None
     }
 
-    pub(crate) fn hyphen_aware_tokens(&self) -> &[HyphenAwareToken<'a>] {
-        &self.hyphen_aware_tokens
-    }
-
-    pub(crate) fn hyphen_aware_dictionary_match_at(
-        &self,
-        token_start: usize,
-        token_width: usize,
-    ) -> Option<DictionaryMatch<'a>> {
-        if token_width == 0 || token_start + token_width > self.hyphen_aware_tokens.len() {
-            return None;
-        }
-        let window = &self.hyphen_aware_tokens[token_start..token_start + token_width];
-        if !hyphen_aware_tokens_whitespace_joined(self.text, window) {
-            return None;
-        }
-        let start = window[0].start;
-        let end = window[token_width - 1].end;
-        let phrase = self.text[start..end].to_string();
-        self.make_dictionary_match(token_start, token_width, phrase, start, end)
-    }
+    // Dictionary matching has a single canonical token identity.
 
     fn make_dictionary_match(
         &self,
@@ -385,15 +355,22 @@ fn verb_forms<'a>(phrase: &str, candidates: &[&'a LexiconEntry]) -> Vec<VerbForm
     forms
 }
 
-fn analysis_tokens_whitespace_joined(text: &str, tokens: &[AnalysisToken<'_>]) -> bool {
+fn dictionary_token_width(form: &str) -> usize {
+    form.split(|character: char| character.is_whitespace() || character == '-')
+        .filter(|part| !part.is_empty())
+        .count()
+        .max(1)
+}
+
+fn analysis_tokens_dictionary_joined(text: &str, tokens: &[AnalysisToken<'_>]) -> bool {
     tokens.windows(2).all(|pair| {
         text[pair[0].end..pair[1].start]
             .chars()
-            .all(char::is_whitespace)
+            .all(|character| character.is_whitespace() || character == '-')
     })
 }
 
-fn hyphen_aware_tokens_whitespace_joined(text: &str, tokens: &[HyphenAwareToken<'_>]) -> bool {
+fn analysis_tokens_whitespace_joined(text: &str, tokens: &[AnalysisToken<'_>]) -> bool {
     tokens.windows(2).all(|pair| {
         text[pair[0].end..pair[1].start]
             .chars()
