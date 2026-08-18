@@ -172,9 +172,7 @@ fn is_machine_like(token: &str) -> bool {
 
     let characters = token.chars().collect::<Vec<_>>();
     characters.windows(3).any(|window| {
-        window[0].is_alphanumeric()
-            && is_machine_marker(window[1])
-            && window[2].is_alphanumeric()
+        window[0].is_alphanumeric() && is_machine_marker(window[1]) && window[2].is_alphanumeric()
     }) || token.starts_with("./")
         || token.starts_with("../")
         || token.starts_with('/')
