@@ -1,9 +1,15 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct LintContext {
     #[serde(default)]
     pub occurrences: Vec<OccurrenceFact>,
+    #[serde(default)]
+    pub named_entities: Vec<NamedEntityFact>,
+    #[serde(default)]
+    pub measurement_units: Vec<MeasurementUnitFact>,
     #[serde(default)]
     pub topics: Vec<TopicFact>,
     #[serde(default)]
@@ -28,11 +34,52 @@ pub struct OccurrenceFact {
     #[serde(default)]
     pub count_group: Option<CountGroupKind>,
     #[serde(default)]
+    pub text_authority: Option<TextAuthorityKind>,
+    #[serde(default)]
     pub hyphen_direct_relation: Option<bool>,
     #[serde(default)]
     pub parenthesis_use: Option<ParenthesisUseKind>,
     #[serde(default)]
     pub phrasal_verb: Option<bool>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NamedEntityFact {
+    pub id: String,
+    pub canonical: String,
+    pub class: NamedEntityClass,
+    #[serde(default)]
+    pub forms: Vec<String>,
+    pub source: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum NamedEntityClass {
+    Person,
+    Group,
+    Organization,
+    GeopoliticalEntity,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MeasurementUnitFact {
+    pub id: String,
+    pub canonical: String,
+    #[serde(default)]
+    pub forms: Vec<String>,
+    pub source: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TextAuthorityKind {
+    ProtectedText,
+    QuotedExternalText,
+    CodeOrVerbatim,
+    Title,
+    Placard,
+    Label,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -122,12 +169,22 @@ pub enum SpellingUse {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CountGroupKind {
+    Number,
+    NumberWithUnit,
     Abbreviation,
+    AlphanumericIdentifier,
+    QuotedText,
     Title,
     Heading,
     Placard,
     Label,
     ProperNoun,
+    ProperNounPerson,
+    ProperNounGroup,
+    ProperNounOrganization,
+    ProperNounGeopoliticalEntity,
+    Parenthetical,
+    HyphenatedWord,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -204,6 +261,7 @@ impl LintContext {
                 && occurrence.spelling.is_none()
                 && !occurrence.official_technical_name
                 && occurrence.count_group.is_none()
+                && occurrence.text_authority.is_none()
                 && occurrence.hyphen_direct_relation.is_none()
                 && occurrence.parenthesis_use.is_none()
                 && occurrence.phrasal_verb.is_none()
@@ -213,6 +271,8 @@ impl LintContext {
                 ));
             }
         }
+        validate_named_entities(&self.named_entities)?;
+        validate_measurement_units(&self.measurement_units)?;
         for (index, topic) in self.topics.iter().enumerate() {
             if topic.source.trim().is_empty() {
                 return Err(format!("context topic {index} source must be non-empty"));
@@ -269,6 +329,87 @@ impl LintContext {
         }
         Ok(())
     }
+}
+
+fn validate_named_entities(facts: &[NamedEntityFact]) -> Result<(), String> {
+    let mut ids = HashSet::new();
+    let mut forms = HashSet::new();
+    for (index, fact) in facts.iter().enumerate() {
+        validate_global_authority("named entity", index, &fact.id, &fact.canonical, &fact.source)?;
+        if !ids.insert(fact.id.to_ascii_lowercase()) {
+            return Err(format!("named entity {index} duplicates a governed entity id"));
+        }
+        for surface in std::iter::once(&fact.canonical).chain(&fact.forms) {
+            let normalized = normalize_surface(surface);
+            if normalized.is_empty() {
+                return Err(format!("named entity {index} contains an empty surface form"));
+            }
+            if !forms.insert(normalized) {
+                return Err(format!(
+                    "named entity {index} has a surface form that collides with another governed entity"
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_measurement_units(facts: &[MeasurementUnitFact]) -> Result<(), String> {
+    let mut ids = HashSet::new();
+    let mut forms = HashSet::new();
+    for (index, fact) in facts.iter().enumerate() {
+        validate_global_authority(
+            "measurement unit",
+            index,
+            &fact.id,
+            &fact.canonical,
+            &fact.source,
+        )?;
+        if !ids.insert(fact.id.to_ascii_lowercase()) {
+            return Err(format!(
+                "measurement unit {index} duplicates a governed unit id"
+            ));
+        }
+        for surface in std::iter::once(&fact.canonical).chain(&fact.forms) {
+            let normalized = normalize_surface(surface);
+            if normalized.is_empty() {
+                return Err(format!(
+                    "measurement unit {index} contains an empty surface form"
+                ));
+            }
+            if !forms.insert(normalized) {
+                return Err(format!(
+                    "measurement unit {index} has a surface form that collides with another governed unit"
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_global_authority(
+    kind: &str,
+    index: usize,
+    id: &str,
+    canonical: &str,
+    source: &str,
+) -> Result<(), String> {
+    if id.trim().is_empty() {
+        return Err(format!("context {kind} {index} id must be non-empty"));
+    }
+    if canonical.trim().is_empty() {
+        return Err(format!(
+            "context {kind} {index} canonical form must be non-empty"
+        ));
+    }
+    if source.trim().is_empty() {
+        return Err(format!("context {kind} {index} source must be non-empty"));
+    }
+    Ok(())
+}
+
+fn normalize_surface(value: &str) -> String {
+    value.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase()
 }
 
 fn validate_safety_component(
