@@ -224,7 +224,10 @@ mod tests {
         let counts = manifest.status_counts();
         assert_eq!(counts.get(&CoverageStatus::Implemented).copied(), Some(7));
         assert_eq!(counts.get(&CoverageStatus::Partial).copied(), Some(35));
-        assert_eq!(counts.get(&CoverageStatus::ContextRequired).copied(), Some(11));
+        assert_eq!(
+            counts.get(&CoverageStatus::ContextRequired).copied(),
+            Some(11)
+        );
         assert_eq!(
             counts
                 .get(&CoverageStatus::NotImplemented)
