@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "lycoming-example",
+  "source_family": "lycoming",
+  "publisher": "Lycoming Engines",
+  "title": "Synthetic manifest contract example",
+  "document_type": "maintenance_manual",
+  "url": "https://example.com/manual.pdf",
+  "media_type": "application/pdf",
+  "retrieval_date": "2026-08-18",
+  "identity": {
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "byte_size": 1024,
+    "physical_pages": 42
+  },
+  "ste_claim": {
+    "kind": "explicit_ste",
+    "evidence": {
+      "physical_page": 10,
+      "method": "publisher_statement",
+      "note": "Synthetic curator note for contract testing."
+    }
+  },
+  "verification": {
+    "state": "unknown"
+  },
+  "rights": {
+    "redistribution": "manifest_only",
+    "source_cache": "local_only",
+    "derived_text": "local_only",
+    "committed_excerpt": "none"
+  }
+}

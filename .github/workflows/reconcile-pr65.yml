@@ -1,0 +1,41 @@
+name: Reconcile PR 65
+
+on:
+  push:
+    branches: [chatgpt/deterministic-rule-audit-20260818]
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/deterministic-rule-audit-20260818
+          fetch-depth: 0
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal --component rustfmt --no-self-update
+      - name: Normalize merged files
+        run: |
+          cp crates/ste-lint/src/lib_impl.rs crates/ste-lint/src/lib.rs
+          cat >> crates/ste-lint/src/lib.rs <<'EOF'
+
+          pub use analysis::{
+              AnalysisEvidence, CanonicalSpan, EvidenceAlternative, EvidenceProvenance, EvidenceTarget,
+              LexicalObservation, ModelIdentity, ProviderIdentity,
+          };
+          EOF
+          rm crates/ste-lint/src/lib_impl.rs
+          cargo +1.97.1 generate-lockfile
+          cargo +1.97.1 fmt --all
+          rm .github/workflows/reconcile-pr65.yml
+      - name: Commit reconciliation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Normalize PR 65 after main reconciliation"
+          git push origin HEAD:chatgpt/deterministic-rule-audit-20260818
