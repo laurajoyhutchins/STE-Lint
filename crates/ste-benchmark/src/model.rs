@@ -170,8 +170,7 @@ impl SourceManifest {
             ));
         }
         if let Some(evidence) = &self.ste_claim.evidence {
-            if evidence.physical_page == 0
-                || evidence.physical_page > self.identity.physical_pages
+            if evidence.physical_page == 0 || evidence.physical_page > self.identity.physical_pages
             {
                 return Err(BenchmarkError::invalid(
                     "source.ste_claim.evidence.physical_page must be within the PDF",

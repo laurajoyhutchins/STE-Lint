@@ -91,8 +91,7 @@ fn suite_accepts_the_strict_fixture() {
 
 #[test]
 fn suite_rejects_unknown_fields_and_enum_values() {
-    let mut value: Value =
-        serde_json::from_str(include_str!("fixtures/suite-valid.json")).unwrap();
+    let mut value: Value = serde_json::from_str(include_str!("fixtures/suite-valid.json")).unwrap();
     value["unexpected"] = json!(true);
     assert!(serde_json::from_value::<SuiteManifest>(value).is_err());
 
