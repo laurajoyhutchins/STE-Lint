@@ -117,13 +117,7 @@ fn rule_22_governed_hyphenated_short_form_can_share_rule_82_relation_authority()
     ))
     .unwrap();
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let result = lint_text_with_context(
-        text,
-        &lexicon,
-        Some(&glossary),
-        Some(&context),
-        options(),
-    );
+    let result = lint_text_with_context(text, &lexicon, Some(&glossary), Some(&context), options());
     assert!(!has_code(&result, "STE-NOUN-002"));
     assert!(!has_code(&result, "STE-PUNC-002"));
     assert!(!has_code(&result, "STE-CTX-000"));
