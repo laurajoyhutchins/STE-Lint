@@ -2,7 +2,7 @@ mod document;
 mod document_graph;
 mod entity;
 mod grammar;
-mod linguistic;
+pub(crate) mod linguistic;
 mod safety;
 mod sense;
 mod sentence;

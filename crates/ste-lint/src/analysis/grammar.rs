@@ -315,9 +315,9 @@ fn participle_use(
 }
 
 fn ing_use(analysis: &AnalysisDocument<'_>, token_index: usize) -> Resolution<IngUse> {
-    let Some(token) = analysis.tokens().get(token_index) else {
+    if analysis.tokens().get(token_index).is_none() {
         return Resolution::Unknown;
-    };
+    }
     if !analysis
         .linguistic_token(token_index)
         .is_some_and(|evidence| {
@@ -615,6 +615,13 @@ fn separator_is_whitespace(
     right: &AnalysisToken<'_>,
 ) -> bool {
     text[left.end..right.start].chars().all(char::is_whitespace)
+}
+
+fn is_determiner(value: &str) -> bool {
+    matches!(
+        value.to_ascii_lowercase().as_str(),
+        "a" | "an" | "the" | "this" | "that" | "these" | "those"
+    )
 }
 
 fn is_copula(value: &str) -> bool {
