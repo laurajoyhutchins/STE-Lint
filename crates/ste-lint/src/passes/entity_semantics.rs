@@ -61,10 +61,7 @@ enum Representation {
     NotAuthorizedForRule22,
 }
 
-fn classify_representation(
-    mention: &EntityMention,
-    canonical_word_count: usize,
-) -> Representation {
+fn classify_representation(mention: &EntityMention, canonical_word_count: usize) -> Representation {
     match mention.glossary_identity_kind {
         Some(GlossaryIdentityKind::Canonical) => Representation::FullForm,
         Some(GlossaryIdentityKind::Form) => {
