@@ -404,6 +404,7 @@ fn builtin_unit_phrase(phrase: &str) -> bool {
         || registry.symbols.iter().any(|symbol| symbol == phrase)
         || is_prefixed_unit(phrase, registry)
         || is_compound_unit(phrase)
+        || is_spaced_compound_unit(phrase)
 }
 
 fn is_unit_expression_token(token: &str) -> bool {
@@ -418,6 +419,14 @@ fn is_compound_unit(value: &str) -> bool {
         .split(['/', '·', '⋅', '*'])
         .filter(|atom| !atom.is_empty())
         .collect::<Vec<_>>();
+    atoms.len() >= 2
+        && atoms
+            .iter()
+            .all(|atom| builtin_unit_atom(strip_unit_power(atom)))
+}
+
+fn is_spaced_compound_unit(value: &str) -> bool {
+    let atoms = value.split_whitespace().collect::<Vec<_>>();
     atoms.len() >= 2
         && atoms
             .iter()
@@ -654,7 +663,7 @@ mod tests {
 
     #[test]
     fn built_in_units_cover_compound_and_prefixed_forms() {
-        for value in ["kg", "kPa", "°C", "kg/m³", "m/s", "N"] {
+        for value in ["kg", "kPa", "°C", "kg/m³", "m/s", "N", "N m", "Pa s"] {
             assert!(builtin_unit_phrase(value), "{value}");
         }
         assert!(builtin_unit_phrase("degrees Celsius"));
