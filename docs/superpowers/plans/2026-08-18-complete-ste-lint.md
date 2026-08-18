@@ -54,12 +54,12 @@
 - Produces: canonical byte-spanned STE tokens plus bounded generic grammar predicates.
 - Consumes: `harper_core::Document`/`TokenKind`; converts Harper character spans at one adapter boundary.
 
-- [ ] Add token/span and generic evidence characterization tests.
-- [ ] Build deterministic char-index-to-byte-index mapping.
-- [ ] Make Harper the canonical generic word token stream.
-- [ ] Replace generic determiner/linking/morphology evidence where compatibility is proven.
-- [ ] Keep runtime dictionary/glossary authority decisive for approval and permitted forms.
-- [ ] Delete the superseded generic lexical scanner and comparison scaffolding.
+- [x] Add token/span and generic evidence characterization tests.
+- [x] Build deterministic char-index-to-byte-index mapping.
+- [x] Make Harper the canonical generic word token stream.
+- [x] Replace generic determiner/linking/morphology evidence where compatibility is proven.
+- [x] Keep runtime dictionary/glossary authority decisive for approval and permitted forms.
+- [x] Delete the superseded generic lexical scanner and comparison scaffolding.
 - [ ] Run analysis/grammar tests and goldens.
 
 ### Task 3: Close remaining executable rule gaps honestly
@@ -74,10 +74,10 @@
 - Consumes: source-backed runtime dictionary forms plus generic role evidence.
 - Produces: bounded diagnostics for mechanically provable cases; context-required classification when semantic evidence cannot be inferred safely.
 
-- [ ] Implement source-linked out-of-inventory verb/adjective form detection for Rules 1.4/3.1 without generated STE morphology authority.
-- [ ] Implement a bounded Rule 9.3 phrasal-verb slice only where lexical composition evidence is explicit; otherwise change the rule to context-required rather than inventing semantics.
-- [ ] Ensure zero rules remain `not_implemented` unless authoritative evidence proves implementation is unsafe even with explicit context.
-- [ ] Update coverage truth and tests atomically.
+- [x] Implement source-linked out-of-inventory verb/adjective form detection for Rules 1.4/3.1 without generated STE morphology authority.
+- [x] Implement a bounded Rule 9.3 phrasal-verb slice only where lexical composition evidence is explicit; otherwise change the rule to context-required rather than inventing semantics.
+- [x] Ensure zero rules remain `not_implemented` unless authoritative evidence proves implementation is unsafe even with explicit context.
+- [x] Update coverage truth and tests atomically.
 
 ### Task 4: Release usability and exact-head verification
 
@@ -90,9 +90,13 @@
 - Produces: installable `ste-lint` CLI with documented verified-runtime and terminology/context workflows.
 
 - [x] Generate and commit Cargo.lock on Rust 1.97.1.
-- [ ] Verify `cargo fmt --all -- --check`.
+- [x] Verify `cargo fmt --all -- --check`.
 - [ ] Verify `cargo clippy --workspace --all-targets --locked -- -D warnings`.
 - [ ] Verify `cargo test --workspace --locked` plus authority-ingest tests, goldens, profiles, and engineering corpus.
 - [ ] Smoke-test CLI help, coverage output, profile inspection, procedural/descriptive linting, JSON output, and fix mode.
 - [ ] Update README with concrete install and first-run examples.
 - [ ] Merge only an exact verified head and close superseded temporary PRs/issues.
+
+## Execution Progress
+
+The exact parser dependency lock is committed. The Harper-backed linguistic adapter, bounded Rule 1.4/3.1 form enforcement, explicit-context Rule 9.3 enforcement, and zero-`not_implemented` coverage transition are on the completion branch and have been formatted by Rust 1.97.1. Full compiler, Clippy, regression, corpus, and release smoke verification remain the active gates.
