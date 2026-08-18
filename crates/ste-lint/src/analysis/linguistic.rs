@@ -156,11 +156,7 @@ fn append_sentence_evidence(
     let tags = tagger.tag_sentence(&strings);
     let noun_phrase_flags = chunker.chunk_sentence(&strings, &tags);
 
-    for ((token, tag), noun_phrase_member) in visible
-        .into_iter()
-        .zip(tags.into_iter())
-        .zip(noun_phrase_flags.into_iter())
-    {
+    for ((token, tag), noun_phrase_member) in visible.into_iter().zip(tags).zip(noun_phrase_flags) {
         if !token.kind.is_word() {
             continue;
         }
