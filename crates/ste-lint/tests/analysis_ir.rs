@@ -1,7 +1,8 @@
 use ste_data::{PartOfSpeech, RuntimeLexicon};
 use ste_glossary::Glossary;
 use ste_lint::{
-    ActionCardinality, AnalysisDocument, IngRole, LintMode, ParticipleRole, Resolution,
+    ActionCardinality, AnalysisDocument, AnalysisEvidence, EvidenceAlternative, EvidenceProvenance,
+    EvidenceTarget, IngRole, LintMode, ModelIdentity, ParticipleRole, ProviderIdentity, Resolution,
     VerbFormRole,
 };
 
@@ -214,6 +215,74 @@ fn grammar_v1_counts_only_bounded_procedural_action_heads() {
             .collect::<Vec<_>>(),
         vec![0, 4]
     );
+}
+
+#[test]
+fn harper_maps_into_repository_owned_canonical_spans() {
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let analysis = AnalysisDocument::new("CAFÉ valve", &lexicon, None, None, LintMode::Descriptive);
+
+    let evidence = analysis.lexical_evidence();
+    assert_eq!(evidence.len(), 2);
+    let cafe = analysis.canonical_span(0, 5).unwrap();
+    assert_eq!(evidence[0].target, EvidenceTarget::Token(cafe));
+    assert_eq!(evidence[0].provenance.provider.name, "harper-core");
+    assert_eq!(
+        evidence[0].provenance.provider.version.as_deref(),
+        Some("2.7.0")
+    );
+    assert!(evidence[0].provenance.model.is_none());
+    assert_eq!(
+        (analysis.tokens()[0].start, analysis.tokens()[0].end),
+        (0, 5)
+    );
+    assert!(analysis.canonical_span(4, 5).is_none());
+}
+
+#[test]
+fn evidence_ir_represents_scope_provenance_confidence_and_alternatives() {
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let analysis = AnalysisDocument::new("OPEN VALVE.", &lexicon, None, None, LintMode::Procedural);
+    let source = analysis.canonical_span(0, 4).unwrap();
+    let target = analysis.canonical_span(5, 10).unwrap();
+    let evidence = AnalysisEvidence {
+        value: "action_object".to_string(),
+        target: EvidenceTarget::Relation { source, target },
+        provenance: EvidenceProvenance {
+            provider: ProviderIdentity {
+                name: "synthetic-provider".into(),
+                version: Some("1.0.0".into()),
+            },
+            model: Some(ModelIdentity {
+                name: "synthetic-model".into(),
+                version: "v1".into(),
+                artifact_sha256: Some("a".repeat(64)),
+            }),
+        },
+        confidence: Some(0.9),
+        alternatives: vec![EvidenceAlternative {
+            value: "modifier".to_string(),
+            confidence: Some(0.1),
+        }],
+    };
+
+    assert!(matches!(evidence.target, EvidenceTarget::Relation { .. }));
+    assert_eq!(evidence.confidence, Some(0.9));
+    assert_eq!(evidence.alternatives.len(), 1);
+
+    let _supported_targets = [
+        EvidenceTarget::Token(source),
+        EvidenceTarget::Span(source),
+        EvidenceTarget::Sentence {
+            id: 0,
+            span: source,
+        },
+        EvidenceTarget::Paragraph {
+            id: 0,
+            span: source,
+        },
+        EvidenceTarget::Document,
+    ];
 }
 
 fn grammar_lexicon() -> RuntimeLexicon {

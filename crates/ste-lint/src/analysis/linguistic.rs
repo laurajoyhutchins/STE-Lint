@@ -1,8 +1,8 @@
 use harper_core::Document;
 use harper_core::spell::{Dictionary, FstDictionary};
 
-use super::source::SourceDocument;
-use super::token::AnalysisToken;
+use super::evidence::{AnalysisEvidence, EvidenceProvenance, EvidenceTarget, ProviderIdentity};
+use super::source::CanonicalSource;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum GenericVerbForm {
@@ -15,9 +15,7 @@ pub(crate) enum GenericVerbForm {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct LinguisticTokenEvidence {
-    pub start: usize,
-    pub end: usize,
+pub struct LexicalObservation {
     pub lemma: Option<String>,
     pub determiner: bool,
     pub conjunction: bool,
@@ -30,22 +28,29 @@ pub(crate) struct LinguisticTokenEvidence {
     pub np_member: bool,
     pub comparative_adjective: bool,
     pub superlative_adjective: bool,
-    pub verb_forms: Vec<GenericVerbForm>,
+    pub(crate) verb_forms: Vec<GenericVerbForm>,
 }
 
-#[derive(Debug)]
-pub(crate) struct LinguisticDocument<'a> {
-    text: &'a str,
-    tokens: Vec<LinguisticTokenEvidence>,
-}
+pub(crate) type LinguisticTokenEvidence = LexicalObservation;
 
-impl<'a> LinguisticDocument<'a> {
-    pub(crate) fn new(text: &'a str) -> Self {
+pub(crate) struct HarperProvider;
+
+impl HarperProvider {
+    pub(crate) fn analyze(
+        source: &CanonicalSource<'_>,
+    ) -> Vec<AnalysisEvidence<LexicalObservation>> {
+        let text = source.text();
         let document = Document::new_plain_english_curated(text);
         let dictionary = FstDictionary::curated();
-        let source = SourceDocument::new(text);
         let char_to_byte = char_to_byte_index(text);
-        let mut tokens = Vec::new();
+        let provenance = EvidenceProvenance {
+            provider: ProviderIdentity {
+                name: "harper-core".into(),
+                version: Some("2.7.0".into()),
+            },
+            model: None,
+        };
+        let mut evidence = Vec::new();
 
         for token in document.tokens().filter(|token| token.kind.is_word()) {
             let Some(&start) = char_to_byte.get(token.span.start) else {
@@ -54,12 +59,10 @@ impl<'a> LinguisticDocument<'a> {
             let Some(&end) = char_to_byte.get(token.span.end) else {
                 continue;
             };
-            if start >= end
-                || source
-                    .protected_ranges()
-                    .iter()
-                    .any(|span| span.intersects(start, end))
-            {
+            let Some(span) = source.span(start, end) else {
+                continue;
+            };
+            if source.is_protected(span) {
                 continue;
             }
 
@@ -95,53 +98,28 @@ impl<'a> LinguisticDocument<'a> {
                 verb_forms.push(GenericVerbForm::ThirdPersonSingularPresent);
             }
 
-            tokens.push(LinguisticTokenEvidence {
-                start,
-                end,
-                lemma,
-                determiner: token.kind.is_determiner(),
-                conjunction: token.kind.is_conjunction(),
-                noun: token.kind.is_noun(),
-                nominal: token.kind.is_nominal(),
-                adjective: token.kind.is_adjective(),
-                verb: token.kind.is_verb(),
-                auxiliary_verb: token.kind.is_auxiliary_verb(),
-                linking_verb: token.kind.is_linking_verb(),
-                np_member: token.kind.is_np_member(),
-                comparative_adjective: token.kind.is_comparative_adjective(),
-                superlative_adjective: token.kind.is_superlative_adjective(),
-                verb_forms,
-            });
+            evidence.push(AnalysisEvidence::new(
+                LexicalObservation {
+                    lemma,
+                    determiner: token.kind.is_determiner(),
+                    conjunction: token.kind.is_conjunction(),
+                    noun: token.kind.is_noun(),
+                    nominal: token.kind.is_nominal(),
+                    adjective: token.kind.is_adjective(),
+                    verb: token.kind.is_verb(),
+                    auxiliary_verb: token.kind.is_auxiliary_verb(),
+                    linking_verb: token.kind.is_linking_verb(),
+                    np_member: token.kind.is_np_member(),
+                    comparative_adjective: token.kind.is_comparative_adjective(),
+                    superlative_adjective: token.kind.is_superlative_adjective(),
+                    verb_forms,
+                },
+                EvidenceTarget::Token(span),
+                provenance.clone(),
+            ));
         }
 
-        Self { text, tokens }
-    }
-
-    #[cfg(test)]
-    fn analysis_tokens(&self) -> Vec<AnalysisToken<'a>> {
-        self.tokens
-            .iter()
-            .map(|token| AnalysisToken {
-                text: &self.text[token.start..token.end],
-                start: token.start,
-                end: token.end,
-                sentence_id: None,
-            })
-            .collect()
-    }
-
-    pub(crate) fn into_parts(self) -> (Vec<AnalysisToken<'a>>, Vec<LinguisticTokenEvidence>) {
-        let analysis_tokens = self
-            .tokens
-            .iter()
-            .map(|token| AnalysisToken {
-                text: &self.text[token.start..token.end],
-                start: token.start,
-                end: token.end,
-                sentence_id: None,
-            })
-            .collect();
-        (analysis_tokens, self.tokens)
+        evidence
     }
 }
 
@@ -158,30 +136,30 @@ fn char_to_byte_index(text: &str) -> Vec<usize> {
 mod tests {
     use super::*;
 
+    fn token_spans(text: &str) -> Vec<(String, usize, usize)> {
+        let source = CanonicalSource::new(text);
+        HarperProvider::analyze(&source)
+            .into_iter()
+            .map(|evidence| {
+                let EvidenceTarget::Token(span) = evidence.target else {
+                    unreachable!("Harper lexical evidence must target canonical tokens");
+                };
+                (text[span.start..span.end].to_string(), span.start, span.end)
+            })
+            .collect()
+    }
+
     #[test]
     fn converts_harper_character_spans_to_utf8_byte_spans() {
-        let text = "CAFÉ valve";
-        let document = LinguisticDocument::new(text);
-        let tokens = document.analysis_tokens();
+        let tokens = token_spans("CAFÉ valve");
         assert_eq!(tokens.len(), 2);
-        assert_eq!(
-            (tokens[0].text, tokens[0].start, tokens[0].end),
-            ("CAFÉ", 0, 5)
-        );
-        assert_eq!(
-            (tokens[1].text, tokens[1].start, tokens[1].end),
-            ("valve", 6, 11)
-        );
+        assert_eq!(tokens[0], ("CAFÉ".into(), 0, 5));
+        assert_eq!(tokens[1], ("valve".into(), 6, 11));
     }
 
     #[test]
     fn protected_markdown_code_is_not_linguistic_prose() {
-        let document = LinguisticDocument::new("USE `fluxcapacitor` here.");
-        assert!(
-            document
-                .analysis_tokens()
-                .iter()
-                .all(|token| token.text != "fluxcapacitor")
-        );
+        let tokens = token_spans("USE `fluxcapacitor` here.");
+        assert!(tokens.iter().all(|(text, _, _)| text != "fluxcapacitor"));
     }
 }
