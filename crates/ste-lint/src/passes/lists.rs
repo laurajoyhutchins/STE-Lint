@@ -207,9 +207,9 @@ fn determiner_led_nominal_fragment(
             evidence.adjective || evidence.noun || evidence.nominal || evidence.np_member
         })
     });
-    let nominal_head = rest.last().is_some_and(|&&index| {
+    let nominal_head = rest.last().is_some_and(|&index| {
         analysis
-            .linguistic_token(index)
+            .linguistic_token(*index)
             .is_some_and(|evidence| evidence.noun || evidence.nominal)
     });
 
