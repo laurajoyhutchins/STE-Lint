@@ -343,9 +343,12 @@ fn auxiliary_identity(
                     && match kind {
                         AuxiliaryKind::Be => entry.lemma.eq_ignore_ascii_case("be"),
                         AuxiliaryKind::Have => entry.lemma.eq_ignore_ascii_case("have"),
-                        AuxiliaryKind::Modal => entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
-                            paradigm.classification == ste_data::VerbClassification::DefectiveModal
-                        }),
+                        AuxiliaryKind::Modal => {
+                            entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
+                                paradigm.classification
+                                    == ste_data::VerbClassification::DefectiveModal
+                            })
+                        }
                     }
             })
             .collect::<Vec<_>>();
