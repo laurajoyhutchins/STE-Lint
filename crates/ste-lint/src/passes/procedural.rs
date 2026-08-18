@@ -202,7 +202,8 @@ fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             })
             .collect::<Vec<_>>();
 
-        if !approved_base_verbs.is_empty() && approved_base_verbs.len() == matched.candidates.len() {
+        if !approved_base_verbs.is_empty() && approved_base_verbs.len() == matched.candidates.len()
+        {
             continue;
         }
 
