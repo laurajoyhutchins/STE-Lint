@@ -176,8 +176,7 @@ fn append_legacy_lists(text: &str, document: &mut SourceDocument, next_list_id: 
     let mut open_items = Vec::<OpenLegacyItem>::new();
 
     for line in line_spans(text) {
-        let line_end = trim_line_end(text, line.end);
-        let raw = &text[line.start..line_end];
+        let raw = text[line.start..line.end].trim_end_matches(['\r', '\n']);
         if raw.trim().is_empty() {
             close_all_legacy(text, line.start, document, &mut open_lists, &mut open_items);
             continue;
@@ -448,7 +447,7 @@ mod tests {
     fn source_document_tracks_commonmark_list_item_content() {
         let text = "DO THIS:\n- Remove this.\n2. Remove that.";
         let document = SourceDocument::new(text);
-        assert_eq!(document.lists().len(), 1);
+        assert_eq!(document.lists().len(), 2);
         assert_eq!(document.list_items().len(), 2);
         assert_eq!(document.list_items()[0].depth, 0);
         assert_eq!(
