@@ -89,21 +89,25 @@ fn observed_role(
             })
             .collect::<Vec<_>>();
         if positions.len() == token_width {
-            if matches!(positions.first(), Some(GenericPos::Verb | GenericPos::Auxiliary)) {
+            if matches!(
+                positions.first(),
+                Some(GenericPos::Verb | GenericPos::Auxiliary)
+            ) {
                 return Some((ObservedRole::Verbal, "harper_brill_multiword_verb_head"));
             }
-            if matches!(positions.last(), Some(GenericPos::Noun | GenericPos::ProperNoun))
-                && positions.iter().all(|pos| {
-                    matches!(
-                        pos,
-                        GenericPos::Adjective
-                            | GenericPos::Determiner
-                            | GenericPos::Noun
-                            | GenericPos::Numeral
-                            | GenericPos::ProperNoun
-                    )
-                })
-            {
+            if matches!(
+                positions.last(),
+                Some(GenericPos::Noun | GenericPos::ProperNoun)
+            ) && positions.iter().all(|pos| {
+                matches!(
+                    pos,
+                    GenericPos::Adjective
+                        | GenericPos::Determiner
+                        | GenericPos::Noun
+                        | GenericPos::Numeral
+                        | GenericPos::ProperNoun
+                )
+            }) {
                 return Some((ObservedRole::Nominal, "harper_brill_multiword_noun_phrase"));
             }
         }
