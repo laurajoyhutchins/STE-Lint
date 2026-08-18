@@ -17,5 +17,8 @@ fn gate3_semantic_provider_eval_on_research_pull_request() {
         .status()
         .expect("semantic provider evaluation runner must start");
 
-    assert!(status.success(), "semantic provider evaluation must succeed");
+    assert!(
+        status.success(),
+        "semantic provider evaluation must succeed"
+    );
 }
