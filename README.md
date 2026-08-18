@@ -36,19 +36,20 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - a versioned runtime lexicon model with exact private-runtime identity verification;
 - explicit runtime selection with `--lexicon` or `STE_LINT_LEXICON`, with fail-closed lint/dictionary operation;
 - exact-pinned CommonMark structure parsing with `pulldown-cmark`, projected back to canonical UTF-8 byte spans;
-- exact-pinned, in-process generic English evidence from `harper-core`, behind an authority firewall that prevents parser vocabulary or morphology from granting STE approval;
+- exact-pinned, in-process generic English token, morphology, POS, and chunk evidence from `harper-core` and `harper-brill`, behind an authority firewall that prevents generic parser evidence from granting STE approval, grammatical identity, or allowed forms;
 - ambiguity-preserving, longest-match dictionary and glossary phrase lookup;
 - source-backed approved verb paradigms that preserve lexical, irregular-auxiliary, and defective-modal distinctions;
 - bounded rejection of source-linked out-of-inventory verb/adjective forms for Rules 1.4 and 3.1;
+- shared structural verb-construction evidence for bounded perfect, passive, and progressive enforcement, with competing authoritative identities blocked rather than guessed;
 - explicit project-authority phrasal-verb evidence for the safely enforceable Rule 9.3 slice;
 - governed reusable and repo-local technical terminology, including technical nouns, technical verbs, dual-use terms, explicit forms, aliases, provenance, and lifecycle status;
 - deterministic composition of opt-in `software-core`, `git`, and `github` terminology profiles with repo-local `.ste/terms.json`;
 - repo-local `.ste/context.json` evidence for bounded sense, terminology-scope, spelling, and other decisions that raw text cannot safely establish;
 - semicolon detection with a whitelisted deterministic autofix;
 - contraction detection for the deterministic portion of Rule 4.2;
-- direct `HAVE`/`HAS`/`HAD` plus approved-past-participle detection for the deterministic portion of Rule 3.4;
-- Issue 9-aware procedural/descriptive sentence-length counting and descriptive paragraph limits;
+- Issue 9-aware procedural/descriptive sentence-length counting and structurally complete descriptive paragraph limits for Rule 6.6;
 - deterministic text-level handling for vertical-list boundaries, parentheticals, quoted text, identifiers, number+unit groups, decimals, and hyphenated groups;
+- structural Rule 8.4 counting across supported CommonMark and STE-style vertical lists, including wrapped and nested list items;
 - procedural `NOTE:` recognition: note sentences use the descriptive 25-word limit, and source-backed sentence-initial imperative candidates are diagnosed or blocked when ambiguous;
 - bounded vertical-list mechanics with parser-backed Markdown structure plus STE-specific list forms and punctuation/counting semantics;
 - unapproved-word/phrase diagnostics and blockers for unresolved dictionary ambiguity or unknown project terminology;
@@ -90,9 +91,11 @@ cargo +1.97.1 test --workspace --locked
 cargo +1.97.1 fmt --all -- --check
 cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
 python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
+./target/debug/ste coverage
+./target/debug/ste coverage --format json
 ```
 
-CI runs the same pinned Rust verification plus the authority-ingest suite.
+CI runs the same pinned Rust verification, authority-ingest suite, and both coverage-report forms.
 
 ## Runtime dictionary
 
