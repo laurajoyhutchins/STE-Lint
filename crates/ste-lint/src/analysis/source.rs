@@ -40,12 +40,32 @@ pub(crate) struct SourceDocument {
     list_items: Vec<SourceListItem>,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct LineSpan {
+    start: usize,
+    end: usize,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct OpenLegacyList {
+    id: usize,
+    start: usize,
+    indent: usize,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct OpenLegacyItem {
+    start: usize,
+    content_start: usize,
+    list_id: usize,
+}
+
 impl SourceDocument {
     pub(crate) fn new(text: &str) -> Self {
         let mut document = Self::default();
         let mut paragraph_starts = Vec::new();
-        let mut list_starts = Vec::<(usize, usize, usize)>::new();
-        let mut item_starts = Vec::<(usize, usize, usize)>::new();
+        let mut list_starts = Vec::<(usize, usize)>::new();
+        let mut item_starts = Vec::<(usize, usize)>::new();
         let mut code_block_starts = Vec::new();
         let mut next_list_id = 0usize;
 
@@ -62,23 +82,22 @@ impl SourceDocument {
                 Event::Start(Tag::List(_)) => {
                     let id = next_list_id;
                     next_list_id += 1;
-                    let depth = list_starts.len();
-                    list_starts.push((id, range.start, depth));
+                    list_starts.push((id, range.start));
                 }
                 Event::End(TagEnd::List(_)) => {
-                    if let Some((id, start, depth)) = list_starts.pop()
+                    if let Some((id, start)) = list_starts.pop()
                         && let Some(span) = SourceSpan::new(start, range.end)
                     {
-                        document.lists.push(SourceList { id, span, depth });
+                        document.lists.push(SourceList { id, span, depth: 0 });
                     }
                 }
                 Event::Start(Tag::Item) => {
-                    if let Some((list_id, _, depth)) = list_starts.last().copied() {
-                        item_starts.push((range.start, list_id, depth));
+                    if let Some((list_id, _)) = list_starts.last().copied() {
+                        item_starts.push((range.start, list_id));
                     }
                 }
                 Event::End(TagEnd::Item) => {
-                    if let Some((start, list_id, depth)) = item_starts.pop()
+                    if let Some((start, list_id)) = item_starts.pop()
                         && let Some(span) = SourceSpan::new(start, range.end)
                     {
                         let content_start = list_item_content_start(text, span);
@@ -89,7 +108,7 @@ impl SourceDocument {
                                 content_start,
                                 content_end,
                                 list_id,
-                                depth,
+                                depth: 0,
                             });
                         }
                     }
@@ -110,6 +129,9 @@ impl SourceDocument {
                 _ => {}
             }
         }
+
+        append_legacy_lists(text, &mut document, &mut next_list_id);
+        normalize_list_depths(&mut document);
 
         document
             .protected
@@ -141,6 +163,160 @@ impl SourceDocument {
 
     pub(crate) fn list_items(&self) -> &[SourceListItem] {
         &self.list_items
+    }
+}
+
+fn append_legacy_lists(text: &str, document: &mut SourceDocument, next_list_id: &mut usize) {
+    let commonmark_lists = document.lists.iter().map(|list| list.span).collect::<Vec<_>>();
+    let mut open_lists = Vec::<OpenLegacyList>::new();
+    let mut open_items = Vec::<OpenLegacyItem>::new();
+
+    for line in line_spans(text) {
+        let line_end = trim_line_end(text, line.end);
+        let raw = &text[line.start..line_end];
+        if raw.trim().is_empty() {
+            close_all_legacy(text, line.start, document, &mut open_lists, &mut open_items);
+            continue;
+        }
+
+        if commonmark_lists
+            .iter()
+            .any(|span| span.intersects(line.start, line.end))
+        {
+            continue;
+        }
+
+        let Some((indent, content_offset)) = legacy_ste_list_item_layout(raw) else {
+            continue;
+        };
+
+        while open_lists.last().is_some_and(|list| list.indent > indent) {
+            close_legacy_item(text, line.start, document, &mut open_items);
+            close_legacy_list(line.start, document, &mut open_lists);
+        }
+
+        if open_lists.last().is_none_or(|list| list.indent < indent) {
+            let id = *next_list_id;
+            *next_list_id += 1;
+            open_lists.push(OpenLegacyList {
+                id,
+                start: line.start,
+                indent,
+            });
+        }
+
+        let list_id = open_lists
+            .last()
+            .expect("legacy list exists after opening marker")
+            .id;
+        if open_items.last().is_some_and(|item| item.list_id == list_id) {
+            close_legacy_item(text, line.start, document, &mut open_items);
+        }
+        open_items.push(OpenLegacyItem {
+            start: line.start,
+            content_start: line.start + content_offset,
+            list_id,
+        });
+    }
+
+    close_all_legacy(
+        text,
+        text.len(),
+        document,
+        &mut open_lists,
+        &mut open_items,
+    );
+}
+
+fn close_all_legacy(
+    text: &str,
+    end: usize,
+    document: &mut SourceDocument,
+    open_lists: &mut Vec<OpenLegacyList>,
+    open_items: &mut Vec<OpenLegacyItem>,
+) {
+    while !open_items.is_empty() {
+        close_legacy_item(text, end, document, open_items);
+    }
+    while !open_lists.is_empty() {
+        close_legacy_list(end, document, open_lists);
+    }
+}
+
+fn close_legacy_item(
+    text: &str,
+    end: usize,
+    document: &mut SourceDocument,
+    open_items: &mut Vec<OpenLegacyItem>,
+) {
+    let Some(item) = open_items.pop() else {
+        return;
+    };
+    let content_end = trim_line_end(text, end);
+    let Some(span) = SourceSpan::new(item.start, end) else {
+        return;
+    };
+    if item.content_start < content_end {
+        document.list_items.push(SourceListItem {
+            span,
+            content_start: item.content_start,
+            content_end,
+            list_id: item.list_id,
+            depth: 0,
+        });
+    }
+}
+
+fn close_legacy_list(
+    end: usize,
+    document: &mut SourceDocument,
+    open_lists: &mut Vec<OpenLegacyList>,
+) {
+    let Some(list) = open_lists.pop() else {
+        return;
+    };
+    if let Some(span) = SourceSpan::new(list.start, end) {
+        document.lists.push(SourceList {
+            id: list.id,
+            span,
+            depth: 0,
+        });
+    }
+}
+
+fn normalize_list_depths(document: &mut SourceDocument) {
+    for _ in 0..document.lists.len().max(1) {
+        let depths = document
+            .lists
+            .iter()
+            .map(|list| (list.id, list.depth))
+            .collect::<Vec<_>>();
+        let items = document.list_items.clone();
+        for list in &mut document.lists {
+            let parent = items
+                .iter()
+                .filter(|item| item.list_id != list.id)
+                .filter(|item| {
+                    item.span.start < list.span.start && list.span.end <= item.span.end
+                })
+                .min_by_key(|item| item.span.end.saturating_sub(item.span.start));
+            let Some(parent) = parent else {
+                continue;
+            };
+            let parent_depth = depths
+                .iter()
+                .find_map(|(id, depth)| (*id == parent.list_id).then_some(*depth))
+                .unwrap_or(0);
+            list.depth = parent_depth + 1;
+        }
+    }
+
+    for item in &mut document.list_items {
+        item.depth = document
+            .lists
+            .iter()
+            .find_map(|list| (list.id == item.list_id).then_some(list.depth))
+            .unwrap_or(0);
     }
 }
 
@@ -186,6 +362,66 @@ fn list_item_content_start(text: &str, span: SourceSpan) -> usize {
     }
 
     span.start + leading
+}
+
+fn legacy_ste_list_item_layout(line: &str) -> Option<(usize, usize)> {
+    let trimmed = line.trim_start();
+    let leading = line.len() - trimmed.len();
+    if trimmed.starts_with("• ") {
+        return Some((leading, leading + "• ".len()));
+    }
+
+    let bytes = trimmed.as_bytes();
+    if bytes.first() == Some(&b'(') {
+        let mut index = 1;
+        let label_start = index;
+        while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
+            index += 1;
+        }
+        if index > label_start
+            && index + 1 < bytes.len()
+            && bytes[index] == b')'
+            && bytes[index + 1].is_ascii_whitespace()
+        {
+            return Some((leading, leading + index + 2));
+        }
+        return None;
+    }
+
+    let mut index = 0;
+    while index < bytes.len() && bytes[index].is_ascii_alphabetic() {
+        index += 1;
+    }
+    let label = &trimmed[..index];
+    if label.len() == 1
+        && index + 1 < bytes.len()
+        && matches!(bytes[index], b'.' | b')')
+        && bytes[index + 1].is_ascii_whitespace()
+    {
+        return Some((leading, leading + index + 2));
+    }
+    None
+}
+
+fn line_spans(text: &str) -> Vec<LineSpan> {
+    let mut lines = Vec::new();
+    let mut start = 0;
+    for (index, character) in text.char_indices() {
+        if character == '\n' {
+            lines.push(LineSpan {
+                start,
+                end: index + 1,
+            });
+            start = index + 1;
+        }
+    }
+    if start < text.len() || text.is_empty() {
+        lines.push(LineSpan {
+            start,
+            end: text.len(),
+        });
+    }
+    lines
 }
 
 fn trim_line_end(text: &str, end: usize) -> usize {
@@ -238,5 +474,17 @@ mod tests {
         assert_eq!(document.list_items()[1].depth, 1);
         assert_eq!(document.list_items()[2].depth, 0);
         assert_ne!(document.list_items()[0].list_id, document.list_items()[1].list_id);
+    }
+
+    #[test]
+    fn source_document_projects_legacy_ste_list_markers() {
+        let text = "DO THIS:\n(a) Remove this.\n(b) Remove that.";
+        let document = SourceDocument::new(text);
+        assert_eq!(document.lists().len(), 1);
+        assert_eq!(document.list_items().len(), 2);
+        assert_eq!(
+            &text[document.list_items()[0].content_start..document.list_items()[0].content_end],
+            "Remove this."
+        );
     }
 }
