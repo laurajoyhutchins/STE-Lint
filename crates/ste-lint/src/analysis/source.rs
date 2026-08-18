@@ -1,5 +1,7 @@
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
+use crate::LintContext;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SourceSpan {
     pub start: usize,
@@ -7,12 +9,16 @@ pub(crate) struct SourceSpan {
 }
 
 impl SourceSpan {
-    fn new(start: usize, end: usize) -> Option<Self> {
+    pub(crate) fn new(start: usize, end: usize) -> Option<Self> {
         (start < end).then_some(Self { start, end })
     }
 
     pub(crate) fn intersects(self, start: usize, end: usize) -> bool {
         start < self.end && self.start < end
+    }
+
+    pub(crate) fn contains(self, start: usize, end: usize) -> bool {
+        self.start <= start && end <= self.end
     }
 }
 
@@ -26,14 +32,20 @@ pub(crate) struct SourceListItem {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SourceDocument {
     protected: Vec<SourceSpan>,
+    headings: Vec<SourceSpan>,
     paragraphs: Vec<SourceSpan>,
     list_items: Vec<SourceListItem>,
 }
 
 impl SourceDocument {
     pub(crate) fn new(text: &str) -> Self {
+        Self::with_context(text, None)
+    }
+
+    pub(crate) fn with_context(text: &str, context: Option<&LintContext>) -> Self {
         let mut document = Self::default();
         let mut paragraph_starts = Vec::new();
+        let mut heading_starts = Vec::new();
         let mut item_starts = Vec::new();
         let mut code_block_starts = Vec::new();
 
@@ -45,6 +57,14 @@ impl SourceDocument {
                         && let Some(span) = SourceSpan::new(start, trim_line_end(text, range.end))
                     {
                         document.paragraphs.push(span);
+                    }
+                }
+                Event::Start(Tag::Heading { .. }) => heading_starts.push(range.start),
+                Event::End(TagEnd::Heading(_)) => {
+                    if let Some(start) = heading_starts.pop()
+                        && let Some(span) = SourceSpan::new(start, trim_line_end(text, range.end))
+                    {
+                        document.headings.push(span);
                     }
                 }
                 Event::Start(Tag::Item) => item_starts.push(range.start),
@@ -80,10 +100,24 @@ impl SourceDocument {
             }
         }
 
+        if let Some(context) = context {
+            document.protected.extend(
+                context
+                    .occurrences
+                    .iter()
+                    .filter(|occurrence| occurrence.text_authority.is_some())
+                    .filter_map(|occurrence| SourceSpan::new(occurrence.start, occurrence.end)),
+            );
+        }
+
         document
             .protected
             .sort_by_key(|span| (span.start, span.end));
         document.protected = merge_spans(document.protected);
+        document
+            .headings
+            .sort_by_key(|span| (span.start, span.end));
+        document.headings = merge_spans(document.headings);
         document
             .paragraphs
             .sort_by_key(|span| (span.start, span.end));
@@ -97,12 +131,22 @@ impl SourceDocument {
         &self.protected
     }
 
+    pub(crate) fn heading_ranges(&self) -> &[SourceSpan] {
+        &self.headings
+    }
+
     pub(crate) fn paragraph_ranges(&self) -> &[SourceSpan] {
         &self.paragraphs
     }
 
     pub(crate) fn list_items(&self) -> &[SourceListItem] {
         &self.list_items
+    }
+
+    pub(crate) fn is_protected(&self, start: usize, end: usize) -> bool {
+        self.protected
+            .iter()
+            .any(|span| span.intersects(start, end))
     }
 }
 
@@ -184,5 +228,15 @@ mod tests {
             &text[document.list_items()[1].content_start..document.list_items()[1].content_end],
             "Remove that."
         );
+    }
+
+    #[test]
+    fn source_document_tracks_atx_and_setext_headings() {
+        let text = "# FIRST HEADING\n\nSECOND HEADING\n==============";
+        let document = SourceDocument::new(text);
+        assert_eq!(document.heading_ranges().len(), 2);
+        assert!(document.heading_ranges()[0].contains(0, "# FIRST HEADING".len()));
+        let second = text.find("SECOND HEADING").unwrap();
+        assert!(document.heading_ranges()[1].contains(second, second + "SECOND HEADING".len()));
     }
 }
