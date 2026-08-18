@@ -7,14 +7,17 @@ mod structure;
 use std::cmp::Reverse;
 
 pub use analysis::{
-    ActionCardinality, ActionStructure, AnalysisDocument, AnalysisSentence, AnalysisToken,
+    ActionCardinality, ActionStructure, AnalysisDocument, AnalysisEvidence, AnalysisSentence,
+    AnalysisToken, CanonicalSpan,
     AuxiliaryChain, AuxiliaryKind, DictionaryMatch, DocumentGraph, DocumentNode, DocumentNodeId,
     DocumentNodeKind, DocumentReferenceRelation, DocumentRelation, DocumentRelationKind,
     DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind,
+    EvidenceAlternative, EvidenceProvenance, EvidenceTarget,
     GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole, ObservedRoleEvidence,
     ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution, SafetyEvidenceSource,
     SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence, SenseEvidence,
-    SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate, VerbFormCandidate,
+    SenseIdentity, SenseProvenance, SenseRestrictionTag, LexicalObservation, ModelIdentity,
+    ProviderIdentity, SubjectPredicate, VerbFormCandidate,
     VerbFormRole,
 };
 pub use context::{

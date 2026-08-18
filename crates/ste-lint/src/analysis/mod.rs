@@ -1,4 +1,5 @@
 mod document;
+mod evidence;
 mod document_graph;
 mod entity;
 mod grammar;
@@ -11,6 +12,10 @@ mod token;
 
 pub use document::{
     AnalysisDocument, DictionaryMatch, GlossaryMatch, Resolution, VerbFormCandidate, VerbFormRole,
+};
+pub use evidence::{
+    AnalysisEvidence, EvidenceAlternative, EvidenceProvenance, EvidenceTarget, ModelIdentity,
+    ProviderIdentity,
 };
 pub use document_graph::{
     DocumentGraph, DocumentNode, DocumentNodeId, DocumentNodeKind, DocumentReferenceRelation,
@@ -26,5 +31,7 @@ pub use safety::{
     SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence,
 };
 pub use sense::{SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag};
+pub use source::CanonicalSpan;
+pub use linguistic::LexicalObservation;
 pub use sentence::AnalysisSentence;
 pub use token::AnalysisToken;

@@ -4,8 +4,10 @@ use ste_glossary::{AliasKind, Glossary, GlossaryIdentityKind, TechnicalTerm, Ter
 use crate::{LintContext, LintMode};
 
 use super::grammar::{self, ObservedRoleEvidence};
-use super::linguistic::{LinguisticDocument, LinguisticTokenEvidence};
+use super::evidence::{AnalysisEvidence, EvidenceTarget};
+use super::linguistic::{HarperProvider, LexicalObservation};
 use super::sentence::{AnalysisSentence, build_sentences};
+use super::source::{CanonicalSource, CanonicalSpan};
 use super::token::AnalysisToken;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -56,7 +58,8 @@ pub struct AnalysisDocument<'a> {
     context: Option<&'a LintContext>,
     mode: LintMode,
     tokens: Vec<AnalysisToken<'a>>,
-    linguistic_tokens: Vec<LinguisticTokenEvidence>,
+    source: CanonicalSource<'a>,
+    lexical_evidence: Vec<AnalysisEvidence<LexicalObservation>>,
     sentences: Vec<AnalysisSentence>,
     max_dictionary_words: usize,
     max_glossary_words: usize,
@@ -70,8 +73,22 @@ impl<'a> AnalysisDocument<'a> {
         context: Option<&'a LintContext>,
         mode: LintMode,
     ) -> Self {
-        let linguistic = LinguisticDocument::new(text);
-        let (mut tokens, linguistic_tokens) = linguistic.into_parts();
+        let source = CanonicalSource::new(text);
+        let lexical_evidence = HarperProvider::analyze(&source);
+        let mut tokens = lexical_evidence
+            .iter()
+            .map(|evidence| {
+                let EvidenceTarget::Token(span) = evidence.target else {
+                    unreachable!("Harper lexical evidence must target canonical tokens");
+                };
+                AnalysisToken {
+                    text: &text[span.start..span.end],
+                    start: span.start,
+                    end: span.end,
+                    sentence_id: None,
+                }
+            })
+            .collect::<Vec<_>>();
         let sentences = build_sentences(text, &mut tokens);
         let max_dictionary_words = lexicon
             .entries()
@@ -89,7 +106,8 @@ impl<'a> AnalysisDocument<'a> {
             context,
             mode,
             tokens,
-            linguistic_tokens,
+            source,
+            lexical_evidence,
             sentences,
             max_dictionary_words,
             max_glossary_words,
@@ -120,8 +138,16 @@ impl<'a> AnalysisDocument<'a> {
         &self.tokens
     }
 
-    pub(crate) fn linguistic_token(&self, index: usize) -> Option<&LinguisticTokenEvidence> {
-        self.linguistic_tokens.get(index)
+    pub fn canonical_span(&self, start: usize, end: usize) -> Option<CanonicalSpan> {
+        self.source.span(start, end)
+    }
+
+    pub fn lexical_evidence(&self) -> &[AnalysisEvidence<LexicalObservation>] {
+        &self.lexical_evidence
+    }
+
+    pub(crate) fn linguistic_token(&self, index: usize) -> Option<&LexicalObservation> {
+        self.lexical_evidence.get(index).map(|evidence| &evidence.value)
     }
 
     pub fn sentences(&self) -> &[AnalysisSentence] {
