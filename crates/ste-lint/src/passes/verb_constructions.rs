@@ -334,30 +334,57 @@ fn auxiliary_identity(
     token_index: usize,
     kind: AuxiliaryKind,
 ) -> Resolution<bool> {
-    let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
+    if let Some(matched) = analysis.dictionary_match_at(token_index, 1) {
+        let verdicts = matched
+            .candidates
+            .iter()
+            .map(|entry| {
+                entry.status == ApprovalStatus::Approved
+                    && match kind {
+                        AuxiliaryKind::Be => entry.lemma.eq_ignore_ascii_case("be"),
+                        AuxiliaryKind::Have => entry.lemma.eq_ignore_ascii_case("have"),
+                        AuxiliaryKind::Modal => entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
+                            paradigm.classification == ste_data::VerbClassification::DefectiveModal
+                        }),
+                    }
+            })
+            .collect::<Vec<_>>();
+        let has_true = verdicts.contains(&true);
+        let has_false = verdicts.contains(&false);
+        return match (has_true, has_false) {
+            (true, false) => Resolution::Resolved(true),
+            (false, true) => Resolution::Resolved(false),
+            (true, true) => Resolution::Ambiguous(vec![true, false]),
+            (false, false) => Resolution::Unknown,
+        };
+    }
+
+    generic_auxiliary_identity(analysis, token_index, kind)
+}
+
+fn generic_auxiliary_identity(
+    analysis: &AnalysisDocument<'_>,
+    token_index: usize,
+    kind: AuxiliaryKind,
+) -> Resolution<bool> {
+    let Some(evidence) = analysis.linguistic_token(token_index) else {
         return Resolution::Unknown;
     };
-    let verdicts = matched
-        .candidates
-        .iter()
-        .map(|entry| {
-            entry.status == ApprovalStatus::Approved
-                && match kind {
-                    AuxiliaryKind::Be => entry.lemma.eq_ignore_ascii_case("be"),
-                    AuxiliaryKind::Have => entry.lemma.eq_ignore_ascii_case("have"),
-                    AuxiliaryKind::Modal => entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
-                        paradigm.classification == ste_data::VerbClassification::DefectiveModal
-                    }),
-                }
-        })
-        .collect::<Vec<_>>();
-    let has_true = verdicts.contains(&true);
-    let has_false = verdicts.contains(&false);
-    match (has_true, has_false) {
-        (true, false) => Resolution::Resolved(true),
-        (false, true) => Resolution::Resolved(false),
-        (true, true) => Resolution::Ambiguous(vec![true, false]),
-        (false, false) => Resolution::Unknown,
+    let syntactic_auxiliary = evidence.auxiliary_verb
+        || evidence.occurrence_pos == Some(GenericPos::Auxiliary)
+        || (kind == AuxiliaryKind::Be && evidence.linking_verb);
+    if !syntactic_auxiliary {
+        return Resolution::Unknown;
+    }
+    let Some(lemma) = evidence.lemma.as_deref() else {
+        return Resolution::Unknown;
+    };
+
+    match kind {
+        AuxiliaryKind::Have if lemma.eq_ignore_ascii_case("have") => Resolution::Resolved(true),
+        AuxiliaryKind::Be if lemma.eq_ignore_ascii_case("be") => Resolution::Resolved(true),
+        AuxiliaryKind::Have | AuxiliaryKind::Be => Resolution::Resolved(false),
+        AuxiliaryKind::Modal => Resolution::Unknown,
     }
 }
 
@@ -426,6 +453,18 @@ mod tests {
         .unwrap()
     }
 
+    fn lexicon_without_have() -> RuntimeLexicon {
+        RuntimeLexicon::from_json(
+            r#"{
+              "metadata": {"standard":"ASD-STE100","issue":9,"date":"2025-01-15","scope":"synthetic_sparse_verb_constructions"},
+              "entries": [
+                {"lemma":"USE","status":"approved","part_of_speech":"verb","forms":["USE","USES","USED"],"verb_paradigm":{"classification":"lexical","source_sequence":["USE","USES","USED","USED"],"base_form":"USE","simple_present_variants":["USES"],"simple_past_variants":["USED"],"past_participle":"USED"},"senses":[],"alternatives":[],"restrictions":[]}
+              ]
+            }"#,
+        )
+        .unwrap()
+    }
+
     fn diagnostics(text: &str, lexicon: &RuntimeLexicon) -> Vec<Diagnostic> {
         let analysis =
             AnalysisDocument::new(text, lexicon, None, None, crate::LintMode::Descriptive);
@@ -442,6 +481,17 @@ mod tests {
             .unwrap();
         assert_eq!(diagnostic.severity, Severity::Error);
         assert!(diagnostic.autofix.is_none());
+    }
+
+    #[test]
+    fn generic_have_auxiliary_evidence_can_identify_the_construction_when_runtime_is_sparse() {
+        let lexicon = lexicon_without_have();
+        let diagnostics = diagnostics("HAS USED CB-1.", &lexicon);
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "STE-VERB-001")
+        );
     }
 
     #[test]
