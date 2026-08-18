@@ -1,3 +1,4 @@
+mod count;
 mod document;
 mod document_graph;
 mod entity;
@@ -9,6 +10,7 @@ mod sentence;
 pub(crate) mod source;
 mod token;
 
+pub use count::{CountGroup, CountGroupProjection};
 pub use document::{
     AnalysisDocument, DictionaryMatch, GlossaryMatch, Resolution, VerbFormCandidate, VerbFormRole,
 };
