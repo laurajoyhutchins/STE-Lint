@@ -86,8 +86,8 @@ fn vertical_list_item_over_limit_is_reported() {
 #[test]
 fn wrapped_vertical_list_item_is_one_word_limit_unit() {
     let prefix = vec!["USE"; 20].join(" ");
-    let first_line = vec!["USE"; 10].join(" ");
-    let continuation = vec!["USE"; 11].join(" ");
+    let first_line = ["USE"; 10].join(" ");
+    let continuation = ["USE"; 11].join(" ");
     let text = format!("{prefix}:\n- {first_line}\n  {continuation}");
     assert!(codes(&text, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
 }
