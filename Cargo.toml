@@ -19,3 +19,4 @@ predicates = "3"
 tempfile = "3"
 pulldown-cmark = { version = "=0.13.4", default-features = false }
 harper-core = { version = "=2.7.0", default-features = false }
+reqwest = { version = "=0.13.4", default-features = false, features = ["blocking", "rustls"] }

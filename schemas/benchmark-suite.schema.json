@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.local/schemas/benchmark-suite.schema.json",
+  "title": "STE-Lint real-world benchmark suite manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "selections"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "selections": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/selection" }
+    }
+  },
+  "$defs": {
+    "selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source_id",
+        "cohort",
+        "first_page",
+        "last_page",
+        "mode"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source_id": { "type": "string", "minLength": 1 },
+        "cohort": {
+          "enum": [
+            "declared_ste_deep",
+            "declared_ste_broad",
+            "claim_none_control"
+          ]
+        },
+        "match_group": { "type": ["string", "null"], "minLength": 1 },
+        "first_page": { "type": "integer", "minimum": 1 },
+        "last_page": { "type": "integer", "minimum": 1 },
+        "mode": { "enum": ["procedural", "descriptive"] }
+      }
+    }
+  }
+}

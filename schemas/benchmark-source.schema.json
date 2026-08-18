@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.local/schemas/benchmark-source.schema.json",
+  "title": "STE-Lint real-world benchmark source manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "source_family",
+    "publisher",
+    "title",
+    "document_type",
+    "url",
+    "media_type",
+    "retrieval_date",
+    "identity",
+    "ste_claim",
+    "verification",
+    "rights"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "source_family": { "type": "string", "minLength": 1 },
+    "publisher": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "document_type": { "type": "string", "minLength": 1 },
+    "url": { "type": "string", "pattern": "^https://\\S+$" },
+    "media_type": { "const": "application/pdf" },
+    "retrieval_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "identity": { "$ref": "#/$defs/source_identity" },
+    "ste_claim": { "$ref": "#/$defs/ste_claim" },
+    "verification": { "$ref": "#/$defs/verification" },
+    "rights": { "$ref": "#/$defs/rights" }
+  },
+  "$defs": {
+    "source_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "byte_size", "physical_pages"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "byte_size": { "type": "integer", "minimum": 1 },
+        "physical_pages": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "claim_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["physical_page", "method", "note"],
+      "properties": {
+        "physical_page": { "type": "integer", "minimum": 1 },
+        "method": { "type": "string", "minLength": 1 },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ste_claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "explicit_asd_ste100",
+            "explicit_ste",
+            "qualified_asd_ste100",
+            "inferred",
+            "none"
+          ]
+        },
+        "evidence": {
+          "oneOf": [
+            { "$ref": "#/$defs/claim_evidence" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "none" } },
+            "required": ["kind"]
+          },
+          "else": {
+            "required": ["evidence"],
+            "properties": { "evidence": { "$ref": "#/$defs/claim_evidence" } }
+          }
+        }
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": {
+        "state": {
+          "enum": [
+            "unknown",
+            "rule_verified",
+            "known_violation",
+            "manually_adjudicated"
+          ]
+        }
+      }
+    },
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "redistribution",
+        "source_cache",
+        "derived_text",
+        "committed_excerpt"
+      ],
+      "properties": {
+        "redistribution": { "const": "manifest_only" },
+        "source_cache": { "const": "local_only" },
+        "derived_text": { "const": "local_only" },
+        "committed_excerpt": { "const": "none" }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "id": "seed-v1-contract",
+  "selections": [
+    {
+      "id": "lycoming-example:procedural",
+      "source_id": "lycoming-example",
+      "cohort": "declared_ste_deep",
+      "match_group": null,
+      "first_page": 20,
+      "last_page": 29,
+      "mode": "procedural"
+    }
+  ]
+}
