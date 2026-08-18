@@ -15,7 +15,11 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 
-"$PYTHON" -m pip install --disable-pip-version-check --no-input stanza==1.14.0 spacy==3.8.14
+"$PYTHON" -m pip install --disable-pip-version-check --no-input \
+  stanza==1.14.0 \
+  transformers==5.14.1 \
+  peft==0.20.0 \
+  spacy==3.8.14
 "$PYTHON" -m pip install --disable-pip-version-check --no-input \
   https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
