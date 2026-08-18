@@ -184,4 +184,31 @@ mod tests {
                 .all(|token| token.text != "fluxcapacitor")
         );
     }
+
+    #[test]
+    fn harper_curated_analysis_disambiguates_noun_and_verb_occurrences() {
+        let document = LinguisticDocument::new("Check the valve. The check is complete.");
+        let checks = document
+            .tokens
+            .iter()
+            .filter(|token| document.text[token.start..token.end].eq_ignore_ascii_case("check"))
+            .collect::<Vec<_>>();
+        assert_eq!(checks.len(), 2);
+        assert!(checks[0].verb);
+        assert!(!checks[0].noun);
+        assert!(checks[1].noun || checks[1].nominal);
+        assert!(!checks[1].verb);
+    }
+
+    #[test]
+    fn harper_curated_analysis_marks_bare_nominal_phrase_members() {
+        let document = LinguisticDocument::new("Fuel pump pressure is stable.");
+        let phrase = document
+            .tokens
+            .iter()
+            .take(3)
+            .map(|token| token.np_member)
+            .collect::<Vec<_>>();
+        assert_eq!(phrase, vec![true, true, true]);
+    }
 }
