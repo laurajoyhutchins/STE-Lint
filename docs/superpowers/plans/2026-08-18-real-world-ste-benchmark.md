@@ -21,6 +21,7 @@
 - `page-text-v1` performs only UTF-8 validation, newline normalization, and terminal form-feed removal; no cleanup, OCR, header deletion, hyphenation repair, or line joining.
 - Poppler extractor identity and arguments are recorded; there is no silent extraction fallback.
 - Page selections are fixed before inspecting lint results and cannot exclude individual findings.
+- Suite selections explicitly carry cohort identity, and matched broad/control selections record a `match_group` so matching is not reconstructed after evaluation.
 - Committed benchmark results contain no source prose, diagnostic messages, diagnostic evidence, autofix replacement text, or source excerpts.
 - Normal CI is hermetic and requires no network, Poppler installation, private runtime, or real source file.
 - Keep the repository Rust toolchain pinned to 1.97.1 and verify with `--locked`.
@@ -44,12 +45,12 @@
 - Create: `crates/ste-benchmark/tests/fixtures/suite-valid.json`
 
 **Interfaces:**
-- Produces: `SourceManifest`, `SuiteManifest`, `SuiteSelection`, `BenchmarkResult`, `PageObservation`, `BenchmarkDiagnostic`, `SteClaimKind`, `VerificationState`, `RightsPolicy`, and `BenchmarkError`.
+- Produces: `SourceManifest`, `SuiteManifest`, `SuiteSelection`, `BenchmarkResult`, `PageObservation`, `BenchmarkDiagnostic`, `SteClaimKind`, `VerificationState`, `Cohort`, `RightsPolicy`, and `BenchmarkError`.
 - Consumes: existing `ste_core::{Outcome, Severity, Span}` and `ste_lint::LintMode`.
 
 - [ ] **Step 1: Add failing model contract tests**
 
-Create tests that require strict parsing, exact enums, one-based page ranges, and HTTPS-only URLs. Include a rejection test for an unknown field and a test proving `SteClaimKind::None` serializes as `"none"` without any `non_ste` semantic.
+Create tests that require strict parsing, exact enums, retrieval date, explicit verification state, one-based page ranges, required suite cohort, optional `match_group`, and HTTPS-only URLs. Include a rejection test for an unknown field and a test proving `SteClaimKind::None` serializes as `"none"` without any `non_ste` semantic.
 
 ```rust
 #[test]
@@ -69,8 +70,6 @@ fn suite_rejects_zero_based_pages() {
 
 - [ ] **Step 2: Run the focused tests and confirm failure**
 
-Run:
-
 ```bash
 cargo +1.97.1 test -p ste-benchmark --test model_contract
 ```
@@ -89,7 +88,7 @@ Create `crates/ste-benchmark/Cargo.toml` with workspace-version/edition/license 
 
 - [ ] **Step 4: Implement strict typed contracts**
 
-Use `#[serde(deny_unknown_fields)]` on persisted structs. Define claim enums exactly as specified. Implement `SourceManifest::validate()` and `SuiteManifest::validate(&BTreeMap<String, SourceManifest>)` with checks for schema version 1, HTTPS, PDF media type, 64-character lowercase SHA-256, positive byte/page counts, unique IDs, valid range order, range within physical page count, and explicit lint mode.
+Use `#[serde(deny_unknown_fields)]` on persisted structs. Define claim, verification, and cohort enums exactly as the spec states. Implement `SourceManifest::validate()` and `SuiteManifest::validate(&BTreeMap<String, SourceManifest>)` with checks for schema version 1, ISO `retrieval_date`, HTTPS, PDF media type, 64-character lowercase SHA-256, positive byte/page counts, unique IDs, valid range order, range within physical page count, explicit cohort, optional non-empty `match_group`, and explicit lint mode.
 
 - [ ] **Step 5: Add JSON Schemas matching the Rust contract**
 
@@ -170,7 +169,7 @@ A cache hit is accepted only after rechecking its byte size and SHA-256. Corrupt
 
 - [ ] **Step 4: Implement `ReqwestFetcher`**
 
-Use a blocking client with redirects allowed only through reqwest's normal HTTPS handling. Reject a final non-HTTPS URL. Stream in bounded chunks, stop once the observed byte count exceeds `512 * 1024 * 1024`, and never buffer the entire response.
+Use a blocking client. Require the initial and final URL schemes to be HTTPS. Stream in bounded chunks, stop once the observed byte count exceeds `512 * 1024 * 1024`, and never buffer the entire response.
 
 - [ ] **Step 5: Implement temporary-file cleanup and atomic promotion**
 
@@ -272,7 +271,7 @@ Use unique synthetic text and a fake diagnostic-bearing lint case. Serialize the
 
 - [ ] **Step 2: Write coordinate and aggregation tests**
 
-Require page-local UTF-8 byte spans, normalized text SHA-256, byte/word counts, outcomes, diagnostic counts by code/rule/cohort/mode, and diagnostics-per-1,000-words.
+Require page-local UTF-8 byte spans, normalized text SHA-256, byte/word counts, outcomes, cohort and match-group identity, diagnostic counts by code/rule/cohort/mode, and diagnostics-per-1,000-words.
 
 - [ ] **Step 3: Confirm tests fail**
 
@@ -354,7 +353,7 @@ ste-benchmark run --suite PATH --lexicon PATH --output PATH [--cache-dir PATH] [
 ste-benchmark summarize RESULT [--format human|json]
 ```
 
-`run` must not hydrate implicitly unless the command contract explicitly says so. Preferred behavior is to require already verified cache objects and return `source_not_cached`, keeping network acquisition and evaluation separable.
+`run` requires already verified cache objects and returns `source_not_cached`; it does not silently perform network hydration. This keeps acquisition and evaluation separable.
 
 - [ ] **Step 3: Document maintainer workflow and rights boundary**
 
@@ -402,19 +401,19 @@ stat -c '%s' /tmp/ste-source.pdf
 pdfinfo /tmp/ste-source.pdf | grep '^Pages:'
 ```
 
-Inspect the declaration location and record a curator paraphrase plus physical page. Do not paste source prose into the manifest.
+Record the admission date as `retrieval_date`. Inspect the declaration location and record a curator paraphrase plus physical page. Do not paste source prose into the manifest.
 
 - [ ] **Step 2: Select the two Lycoming windows before linting**
 
-Choose one clearly procedural contiguous 10-page range and one clearly descriptive contiguous 10-page range from section boundaries/table-of-contents evidence. Commit those physical page coordinates before any `ste-benchmark run` is performed against the manual.
+Choose one clearly procedural contiguous 10-page range and one clearly descriptive contiguous 10-page range from section boundaries/table-of-contents evidence. Commit those physical page coordinates with cohort `declared_ste_deep` before any `ste-benchmark run` is performed against the manual.
 
 - [ ] **Step 3: Admit 20 Aston Martin/NHTSA declared-STE communications**
 
-For every document, verify the authoritative NHTSA URL, exact bytes/hash/page count, explicit declaration location, document class, date, publisher, and default rights policy. Reject duplicates by source SHA-256 even when URLs differ.
+For every document, verify the authoritative NHTSA URL, exact bytes/hash/page count, `retrieval_date`, explicit declaration location, document class, publication date when available, publisher, verification state `unknown`, and default rights policy. Reject duplicates by source SHA-256 even when URLs differ. Assign suite cohort `declared_ste_broad`.
 
 - [ ] **Step 4: Admit 20 claim-none NHTSA controls**
 
-Select manufacturer communications with no established explicit STE declaration, matched as closely as practical to the broad cohort by era, document class/purpose, and length. Record claim kind `none`; never label them `non_ste`.
+Select manufacturer communications with no established explicit STE declaration, matched as closely as practical to the broad cohort by era, document class/purpose, and length. For each candidate, search the document and available metadata for `Simplified Technical English`, `ASD-STE100`, and `STE100` before assigning claim kind `none`; `none` still means no explicit declaration established, not proven non-STE. Assign suite cohort `claim_none_control` and a `match_group` that records the corresponding broad/control matching decision.
 
 - [ ] **Step 5: Validate the frozen suite**
 
@@ -423,7 +422,7 @@ cargo +1.97.1 run -p ste-benchmark --locked -- validate \
   --suite benchmarks/real-world/suites/seed-v1.json
 ```
 
-Expected: exactly 41 unique source identities and valid immutable page selections.
+Expected: exactly 41 unique source identities, valid immutable page selections, all required cohort values, and explicit match groups for matched broad/control selections.
 
 - [ ] **Step 6: Review the commit for accidental copyrighted text before landing it**
 
@@ -462,28 +461,25 @@ Expected: every object is present at its content-addressed cache coordinate. Any
 
 Record `pdftotext -v` identity through the adapter. Manually inspect a small representative set of extracted pages for catastrophic extraction failure only, such as empty output or completely scrambled encoding. Do not edit individual extracted pages or change suite ranges based on STE-Lint findings.
 
-- [ ] **Step 3: Run the complete seed against verified Issue 9 runtime**
+- [ ] **Step 3: Run the complete seed against verified Issue 9 runtime directly into the rights-safe baseline format**
 
 ```bash
 cargo +1.97.1 run -p ste-benchmark --locked -- run \
   --suite benchmarks/real-world/suites/seed-v1.json \
   --lexicon private-authority/issue9-runtime.json \
-  --output target/benchmark/seed-v1.json
+  --output benchmarks/real-world/baselines/seed-v1.json
 ```
 
-Expected: authoritative runtime identity is true, all selected pages are represented, and no partial-success state exists.
+Expected: authoritative runtime identity is true, all selected pages are represented, no partial-success state exists, and the output conforms to the rights-safe `BenchmarkResult` schema rather than raw `LintResult`.
 
-- [ ] **Step 4: Produce the rights-safe committed baseline**
-
-Use the benchmark's baseline/report serializer rather than copying the raw `LintResult`. Persist run identity, page coordinate observations, diagnostics with code/severity/rules/span only, and aggregates.
+- [ ] **Step 4: Summarize the committed baseline without rewriting it**
 
 ```bash
 cargo +1.97.1 run -p ste-benchmark --locked -- summarize \
-  target/benchmark/seed-v1.json --format json \
-  > benchmarks/real-world/baselines/seed-v1.json
+  benchmarks/real-world/baselines/seed-v1.json --format human
 ```
 
-If `summarize` is intentionally aggregate-only, add a dedicated `baseline` output mode in Task 5 rather than shell-processing source-bearing JSON.
+The baseline itself retains page-level coordinate observations and aggregate fields. `summarize` is a read-only presentation step.
 
 - [ ] **Step 5: Prove the committed baseline contains no prohibited fields**
 
@@ -491,7 +487,7 @@ Add/execute a test that deserializes the committed baseline into the strict resu
 
 - [ ] **Step 6: Document the first empirical measurements without calling them compliance truth**
 
-Update benchmark README with source/page/word counts, extractor/runtime/run identities, major diagnostic categories, and known extraction/page-boundary limitations. Do not convert the result into a single STE score and do not call publisher-declared sources gold-compliant fixtures.
+Update benchmark README with source/page/word counts, extractor/runtime/run identities, major diagnostic categories, match-group/cohort comparisons, and known extraction/page-boundary limitations. Do not convert the result into a single STE score and do not call publisher-declared sources gold-compliant fixtures.
 
 - [ ] **Step 7: Run exact final verification**
 
@@ -513,6 +509,6 @@ git commit -m "data: publish seed-v1 STE benchmark baseline"
 
 ## Plan self-review
 
-Spec coverage is complete: Tasks 1-2 implement identity/rights schemas and hydration; Task 3 implements the extraction boundary; Task 4 implements verified evaluation and rights-safe results; Task 5 supplies the explicit CLI and hermetic CI surface; Task 6 freezes all three seed cohorts before lint observation; Task 7 creates and verifies the first empirical baseline.
+Spec coverage is complete: Tasks 1-2 implement identity/rights schemas and hydration; Task 3 implements the extraction boundary; Task 4 implements verified evaluation and rights-safe results; Task 5 supplies the explicit CLI and hermetic CI surface; Task 6 freezes all three seed cohorts and matching evidence before lint observation; Task 7 creates and verifies the first empirical baseline.
 
 The plan intentionally does not implement NTSB/Regulations.gov harvesting, OCR, layout repair, a crawler, a hosted corpus service, an STE score, source-specific glossaries, or manual compliance adjudication. Those are separate future decisions after seed-v1 demonstrates the benchmark contract.
