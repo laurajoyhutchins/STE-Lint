@@ -2,6 +2,47 @@ use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
 use crate::{LintContext, TextAuthorityKind};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CanonicalSpan {
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct CanonicalSource<'a> {
+    text: &'a str,
+    structure: SourceDocument,
+}
+
+impl<'a> CanonicalSource<'a> {
+    pub(crate) fn new(text: &'a str) -> Self {
+        Self::with_context(text, None)
+    }
+
+    pub(crate) fn with_context(text: &'a str, context: Option<&LintContext>) -> Self {
+        Self {
+            text,
+            structure: SourceDocument::with_context(text, context),
+        }
+    }
+
+    pub(crate) fn text(&self) -> &'a str {
+        self.text
+    }
+
+    pub(crate) fn span(&self, start: usize, end: usize) -> Option<CanonicalSpan> {
+        (start < end
+            && end <= self.text.len()
+            && self.text.is_char_boundary(start)
+            && self.text.is_char_boundary(end))
+        .then_some(CanonicalSpan { start, end })
+    }
+
+    pub(crate) fn is_protected(&self, span: CanonicalSpan) -> bool {
+        self.structure.is_protected(span.start, span.end)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SourceSpan {
     pub start: usize,
