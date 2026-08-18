@@ -6,7 +6,7 @@ use crate::{LintContext, LintMode};
 use super::grammar::{self, ObservedRoleEvidence};
 use super::linguistic::{LinguisticDocument, LinguisticTokenEvidence};
 use super::sentence::{AnalysisSentence, build_sentences};
-use super::token::{AnalysisToken, HyphenAwareToken, hyphen_aware_tokens};
+use super::token::AnalysisToken;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerbFormRole {
@@ -57,7 +57,6 @@ pub struct AnalysisDocument<'a> {
     mode: LintMode,
     tokens: Vec<AnalysisToken<'a>>,
     linguistic_tokens: Vec<LinguisticTokenEvidence>,
-    hyphen_aware_tokens: Vec<HyphenAwareToken<'a>>,
     sentences: Vec<AnalysisSentence>,
     max_dictionary_words: usize,
     max_glossary_words: usize,
@@ -78,7 +77,7 @@ impl<'a> AnalysisDocument<'a> {
             .entries()
             .iter()
             .flat_map(|entry| &entry.forms)
-            .map(|form| form.split_whitespace().count())
+            .map(|form| source_form_token_count(form))
             .max()
             .unwrap_or(1);
         let max_glossary_words = glossary.map(Glossary::max_identity_words).unwrap_or(1);
@@ -91,7 +90,6 @@ impl<'a> AnalysisDocument<'a> {
             mode,
             tokens,
             linguistic_tokens,
-            hyphen_aware_tokens: hyphen_aware_tokens(text),
             sentences,
             max_dictionary_words,
             max_glossary_words,
@@ -218,7 +216,7 @@ impl<'a> AnalysisDocument<'a> {
         token_start: usize,
         token_width: usize,
     ) -> Option<ObservedRoleEvidence> {
-        grammar::dictionary_role(self.text, &self.tokens, token_start, token_width, self.mode)
+        grammar::dictionary_role(self, token_start, token_width)
     }
 
     pub fn technical_role_at(
@@ -226,7 +224,7 @@ impl<'a> AnalysisDocument<'a> {
         token_start: usize,
         token_width: usize,
     ) -> Option<ObservedRoleEvidence> {
-        grammar::technical_role(self.text, &self.tokens, token_start, token_width, self.mode)
+        grammar::technical_role(self, token_start, token_width)
     }
 
     pub(crate) fn first_token_in_span(
@@ -268,25 +266,21 @@ impl<'a> AnalysisDocument<'a> {
         None
     }
 
-    pub(crate) fn hyphen_aware_tokens(&self) -> &[HyphenAwareToken<'a>] {
-        &self.hyphen_aware_tokens
-    }
-
-    pub(crate) fn hyphen_aware_dictionary_match_at(
+    pub(crate) fn source_dictionary_match_at(
         &self,
         token_start: usize,
         token_width: usize,
     ) -> Option<DictionaryMatch<'a>> {
-        if token_width == 0 || token_start + token_width > self.hyphen_aware_tokens.len() {
+        if token_width == 0 || token_start + token_width > self.tokens.len() {
             return None;
         }
-        let window = &self.hyphen_aware_tokens[token_start..token_start + token_width];
-        if !hyphen_aware_tokens_whitespace_joined(self.text, window) {
+        let window = &self.tokens[token_start..token_start + token_width];
+        if !analysis_tokens_source_form_joined(self.text, window) {
             return None;
         }
         let start = window[0].start;
         let end = window[token_width - 1].end;
-        let phrase = self.text[start..end].to_string();
+        let phrase = normalize_source_form(&self.text[start..end]);
         self.make_dictionary_match(token_start, token_width, phrase, start, end)
     }
 
@@ -401,10 +395,24 @@ fn analysis_tokens_whitespace_joined(text: &str, tokens: &[AnalysisToken<'_>]) -
     })
 }
 
-fn hyphen_aware_tokens_whitespace_joined(text: &str, tokens: &[HyphenAwareToken<'_>]) -> bool {
+fn analysis_tokens_source_form_joined(text: &str, tokens: &[AnalysisToken<'_>]) -> bool {
     tokens.windows(2).all(|pair| {
-        text[pair[0].end..pair[1].start]
-            .chars()
-            .all(char::is_whitespace)
+        let separator = &text[pair[0].end..pair[1].start];
+        !separator.is_empty()
+            && separator
+                .chars()
+                .all(|character| character.is_whitespace() || character == '-')
     })
+}
+
+fn normalize_source_form(value: &str) -> String {
+    value.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
+fn source_form_token_count(value: &str) -> usize {
+    value
+        .split(|character: char| character.is_whitespace() || character == '-')
+        .filter(|part| !part.is_empty())
+        .count()
+        .max(1)
 }

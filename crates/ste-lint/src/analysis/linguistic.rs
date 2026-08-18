@@ -117,7 +117,8 @@ impl<'a> LinguisticDocument<'a> {
         Self { text, tokens }
     }
 
-    pub(crate) fn analysis_tokens(&self) -> Vec<AnalysisToken<'a>> {
+    #[cfg(test)]
+    fn analysis_tokens(&self) -> Vec<AnalysisToken<'a>> {
         self.tokens
             .iter()
             .map(|token| AnalysisToken {
@@ -127,10 +128,6 @@ impl<'a> LinguisticDocument<'a> {
                 sentence_id: None,
             })
             .collect()
-    }
-
-    pub(crate) fn token(&self, index: usize) -> Option<&LinguisticTokenEvidence> {
-        self.tokens.get(index)
     }
 
     pub(crate) fn into_parts(self) -> (Vec<AnalysisToken<'a>>, Vec<LinguisticTokenEvidence>) {

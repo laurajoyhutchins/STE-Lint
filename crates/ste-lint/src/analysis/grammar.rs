@@ -480,6 +480,12 @@ fn is_determiner_token(analysis: &AnalysisDocument<'_>, token_index: usize) -> b
         || token_has_part_of_speech(analysis, token_index, PartOfSpeech::Article)
 }
 
+fn is_linking_verb_token(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
+    analysis
+        .linguistic_token(token_index)
+        .is_some_and(|evidence| evidence.linking_verb)
+}
+
 fn token_has_part_of_speech(
     analysis: &AnalysisDocument<'_>,
     token_index: usize,
@@ -531,32 +537,32 @@ fn resolution_from_candidates<T>(mut candidates: Vec<T>) -> Resolution<T> {
 }
 
 pub(crate) fn dictionary_role(
-    text: &str,
-    tokens: &[AnalysisToken<'_>],
+    analysis: &AnalysisDocument<'_>,
     index: usize,
     width: usize,
-    mode: LintMode,
 ) -> Option<ObservedRoleEvidence> {
+    let text = analysis.text();
+    let tokens = analysis.tokens();
     let next_index = index + width;
 
     if index > 0
         && next_index < tokens.len()
         && separator_is_whitespace(text, &tokens[index - 1], &tokens[index])
         && separator_is_whitespace(text, &tokens[next_index - 1], &tokens[next_index])
-        && is_determiner(tokens[index - 1].text)
-        && is_copula(tokens[next_index].text)
+        && is_determiner_token(analysis, index - 1)
+        && is_linking_verb_token(analysis, next_index)
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Nominal,
-            basis: "determiner_term_copula",
+            basis: "determiner_term_linking_verb",
         });
     }
 
-    if mode == LintMode::Procedural
+    if analysis.mode() == LintMode::Procedural
         && sentence_start(tokens, index)
         && next_index < tokens.len()
         && separator_is_whitespace(text, &tokens[next_index - 1], &tokens[next_index])
-        && is_determiner(tokens[next_index].text)
+        && is_determiner_token(analysis, next_index)
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Verbal,
@@ -568,15 +574,15 @@ pub(crate) fn dictionary_role(
 }
 
 pub(crate) fn technical_role(
-    text: &str,
-    tokens: &[AnalysisToken<'_>],
+    analysis: &AnalysisDocument<'_>,
     index: usize,
     width: usize,
-    mode: LintMode,
 ) -> Option<ObservedRoleEvidence> {
+    let text = analysis.text();
+    let tokens = analysis.tokens();
     if index > 0
         && separator_is_whitespace(text, &tokens[index - 1], &tokens[index])
-        && is_determiner(tokens[index - 1].text)
+        && is_determiner_token(analysis, index - 1)
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Nominal,
@@ -585,11 +591,11 @@ pub(crate) fn technical_role(
     }
 
     let next_index = index + width;
-    if mode == LintMode::Procedural
+    if analysis.mode() == LintMode::Procedural
         && sentence_start(tokens, index)
         && next_index < tokens.len()
         && separator_is_whitespace(text, &tokens[next_index - 1], &tokens[next_index])
-        && is_determiner(tokens[next_index].text)
+        && is_determiner_token(analysis, next_index)
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Verbal,
@@ -615,27 +621,4 @@ fn separator_is_whitespace(
     right: &AnalysisToken<'_>,
 ) -> bool {
     text[left.end..right.start].chars().all(char::is_whitespace)
-}
-
-fn is_determiner(value: &str) -> bool {
-    matches!(
-        value.to_ascii_lowercase().as_str(),
-        "a" | "an" | "the" | "this" | "that" | "these" | "those"
-    )
-}
-
-fn is_copula(value: &str) -> bool {
-    matches!(
-        value.to_ascii_lowercase().as_str(),
-        "am" | "are"
-            | "be"
-            | "became"
-            | "become"
-            | "becomes"
-            | "is"
-            | "stay"
-            | "stays"
-            | "was"
-            | "were"
-    )
 }
