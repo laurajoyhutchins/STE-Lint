@@ -135,20 +135,17 @@ fn noun_phrase(analysis: &AnalysisDocument<'_>, token_start: usize) -> Resolutio
             break;
         }
 
+        let token = &tokens[index];
         let parts = token_parts_of_speech(analysis, index);
-        if parts.iter().any(|part| {
-            matches!(
-                part,
-                PartOfSpeech::Verb
-                    | PartOfSpeech::Preposition
-                    | PartOfSpeech::Conjunction
-                    | PartOfSpeech::Article
-            )
-        }) {
+        if token.generic_is_verb
+            || token.generic_is_preposition
+            || token.generic_is_conjunction
+            || token.generic_is_determiner
+        {
             break;
         }
 
-        if parts.contains(&PartOfSpeech::Noun)
+        if (token.generic_is_noun || parts.contains(&PartOfSpeech::Noun))
             && let Some(span) = grammar_span(tokens, token_start, index + 1)
         {
             candidates.push(NounPhrase {
@@ -318,7 +315,7 @@ fn ing_use(analysis: &AnalysisDocument<'_>, token_index: usize) -> Resolution<In
     let Some(token) = analysis.tokens().get(token_index) else {
         return Resolution::Unknown;
     };
-    if !token.text.to_ascii_lowercase().ends_with("ing") {
+    if !token.generic_is_progressive_form {
         return Resolution::Unknown;
     }
     let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
@@ -468,7 +465,7 @@ fn is_base_form_verb(analysis: &AnalysisDocument<'_>, token_index: usize) -> boo
 
 fn is_determiner_token(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
     analysis.tokens().get(token_index).is_some_and(|token| {
-        is_determiner(token.text)
+        token.generic_is_determiner
             || token_has_part_of_speech(analysis, token_index, PartOfSpeech::Article)
     })
 }
@@ -536,8 +533,8 @@ pub(crate) fn dictionary_role(
         && next_index < tokens.len()
         && separator_is_whitespace(text, &tokens[index - 1], &tokens[index])
         && separator_is_whitespace(text, &tokens[next_index - 1], &tokens[next_index])
-        && is_determiner(tokens[index - 1].text)
-        && is_copula(tokens[next_index].text)
+        && tokens[index - 1].generic_is_determiner
+        && tokens[next_index].generic_is_linking_verb
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Nominal,
@@ -549,7 +546,7 @@ pub(crate) fn dictionary_role(
         && sentence_start(tokens, index)
         && next_index < tokens.len()
         && separator_is_whitespace(text, &tokens[next_index - 1], &tokens[next_index])
-        && is_determiner(tokens[next_index].text)
+        && tokens[next_index].generic_is_determiner
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Verbal,
@@ -569,7 +566,7 @@ pub(crate) fn technical_role(
 ) -> Option<ObservedRoleEvidence> {
     if index > 0
         && separator_is_whitespace(text, &tokens[index - 1], &tokens[index])
-        && is_determiner(tokens[index - 1].text)
+        && tokens[index - 1].generic_is_determiner
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Nominal,
@@ -582,7 +579,7 @@ pub(crate) fn technical_role(
         && sentence_start(tokens, index)
         && next_index < tokens.len()
         && separator_is_whitespace(text, &tokens[next_index - 1], &tokens[next_index])
-        && is_determiner(tokens[next_index].text)
+        && tokens[next_index].generic_is_determiner
     {
         return Some(ObservedRoleEvidence {
             role: ObservedRole::Verbal,
@@ -610,25 +607,4 @@ fn separator_is_whitespace(
     text[left.end..right.start].chars().all(char::is_whitespace)
 }
 
-fn is_determiner(value: &str) -> bool {
-    matches!(
-        value.to_ascii_lowercase().as_str(),
-        "a" | "an" | "the" | "this" | "that" | "these" | "those"
-    )
-}
-
-fn is_copula(value: &str) -> bool {
-    matches!(
-        value.to_ascii_lowercase().as_str(),
-        "am" | "are"
-            | "be"
-            | "became"
-            | "become"
-            | "becomes"
-            | "is"
-            | "stay"
-            | "stays"
-            | "was"
-            | "were"
-    )
-}
+// Generic grammatical shape comes from Harper token metadata. STE approval remains dictionary-driven.
