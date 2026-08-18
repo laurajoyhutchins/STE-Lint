@@ -115,7 +115,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::dictionary_roles::check(&analysis));
     diagnostics.extend(passes::procedural::check(&analysis));
     diagnostics.extend(passes::contextual::check(text, context));
-    diagnostics.extend(passes::lexical::check(text, lexicon, glossary));
+    diagnostics.extend(passes::lexical::check(&analysis));
     diagnostics.sort_by_key(|diagnostic| (diagnostic.span.start, diagnostic.code.clone()));
     diagnostics
 }

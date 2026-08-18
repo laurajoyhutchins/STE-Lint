@@ -1,101 +1,51 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
-use ste_data::{ApprovalStatus, LexiconEntry, RuntimeLexicon};
-use ste_glossary::{Glossary, TechnicalTerm, TermRole, TermStatus};
+use ste_data::{ApprovalStatus, LexiconEntry};
+use ste_glossary::{TechnicalTerm, TermRole, TermStatus};
 
 use super::semantic::dictionary_evidence;
+use crate::AnalysisDocument;
 
-pub(crate) fn check(
-    text: &str,
-    lexicon: &RuntimeLexicon,
-    glossary: Option<&Glossary>,
-) -> Vec<Diagnostic> {
-    let tokens = tokens(text);
-    let max_dictionary_words = lexicon
-        .entries()
-        .iter()
-        .flat_map(|entry| &entry.forms)
-        .map(|form| form.split_whitespace().count())
-        .max()
-        .unwrap_or(1);
-    let max_glossary_words = glossary.map(Glossary::max_identity_words).unwrap_or(1);
-    let max_phrase_words = max_dictionary_words.max(max_glossary_words);
-
+pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
     let mut index = 0;
 
-    while index < tokens.len() {
-        let token = &tokens[index];
-        if is_machine_like(token.text) {
+    while index < analysis.tokens().len() {
+        let token = &analysis.tokens()[index];
+        if token_is_machine_like_source(analysis.text(), token.start, token.end) {
             index += 1;
             continue;
         }
 
-        let max_window = max_phrase_words.min(tokens.len() - index);
-        let mut matched_phrase = false;
+        let glossary_match = analysis.longest_glossary_match_at(index);
+        let dictionary_match = analysis.longest_dictionary_match_at(index);
+        let glossary_wins = glossary_match.as_ref().is_some_and(|glossary| {
+            dictionary_match
+                .as_ref()
+                .is_none_or(|dictionary| glossary.token_width >= dictionary.token_width)
+        });
 
-        for width in (2..=max_window).rev() {
-            let window = &tokens[index..index + width];
-            if window.iter().any(|token| is_machine_like(token.text))
-                || !window.windows(2).all(|pair| {
-                    text[pair[0].end..pair[1].start]
-                        .chars()
-                        .all(char::is_whitespace)
-                })
-            {
-                continue;
-            }
-
-            let phrase = window
-                .iter()
-                .map(|token| token.text)
-                .collect::<Vec<_>>()
-                .join(" ");
-            let glossary_match = glossary.and_then(|glossary| glossary.lookup_identity(&phrase));
-            let candidates = lexicon.lookup_form_candidates(&phrase);
-
-            if glossary_match.is_none() && candidates.is_empty() {
-                continue;
-            }
-
-            let start = window[0].start;
-            let end = window[width - 1].end;
-            if let Some(matched) = glossary_match {
-                if let Some(diagnostic) = glossary_diagnostic(&phrase, start, end, matched.term) {
-                    diagnostics.push(diagnostic);
-                }
-            } else if let Some(diagnostic) = dictionary_diagnostic(&phrase, start, end, &candidates)
-            {
-                diagnostics.push(diagnostic);
-            }
-
-            index += width;
-            matched_phrase = true;
-            break;
-        }
-
-        if matched_phrase {
-            continue;
-        }
-
-        if let Some(matched) = glossary.and_then(|glossary| glossary.lookup_identity(token.text)) {
+        if glossary_wins {
+            let matched = glossary_match.unwrap();
             if let Some(diagnostic) =
-                glossary_diagnostic(token.text, token.start, token.end, matched.term)
+                glossary_diagnostic(&matched.text, matched.start, matched.end, matched.term)
             {
                 diagnostics.push(diagnostic);
             }
-            index += 1;
+            index += matched.token_width;
             continue;
         }
 
-        let candidates = lexicon.lookup_form_candidates(token.text);
-        if !candidates.is_empty() {
-            if let Some(diagnostic) =
-                dictionary_diagnostic(token.text, token.start, token.end, &candidates)
-            {
+        if let Some(matched) = dictionary_match {
+            if let Some(diagnostic) = dictionary_diagnostic(
+                &matched.text,
+                matched.start,
+                matched.end,
+                &matched.candidates,
+            ) {
                 diagnostics.push(diagnostic);
             }
-            index += 1;
+            index += matched.token_width;
             continue;
         }
 
@@ -201,56 +151,14 @@ fn glossary_diagnostic(
     })
 }
 
-struct Token<'a> {
-    text: &'a str,
-    start: usize,
-    end: usize,
-}
-
-fn tokens(text: &str) -> Vec<Token<'_>> {
-    let mut tokens = Vec::new();
-    let mut cursor = 0;
-
-    for raw in text.split_whitespace() {
-        let relative = text[cursor..].find(raw).unwrap_or(0);
-        let raw_start = cursor + relative;
-        let raw_end = raw_start + raw.len();
-        cursor = raw_end;
-
-        let leading = raw
-            .char_indices()
-            .take_while(|(_, c)| is_boundary_punctuation(*c))
-            .map(|(_, c)| c.len_utf8())
-            .sum::<usize>();
-        let trailing = raw
-            .char_indices()
-            .rev()
-            .take_while(|(_, c)| is_boundary_punctuation(*c))
-            .map(|(_, c)| c.len_utf8())
-            .sum::<usize>();
-
-        if leading + trailing >= raw.len() {
-            continue;
-        }
-
-        let start = raw_start + leading;
-        let end = raw_end - trailing;
-        let cleaned = &text[start..end];
-
-        if cleaned.chars().all(char::is_alphabetic) || is_machine_like(cleaned) {
-            tokens.push(Token {
-                text: cleaned,
-                start,
-                end,
-            });
-        }
-    }
-
-    tokens
-}
-
-fn is_boundary_punctuation(character: char) -> bool {
-    character.is_ascii_punctuation() && !matches!(character, '_' | '/' | '\\' | '-')
+fn token_is_machine_like_source(text: &str, token_start: usize, token_end: usize) -> bool {
+    let start = text[..token_start]
+        .rfind(char::is_whitespace)
+        .map_or(0, |index| index + 1);
+    let end = text[token_end..]
+        .find(char::is_whitespace)
+        .map_or(text.len(), |index| token_end + index);
+    is_machine_like(&text[start..end])
 }
 
 fn is_machine_marker(character: char) -> bool {
@@ -258,5 +166,15 @@ fn is_machine_marker(character: char) -> bool {
 }
 
 fn is_machine_like(token: &str) -> bool {
-    token.chars().any(is_machine_marker) || token.chars().any(|c| c.is_ascii_digit())
+    if token.chars().any(|character| character.is_ascii_digit()) {
+        return true;
+    }
+
+    let characters = token.chars().collect::<Vec<_>>();
+    characters.windows(3).any(|window| {
+        window[0].is_alphanumeric() && is_machine_marker(window[1]) && window[2].is_alphanumeric()
+    }) || token.starts_with("./")
+        || token.starts_with("../")
+        || token.starts_with('/')
+        || token.starts_with('\\')
 }

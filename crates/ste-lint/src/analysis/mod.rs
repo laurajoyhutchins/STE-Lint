@@ -5,6 +5,7 @@ mod grammar;
 mod safety;
 mod sense;
 mod sentence;
+pub(crate) mod source;
 mod token;
 
 pub use document::{

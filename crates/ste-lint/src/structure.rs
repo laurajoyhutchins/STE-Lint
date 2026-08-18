@@ -1,3 +1,5 @@
+use crate::analysis::source::SourceDocument;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct CountUnit {
     pub start: usize,
@@ -11,11 +13,7 @@ struct LineSpan {
     end: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct ProtectedSpan {
-    start: usize,
-    end: usize,
-}
+// Markdown protected spans are supplied by the parser adapter.
 
 pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
     let lines = line_spans(text);
@@ -154,7 +152,12 @@ fn sentence_spans(
     let mut sentence_start = start;
     let mut paren_depth = 0usize;
     let mut quote_end: Option<char> = None;
-    let protected_spans = markdown_inline_code_spans(text, start, end);
+    let source = SourceDocument::new(text);
+    let protected_spans = source
+        .protected_ranges()
+        .iter()
+        .filter(|span| span.start < end && span.end > start)
+        .collect::<Vec<_>>();
     let mut protected_index = 0usize;
 
     for (relative, character) in text[start..end].char_indices() {
@@ -224,56 +227,7 @@ fn sentence_spans(
     spans
 }
 
-fn markdown_inline_code_spans(text: &str, start: usize, end: usize) -> Vec<ProtectedSpan> {
-    let bytes = text.as_bytes();
-    let mut spans = Vec::new();
-    let mut cursor = start;
-
-    while cursor < end {
-        if bytes[cursor] != b'`' {
-            cursor += 1;
-            continue;
-        }
-
-        let open_start = cursor;
-        let mut delimiter_width = 1usize;
-        while open_start + delimiter_width < end && bytes[open_start + delimiter_width] == b'`' {
-            delimiter_width += 1;
-        }
-
-        let mut search = open_start + delimiter_width;
-        let mut close_end = None;
-        while search < end && bytes[search] != b'\n' && bytes[search] != b'\r' {
-            if bytes[search] != b'`' {
-                search += 1;
-                continue;
-            }
-
-            let close_start = search;
-            let mut close_width = 1usize;
-            while close_start + close_width < end && bytes[close_start + close_width] == b'`' {
-                close_width += 1;
-            }
-            if close_width == delimiter_width {
-                close_end = Some(close_start + close_width);
-                break;
-            }
-            search = close_start + close_width;
-        }
-
-        if let Some(span_end) = close_end {
-            spans.push(ProtectedSpan {
-                start: open_start,
-                end: span_end,
-            });
-            cursor = span_end;
-        } else {
-            cursor = open_start + delimiter_width;
-        }
-    }
-
-    spans
-}
+// Inline-code and other Markdown protected ranges are parsed by SourceDocument.
 
 fn is_sentence_period(text: &str, period: usize, range_end: usize) -> bool {
     let before = text[..period].chars().next_back();
