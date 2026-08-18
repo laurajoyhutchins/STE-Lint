@@ -3,7 +3,11 @@ use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
 use ste_lint::{LintMode, LintOptions, lint_text};
 
-fn lint_dictionary(text: &str, lexicon: &RuntimeLexicon, mode: LintMode) -> Vec<ste_core::Diagnostic> {
+fn lint_dictionary(
+    text: &str,
+    lexicon: &RuntimeLexicon,
+    mode: LintMode,
+) -> Vec<ste_core::Diagnostic> {
     lint_text(text, lexicon, None, LintOptions { mode, fix: false }).diagnostics
 }
 
@@ -33,7 +37,10 @@ fn rule_1_2_rejects_approved_noun_used_as_imperative_verb() {
         .find(|diagnostic| diagnostic.code == "STE-GRAM-001")
         .expect("noun CHECK used as a verb must be rejected");
     assert!(diagnostic.rules.iter().any(|rule| rule == "1.2"));
-    assert_eq!(diagnostic.evidence.as_ref().unwrap()["observed_role"], "a verb");
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["observed_role"],
+        "a verb"
+    );
     assert_eq!(
         diagnostic.evidence.as_ref().unwrap()["role_basis"],
         "harper_brill_pos_tag"
@@ -56,11 +63,7 @@ fn rule_1_2_accepts_same_spelling_in_its_approved_noun_role() {
 
 #[test]
 fn rule_1_2_checks_adjective_occurrence_role_not_only_noun_and_verb_frames() {
-    let diagnostics = lint_dictionary(
-        "THE UNIT IS CLEAR.",
-        &role_lexicon(),
-        LintMode::Descriptive,
-    );
+    let diagnostics = lint_dictionary("THE UNIT IS CLEAR.", &role_lexicon(), LintMode::Descriptive);
     let diagnostic = diagnostics
         .iter()
         .find(|diagnostic| diagnostic.code == "STE-GRAM-001")
