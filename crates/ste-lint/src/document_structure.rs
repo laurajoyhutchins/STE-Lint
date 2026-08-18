@@ -160,10 +160,7 @@ pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
         ));
     }
 
-    semantic
-        .into_iter()
-        .map(|(_, _, _, block)| block)
-        .collect()
+    semantic.into_iter().map(|(_, _, _, block)| block).collect()
 }
 
 pub(crate) fn overlaps_note(start: usize, end: usize, notes: &[NoteBlock]) -> bool {
@@ -172,11 +169,7 @@ pub(crate) fn overlaps_note(start: usize, end: usize, notes: &[NoteBlock]) -> bo
         .any(|note| start < note.end && note.start < end)
 }
 
-fn projected_list_item(
-    text: &str,
-    source: &SourceDocument,
-    item: SourceListItem,
-) -> ListItem {
+fn projected_list_item(text: &str, source: &SourceDocument, item: SourceListItem) -> ListItem {
     let child_start = source
         .lists()
         .iter()
