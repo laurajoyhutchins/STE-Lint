@@ -22,10 +22,7 @@ fn long_noun_glossary(alias: &str, alias_kind: &str, status: &str) -> Glossary {
             "definition":"A synthetic governed technical noun.",
             "forms":[],
             "aliases":[{{"text":"{alias}","kind":"{alias_kind}"}}],
-            "sources":[{{
-              "source":"fixture",
-              "supports":["admission","definition","role","alias","status"]
-            }}],
+            "sources":[{{"source":"fixture","supports":["admission","definition","role","alias","status"]}}],
             "status":"{status}"
           }}]
         }}"#
@@ -114,8 +111,8 @@ fn rule_22_rejects_long_short_form_that_does_not_satisfy_the_shortening_method()
 }
 
 #[test]
-fn rule_22_allows_governed_hyphenated_representation_after_full_form() {
-    let glossary = long_noun_glossary("pressure-control valve", "hyphenated", "approved");
+fn rule_22_allows_governed_hyphenated_short_form_after_full_form() {
+    let glossary = long_noun_glossary("pressure-control valve", "short_form", "approved");
     let result = lint_with_glossary(
         "HYDRAULIC PRESSURE CONTROL VALVE. PRESSURE-CONTROL VALVE.",
         &glossary,
@@ -124,8 +121,8 @@ fn rule_22_allows_governed_hyphenated_representation_after_full_form() {
 }
 
 #[test]
-fn rule_22_requires_full_form_before_governed_hyphenated_representation() {
-    let glossary = long_noun_glossary("pressure-control valve", "hyphenated", "approved");
+fn rule_22_requires_full_form_before_governed_hyphenated_short_form() {
+    let glossary = long_noun_glossary("pressure-control valve", "short_form", "approved");
     let result = lint_with_glossary(
         "PRESSURE-CONTROL VALVE. HYDRAULIC PRESSURE CONTROL VALVE.",
         &glossary,
@@ -168,6 +165,20 @@ fn rule_22_deprecated_term_alias_still_uses_terminology_status_enforcement() {
     let glossary = long_noun_glossary("HPCV", "abbreviation", "deprecated");
     let result = lint_with_glossary("HPCV.", &glossary);
     assert!(has_code(&result, "STE-TERM-002"));
+}
+
+#[test]
+fn rule_22_alias_collision_fails_closed_in_governed_terminology() {
+    let source = r#"{
+      "schema":"ste-terminology/v2",
+      "domain":"fixture",
+      "sources":{"fixture":{"title":"collision fixture"}},
+      "terms":[
+        {"id":"a","canonical":"alpha beta gamma delta","roles":["noun"],"definition":"A.","forms":[],"aliases":[{"text":"ABGD","kind":"abbreviation"}],"sources":[{"source":"fixture","supports":["admission","definition","role","alias","status"]}],"status":"approved"},
+        {"id":"b","canonical":"amber blue green diamond","roles":["noun"],"definition":"B.","forms":[],"aliases":[{"text":"ABGD","kind":"abbreviation"}],"sources":[{"source":"fixture","supports":["admission","definition","role","alias","status"]}],"status":"approved"}
+      ]
+    }"#;
+    assert!(Glossary::from_json(source).is_err());
 }
 
 #[test]
@@ -214,15 +225,7 @@ fn rule_81_does_not_lint_governed_immutable_quoted_external_text() {
     let start = text.find('"').unwrap();
     let end = text.rfind('"').unwrap() + 1;
     let context = LintContext::from_json(&format!(
-        r#"{{
-          "occurrences":[{{
-            "start":{start},
-            "end":{end},
-            "source":"immutable UI contract",
-            "official_technical_name":true,
-            "text_authority":"quoted_external_text"
-          }}]
-        }}"#
+        r#"{{"occurrences":[{{"start":{start},"end":{end},"source":"immutable UI contract","text_authority":"quoted_external_text"}}]}}"#
     ))
     .unwrap();
     let lexicon = RuntimeLexicon::embedded().unwrap();
