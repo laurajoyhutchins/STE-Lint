@@ -104,7 +104,7 @@ fn collect_diagnostics(
     let mut diagnostics = passes::punctuation::check(text);
     diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(text, mode, context));
-    diagnostics.extend(passes::lists::check(text));
+    diagnostics.extend(passes::lists::check(&analysis));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
     diagnostics.extend(passes::perfect::check(&analysis));
