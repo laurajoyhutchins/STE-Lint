@@ -42,7 +42,7 @@ impl SourceDocument {
                 Event::Start(Tag::Paragraph) => paragraph_starts.push(range.start),
                 Event::End(TagEnd::Paragraph) => {
                     if let Some(start) = paragraph_starts.pop()
-                        && let Some(span) = SourceSpan::new(start, range.end)
+                        && let Some(span) = SourceSpan::new(start, trim_line_end(text, range.end))
                     {
                         document.paragraphs.push(span);
                     }
