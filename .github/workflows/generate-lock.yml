@@ -15,9 +15,17 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal --no-self-update
       - name: Generate exact lockfile
         run: cargo +1.97.1 generate-lockfile
+      - name: Package repository snapshot
+        run: tar --exclude=.git --exclude=target -czf /tmp/ste-lint-repo.tgz .
       - name: Upload lockfile
         uses: actions/upload-artifact@v4
         with:
           name: ste-lint-cargo-lock
           path: Cargo.lock
+          if-no-files-found: error
+      - name: Upload repository snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: ste-lint-repo-snapshot
+          path: /tmp/ste-lint-repo.tgz
           if-no-files-found: error
