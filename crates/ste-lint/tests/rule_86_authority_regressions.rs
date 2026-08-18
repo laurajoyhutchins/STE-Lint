@@ -91,7 +91,10 @@ fn rule_86_alphanumeric_identifiers_count_as_one_without_ner() {
     for identifier in ["A320", "PANEL-3A", "ABC_12", "R2/D2"] {
         let text = format!("{} {identifier}.", uses(19));
         let result = lint(&text, LintMode::Procedural, None);
-        assert!(!has_length_error(&result), "identifier {identifier}: {text}");
+        assert!(
+            !has_length_error(&result),
+            "identifier {identifier}: {text}"
+        );
     }
 }
 
