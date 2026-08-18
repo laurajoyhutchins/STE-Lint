@@ -49,10 +49,6 @@ pub(crate) fn check(text: &str) -> Vec<Diagnostic> {
             }
 
             if content.ends_with(',') || content.ends_with(';') {
-                let mut rules = vec!["4.3".into()];
-                if content.ends_with(';') {
-                    rules.push("8.1".into());
-                }
                 diagnostics.push(Diagnostic {
                     code: "STE-LIST-003".into(),
                     severity: Severity::Error,
@@ -61,7 +57,7 @@ pub(crate) fn check(text: &str) -> Vec<Diagnostic> {
                         start: item.content_start,
                         end: item.content_end,
                     },
-                    rules,
+                    rules: vec!["4.3".into()],
                     evidence: Some(json!({
                         "coverage": "simple_vertical_list_mechanics_v1",
                         "mechanic": "forbidden_item_end_punctuation"

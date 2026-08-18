@@ -73,7 +73,10 @@ impl<'a> AnalysisDocument<'a> {
         context: Option<&'a LintContext>,
         mode: LintMode,
     ) -> Self {
-        let source = CanonicalSource::new(text);
+        let source = context.map_or_else(
+            || CanonicalSource::new(text),
+            |context| CanonicalSource::with_context(text, Some(context)),
+        );
         let lexical_evidence = HarperProvider::analyze(&source);
         let mut tokens = lexical_evidence
             .iter()
@@ -97,7 +100,21 @@ impl<'a> AnalysisDocument<'a> {
             .map(|form| source_form_token_count(form))
             .max()
             .unwrap_or(1);
-        let max_glossary_words = glossary.map(Glossary::max_identity_words).unwrap_or(1);
+        let max_glossary_words = glossary
+            .map(|glossary| {
+                glossary
+                    .terms()
+                    .iter()
+                    .flat_map(|term| {
+                        std::iter::once(term.canonical.as_str())
+                            .chain(term.aliases.iter().map(|alias| alias.text.as_str()))
+                            .chain(term.forms.iter().map(|form| form.text.as_str()))
+                    })
+                    .map(source_form_token_count)
+                    .max()
+                    .unwrap_or(1)
+            })
+            .unwrap_or(1);
 
         Self {
             text,
@@ -214,21 +231,19 @@ impl<'a> AnalysisDocument<'a> {
         let max_width = self.max_glossary_words.min(self.tokens.len() - token_start);
         for width in (1..=max_width).rev() {
             let window = &self.tokens[token_start..token_start + width];
-            if !analysis_tokens_whitespace_joined(self.text, window) {
+            if !analysis_tokens_source_form_joined(self.text, window) {
                 continue;
             }
-            let phrase = window
-                .iter()
-                .map(|token| token.text)
-                .collect::<Vec<_>>()
-                .join(" ");
+            let start = window[0].start;
+            let end = window[width - 1].end;
+            let phrase = normalize_source_form(&self.text[start..end]);
             if let Some(matched) = glossary.lookup_identity(&phrase) {
                 return Some(GlossaryMatch {
                     token_start,
                     token_width: width,
                     text: phrase,
-                    start: window[0].start,
-                    end: window[width - 1].end,
+                    start,
+                    end,
                     term: matched.term,
                     identity_kind: matched.identity_kind,
                     roles: matched.roles,

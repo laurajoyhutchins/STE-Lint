@@ -1,4 +1,6 @@
-use crate::OccurrenceFact;
+use ste_glossary::{AliasKind, GlossaryIdentityKind};
+
+use crate::{NamedEntityClass, NamedEntityFact, OccurrenceFact};
 
 use super::document::{AnalysisDocument, GlossaryMatch, Resolution};
 use super::grammar::GrammarSpan;
@@ -6,12 +8,14 @@ use super::grammar::GrammarSpan;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EntityIdentity {
     GovernedTerm { term: String, domain: String },
+    GovernedNamedEntity { id: String },
     OfficialTechnicalName { normalized: String },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EntityMentionKind {
     GovernedTechnicalTerm,
+    GovernedNamedEntity,
     OfficialTechnicalName,
 }
 
@@ -23,6 +27,9 @@ pub struct EntityMention {
     pub surface: String,
     pub definition: Option<String>,
     pub provenance: Vec<String>,
+    pub glossary_identity_kind: Option<GlossaryIdentityKind>,
+    pub alias_kind: Option<AliasKind>,
+    pub named_entity_class: Option<NamedEntityClass>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -54,6 +61,9 @@ impl<'a> AnalysisDocument<'a> {
         }
 
         if let Some(context) = self.context() {
+            for fact in &context.named_entities {
+                mentions.extend(named_entity_mentions(self, fact));
+            }
             for occurrence in &context.occurrences {
                 if !occurrence.official_technical_name {
                     continue;
@@ -83,6 +93,13 @@ impl<'a> AnalysisDocument<'a> {
         }
 
         if let Some(context) = self.context() {
+            for fact in &context.named_entities {
+                candidates.extend(
+                    named_entity_mentions(self, fact)
+                        .into_iter()
+                        .filter(|mention| mention.span.start == token.start),
+                );
+            }
             for occurrence in &context.occurrences {
                 if occurrence.official_technical_name
                     && occurrence.start == token.start
@@ -185,7 +202,42 @@ fn mention_from_glossary(matched: GlossaryMatch<'_>) -> EntityMention {
                     .unwrap_or_else(|| source.source.clone())
             })
             .collect(),
+        glossary_identity_kind: Some(matched.identity_kind),
+        alias_kind: matched.alias_kind,
+        named_entity_class: None,
     }
+}
+
+fn named_entity_mentions(
+    analysis: &AnalysisDocument<'_>,
+    fact: &NamedEntityFact,
+) -> Vec<EntityMention> {
+    let mut mentions = Vec::new();
+    for surface in std::iter::once(&fact.canonical).chain(&fact.forms) {
+        for (start, _) in analysis.text().match_indices(surface) {
+            let end = start + surface.len();
+            if !surface_boundary(analysis.text(), start, end) {
+                continue;
+            }
+            let Some(span) = exact_analysis_span(analysis, start, end) else {
+                continue;
+            };
+            mentions.push(EntityMention {
+                identity: EntityIdentity::GovernedNamedEntity {
+                    id: fact.id.clone(),
+                },
+                kind: EntityMentionKind::GovernedNamedEntity,
+                span,
+                surface: surface.clone(),
+                definition: None,
+                provenance: vec![fact.source.clone()],
+                glossary_identity_kind: None,
+                alias_kind: None,
+                named_entity_class: Some(fact.class),
+            });
+        }
+    }
+    mentions
 }
 
 fn mention_from_official_name(
@@ -203,6 +255,9 @@ fn mention_from_official_name(
         surface,
         definition: None,
         provenance: vec![occurrence.source.clone()],
+        glossary_identity_kind: None,
+        alias_kind: None,
+        named_entity_class: None,
     })
 }
 
@@ -222,15 +277,6 @@ fn exact_analysis_span(
         let last = &tokens[token_end - 1];
         if last.end > end || last.sentence_id != sentence_id {
             return None;
-        }
-        if token_end > token_start + 1 {
-            let previous = &tokens[token_end - 2];
-            if !analysis.text()[previous.end..last.start]
-                .chars()
-                .all(char::is_whitespace)
-            {
-                return None;
-            }
         }
         if last.end == end {
             return Some(GrammarSpan {
@@ -286,6 +332,18 @@ fn resolution_from_candidates<T>(mut candidates: Vec<T>) -> Resolution<T> {
         1 => Resolution::Resolved(candidates.pop().unwrap()),
         _ => Resolution::Ambiguous(candidates),
     }
+}
+
+fn surface_boundary(text: &str, start: usize, end: usize) -> bool {
+    let left_ok = text[..start]
+        .chars()
+        .next_back()
+        .is_none_or(|character| !character.is_alphanumeric());
+    let right_ok = text[end..]
+        .chars()
+        .next()
+        .is_none_or(|character| !character.is_alphanumeric());
+    left_ok && right_ok
 }
 
 fn normalize_identity(value: &str) -> String {

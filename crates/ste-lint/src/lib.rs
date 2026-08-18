@@ -8,20 +8,22 @@ use std::cmp::Reverse;
 
 pub use analysis::{
     ActionCardinality, ActionStructure, AnalysisDocument, AnalysisEvidence, AnalysisSentence,
-    AnalysisToken, AuxiliaryChain, AuxiliaryKind, CanonicalSpan, DictionaryMatch, DocumentGraph,
-    DocumentNode, DocumentNodeId, DocumentNodeKind, DocumentReferenceRelation, DocumentRelation,
-    DocumentRelationKind, DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention,
-    EntityMentionKind, EvidenceAlternative, EvidenceProvenance, EvidenceTarget, GlossaryMatch,
-    GrammarSpan, IngRole, IngUse, LexicalObservation, ModelIdentity, NounPhrase, ObservedRole,
-    ObservedRoleEvidence, ParticipleRole, ParticipleUse, ProviderIdentity, ReferenceBasis,
-    ReferenceLink, Resolution, SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence,
-    SafetySemantics, SafetySpanEvidence, SenseEvidence, SenseIdentity, SenseProvenance,
-    SenseRestrictionTag, SubjectPredicate, VerbFormCandidate, VerbFormRole,
+    AnalysisToken, AuxiliaryChain, AuxiliaryKind, CanonicalSpan, CountGroup, CountGroupProjection,
+    DictionaryMatch, DocumentGraph, DocumentNode, DocumentNodeId, DocumentNodeKind,
+    DocumentReferenceRelation, DocumentRelation, DocumentRelationKind, DocumentSemanticOrdering,
+    DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind, EvidenceAlternative,
+    EvidenceProvenance, EvidenceTarget, GlossaryMatch, GrammarSpan, IngRole, IngUse,
+    LexicalObservation, ModelIdentity, NounPhrase, ObservedRole, ObservedRoleEvidence,
+    ParticipleRole, ParticipleUse, ProviderIdentity, ReferenceBasis, ReferenceLink, Resolution,
+    SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence,
+    SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate,
+    VerbFormCandidate, VerbFormRole,
 };
 pub use context::{
-    CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,
-    SafetyFact, SafetyLevelFact, SafetySpanFact, SemanticOrderTarget, SemanticOrderTargetKind,
-    SemanticOrderingFact, SpellingUse, TechnicalNounScope, TopicFact,
+    CountGroupKind, DictionaryMeaningUse, LintContext, MeasurementUnitFact, NamedEntityClass,
+    NamedEntityFact, OccurrenceFact, ParenthesisUseKind, SafetyFact, SafetyLevelFact,
+    SafetySpanFact, SemanticOrderTarget, SemanticOrderTargetKind, SemanticOrderingFact,
+    SpellingUse, TechnicalNounScope, TextAuthorityKind, TopicFact,
 };
 use serde::{Deserialize, Serialize};
 use ste_core::{Diagnostic, Outcome, Severity};
@@ -102,9 +104,9 @@ fn collect_diagnostics(
     mode: LintMode,
 ) -> Vec<Diagnostic> {
     let analysis = AnalysisDocument::new(text, lexicon, glossary, context, mode);
-    let mut diagnostics = passes::punctuation::check(text);
+    let mut diagnostics = passes::punctuation::check(&analysis);
     diagnostics.extend(passes::contractions::check(text));
-    diagnostics.extend(passes::length::check(text, mode, context));
+    diagnostics.extend(passes::length::check(&analysis));
     diagnostics.extend(passes::lists::check(text));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
@@ -154,7 +156,7 @@ mod tests {
     }
 
     #[test]
-    fn semicolon_is_reported_and_can_be_safely_fixed() {
+    fn semicolon_is_reported_without_unsafe_autofix() {
         let lexicon = RuntimeLexicon::embedded().unwrap();
         let options = LintOptions {
             mode: LintMode::Procedural,
@@ -172,33 +174,8 @@ mod tests {
                 fix: true,
             },
         );
-        assert_eq!(fixed.text, "USE THIS. USE THIS.");
-        assert!(!has_code(&fixed, "STE-PUNC-001"));
-    }
-
-    #[test]
-    fn semicolon_autofix_is_idempotent() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let first = lint_text(
-            "USE THIS; USE THIS.",
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Procedural,
-                fix: true,
-            },
-        );
-        let second = lint_text(
-            &first.text,
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Procedural,
-                fix: true,
-            },
-        );
-        assert_eq!(first.text, second.text);
-        assert_eq!(second.outcome, Outcome::Clean);
+        assert_eq!(fixed.text, "USE THIS; USE THIS.");
+        assert!(has_code(&fixed, "STE-PUNC-001"));
     }
 
     #[test]

@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/laurajoyhutchins/STE-Lint/schemas/context.schema.json",
+  "title": "STE-Lint project context",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "occurrences": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/occurrence" },
+      "default": []
+    },
+    "named_entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/namedEntity" },
+      "default": []
+    },
+    "measurement_units": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/measurementUnit" },
+      "default": []
+    },
+    "topics": { "type": "array", "items": { "type": "object" }, "default": [] },
+    "semantic_orderings": { "type": "array", "items": { "type": "object" }, "default": [] },
+    "safety_facts": { "type": "array", "items": { "type": "object" }, "default": [] }
+  },
+  "$defs": {
+    "span": {
+      "type": "object",
+      "required": ["start", "end", "source"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 1 },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "occurrence": {
+      "allOf": [
+        { "$ref": "#/$defs/span" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start", "end", "source"],
+          "properties": {
+            "start": { "type": "integer", "minimum": 0 },
+            "end": { "type": "integer", "minimum": 1 },
+            "source": { "type": "string", "minLength": 1 },
+            "dictionary_meaning": { "enum": ["approved", "not_approved"] },
+            "technical_noun_scope": { "enum": ["international", "regional", "slang", "jargon"] },
+            "spelling": { "enum": ["american", "non_american"] },
+            "official_technical_name": { "type": "boolean" },
+            "count_group": {
+              "enum": [
+                "number",
+                "number_with_unit",
+                "abbreviation",
+                "alphanumeric_identifier",
+                "quoted_text",
+                "title",
+                "heading",
+                "placard",
+                "label",
+                "proper_noun",
+                "proper_noun_person",
+                "proper_noun_group",
+                "proper_noun_organization",
+                "proper_noun_geopolitical_entity",
+                "parenthetical",
+                "hyphenated_word",
+                "document_numbering_excluded"
+              ]
+            },
+            "text_authority": {
+              "enum": [
+                "protected_text",
+                "quoted_external_text",
+                "code_or_verbatim",
+                "formula",
+                "title",
+                "placard",
+                "label",
+                "document_numbering"
+              ]
+            },
+            "hyphen_direct_relation": { "type": "boolean" },
+            "parenthesis_use": {
+              "enum": [
+                "reference",
+                "item_identifier",
+                "work_step_identifier",
+                "abbreviation",
+                "singular_plural",
+                "explanation",
+                "alternative",
+                "other"
+              ]
+            },
+            "phrasal_verb": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "namedEntity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "canonical", "class", "source"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "canonical": { "type": "string", "minLength": 1 },
+        "class": { "enum": ["person", "group", "organization", "geopolitical_entity"] },
+        "forms": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "default": []
+        },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "measurementUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "canonical", "source"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "canonical": { "type": "string", "minLength": 1 },
+        "forms": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "default": []
+        },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

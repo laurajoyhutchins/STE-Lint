@@ -70,7 +70,7 @@ fn comma_ended_list_item_does_not_claim_semicolon_rule() {
 }
 
 #[test]
-fn semicolon_ended_list_item_keeps_rule_8_1_provenance() {
+fn semicolon_ended_list_item_keeps_rule_81_as_a_separate_authored_text_diagnostic() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let result = lint_text(
         "USE THESE:\n- FIRST;\n- SECOND.",
@@ -78,10 +78,8 @@ fn semicolon_ended_list_item_keeps_rule_8_1_provenance() {
         None,
         options(LintMode::Procedural),
     );
-    assert_eq!(
-        diagnostic(&result, "STE-LIST-003").rules,
-        vec!["4.3", "8.1"]
-    );
+    assert_eq!(diagnostic(&result, "STE-LIST-003").rules, vec!["4.3"]);
+    assert_eq!(diagnostic(&result, "STE-PUNC-001").rules, vec!["8.1"]);
 }
 
 #[test]
