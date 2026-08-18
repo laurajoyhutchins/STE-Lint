@@ -1,8 +1,6 @@
 use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
-use ste_lint::{
-    LintContext, LintMode, LintOptions, lint_text, lint_text_with_context,
-};
+use ste_lint::{LintContext, LintMode, LintOptions, lint_text, lint_text_with_context};
 
 fn options() -> LintOptions {
     LintOptions {
@@ -250,7 +248,10 @@ fn rule_81_unicode_adjacency_preserves_utf8_byte_span() {
         .find(|diagnostic| diagnostic.code == "STE-PUNC-001")
         .unwrap();
     let semicolon = text.find(';').unwrap();
-    assert_eq!((diagnostic.span.start, diagnostic.span.end), (semicolon, semicolon + 1));
+    assert_eq!(
+        (diagnostic.span.start, diagnostic.span.end),
+        (semicolon, semicolon + 1)
+    );
 }
 
 #[test]
