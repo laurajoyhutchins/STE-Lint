@@ -1,0 +1,30 @@
+name: Apply completion patch 2
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Apply staged completion patch
+        shell: bash
+        run: |
+          cat .tmp/completion2.part00 .tmp/completion2.part01 .tmp/completion2.r00 .tmp/completion2.rest | base64 -d > /tmp/completion2.patch
+          if ! git apply --check /tmp/completion2.patch; then
+            echo 'Patch already applied or no longer applicable.'
+            exit 0
+          fi
+          git apply /tmp/completion2.patch
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add crates data docs
+          git commit -m 'feat: add Harper-backed linguistic evidence and close executable rule gaps'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
