@@ -62,11 +62,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     diagnostics
 }
 
-fn recount(
-    unit: CountUnit,
-    offset: usize,
-    projection: &CountGroupProjection<'_>,
-) -> CountedUnit {
+fn recount(unit: CountUnit, offset: usize, projection: &CountGroupProjection<'_>) -> CountedUnit {
     CountedUnit {
         start: unit.start,
         end: unit.end,
