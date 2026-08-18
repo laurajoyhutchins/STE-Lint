@@ -19,7 +19,9 @@ fn has_long_multiword_noun(text: &str) -> bool {
 
 #[test]
 fn four_word_noun_adjective_compound_is_reported_without_a_determiner_dependency() {
-    assert!(has_long_multiword_noun("SMALL FUEL PUMP PRESSURE."));
+    assert!(has_long_multiword_noun(
+        "SMALL FUEL PUMP PRESSURE IS STABLE."
+    ));
 }
 
 #[test]
