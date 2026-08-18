@@ -1,6 +1,6 @@
 use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 
-use crate::LintContext;
+use crate::{LintContext, TextAuthorityKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SourceSpan {
@@ -101,7 +101,11 @@ impl SourceDocument {
                 context
                     .occurrences
                     .iter()
-                    .filter(|occurrence| occurrence.text_authority.is_some())
+                    .filter(|occurrence| {
+                        occurrence
+                            .text_authority
+                            .is_some_and(protects_from_authored_text_rules)
+                    })
                     .filter_map(|occurrence| SourceSpan::new(occurrence.start, occurrence.end)),
             );
         }
@@ -142,6 +146,17 @@ impl SourceDocument {
             .iter()
             .any(|span| span.intersects(start, end))
     }
+}
+
+fn protects_from_authored_text_rules(authority: TextAuthorityKind) -> bool {
+    matches!(
+        authority,
+        TextAuthorityKind::ProtectedText
+            | TextAuthorityKind::QuotedExternalText
+            | TextAuthorityKind::CodeOrVerbatim
+            | TextAuthorityKind::Formula
+            | TextAuthorityKind::DocumentNumbering
+    )
 }
 
 fn merge_spans(spans: Vec<SourceSpan>) -> Vec<SourceSpan> {
@@ -236,5 +251,29 @@ mod tests {
         assert!(
             second.start <= second_start && second_start + "SECOND HEADING".len() <= second.end
         );
+    }
+
+    #[test]
+    fn structural_count_authority_does_not_protect_authored_text() {
+        let text = "ALPHA; BETA";
+        let context = LintContext::from_json(&format!(
+            r#"{{"occurrences":[{{"start":0,"end":{},"source":"authored title structure","text_authority":"title"}}]}}"#,
+            text.len()
+        ))
+        .unwrap();
+        let document = SourceDocument::with_context(text, Some(&context));
+        assert!(!document.is_protected(5, 6));
+    }
+
+    #[test]
+    fn immutable_external_authority_is_protected() {
+        let text = "MODE; SAFE";
+        let context = LintContext::from_json(&format!(
+            r#"{{"occurrences":[{{"start":0,"end":{},"source":"immutable UI contract","text_authority":"quoted_external_text"}}]}}"#,
+            text.len()
+        ))
+        .unwrap();
+        let document = SourceDocument::with_context(text, Some(&context));
+        assert!(document.is_protected(4, 5));
     }
 }
