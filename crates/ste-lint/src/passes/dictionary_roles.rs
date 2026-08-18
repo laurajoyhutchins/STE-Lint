@@ -29,33 +29,22 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             .candidates
             .iter()
             .all(|entry| entry.status == ApprovalStatus::Approved)
-        {
-            match observed_part_of_speech(
+            && let Some((observed, basis)) = observed_part_of_speech(
                 analysis,
                 &matched.candidates,
                 matched.token_start,
                 matched.token_width,
-            ) {
-                Some((observed, basis))
-                    if !part_has_compatible_candidate(observed, &matched.candidates) =>
-                {
-                    diagnostics.push(role_diagnostic(
-                        &matched.text,
-                        matched.start,
-                        matched.end,
-                        observed,
-                        basis,
-                        &matched.candidates,
-                    ));
-                }
-                Some(_) => {}
-                None => diagnostics.push(unresolved_role_diagnostic(
-                    &matched.text,
-                    matched.start,
-                    matched.end,
-                    &matched.candidates,
-                )),
-            }
+            )
+            && !part_has_compatible_candidate(observed, &matched.candidates)
+        {
+            diagnostics.push(role_diagnostic(
+                &matched.text,
+                matched.start,
+                matched.end,
+                observed,
+                basis,
+                &matched.candidates,
+            ));
         }
 
         index += matched.token_width;
@@ -153,27 +142,6 @@ fn role_diagnostic(
         ),
         span: Span { start, end },
         rules,
-        evidence: Some(evidence),
-        autofix: None,
-    }
-}
-
-fn unresolved_role_diagnostic(
-    matched_text: &str,
-    start: usize,
-    end: usize,
-    candidates: &[&LexiconEntry],
-) -> Diagnostic {
-    let mut evidence = dictionary_evidence(candidates, false);
-    evidence["role_basis"] = json!("syntactic_role_unresolved");
-    Diagnostic {
-        code: "STE-GRAM-004".into(),
-        severity: Severity::Blocked,
-        message: format!(
-            "Cannot resolve the grammatical role of approved dictionary word '{matched_text}' without guessing; Rule 1.2 compliance is unresolved."
-        ),
-        span: Span { start, end },
-        rules: vec!["1.2".into()],
         evidence: Some(evidence),
         autofix: None,
     }
