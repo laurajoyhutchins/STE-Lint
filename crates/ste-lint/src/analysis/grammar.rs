@@ -138,8 +138,8 @@ fn noun_phrase(analysis: &AnalysisDocument<'_>, token_start: usize) -> Resolutio
         let token = &tokens[index];
         let parts = token_parts_of_speech(analysis, index);
         let has_dictionary_part = !parts.is_empty();
-        let is_verb = parts.contains(&PartOfSpeech::Verb)
-            || (!has_dictionary_part && token.generic_is_verb);
+        let is_verb =
+            parts.contains(&PartOfSpeech::Verb) || (!has_dictionary_part && token.generic_is_verb);
         let is_preposition = parts.contains(&PartOfSpeech::Preposition)
             || (!has_dictionary_part && token.generic_is_preposition);
         let is_conjunction = parts.contains(&PartOfSpeech::Conjunction)
@@ -150,8 +150,8 @@ fn noun_phrase(analysis: &AnalysisDocument<'_>, token_start: usize) -> Resolutio
             break;
         }
 
-        let is_noun = parts.contains(&PartOfSpeech::Noun)
-            || (!has_dictionary_part && token.generic_is_noun);
+        let is_noun =
+            parts.contains(&PartOfSpeech::Noun) || (!has_dictionary_part && token.generic_is_noun);
         if is_noun && let Some(span) = grammar_span(tokens, token_start, index + 1) {
             candidates.push(NounPhrase {
                 span,
