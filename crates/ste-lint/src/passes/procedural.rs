@@ -245,7 +245,11 @@ fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             .filter_map(|entry| entry.verb_paradigm.as_ref())
             .map(|paradigm| paradigm.base_form.as_str())
             .collect::<Vec<_>>();
-        let base_form = (base_forms.len() == 1).then_some(base_forms[0]);
+        let base_form = if base_forms.len() == 1 {
+            base_forms.first().copied()
+        } else {
+            None
+        };
 
         diagnostics.push(Diagnostic {
             code: "STE-PROC-001".into(),
