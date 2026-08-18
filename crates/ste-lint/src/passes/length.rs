@@ -5,6 +5,13 @@ use crate::document_structure::{note_blocks, overlaps_note};
 use crate::structure::{CountUnit, word_limit_units};
 use crate::{AnalysisDocument, CountGroupProjection, LintMode};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct CountedUnit {
+    start: usize,
+    end: usize,
+    word_count: usize,
+}
+
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     let text = analysis.text();
     let notes = note_blocks(text);
@@ -55,8 +62,12 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     diagnostics
 }
 
-fn recount(unit: CountUnit, offset: usize, projection: &CountGroupProjection<'_>) -> CountUnit {
-    CountUnit {
+fn recount(
+    unit: CountUnit,
+    offset: usize,
+    projection: &CountGroupProjection<'_>,
+) -> CountedUnit {
+    CountedUnit {
         start: unit.start,
         end: unit.end,
         word_count: projection.count_range(offset + unit.start, offset + unit.end),
@@ -64,7 +75,7 @@ fn recount(unit: CountUnit, offset: usize, projection: &CountGroupProjection<'_>
 }
 
 fn length_diagnostic(
-    unit: CountUnit,
+    unit: CountedUnit,
     offset: usize,
     limit: usize,
     code: &str,
