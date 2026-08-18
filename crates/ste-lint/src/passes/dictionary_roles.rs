@@ -115,7 +115,10 @@ fn generic_pos_to_ste(pos: GenericPos) -> Option<PartOfSpeech> {
         GenericPos::Adverb => Some(PartOfSpeech::Adverb),
         GenericPos::Auxiliary | GenericPos::Verb => Some(PartOfSpeech::Verb),
         GenericPos::Conjunction => Some(PartOfSpeech::Conjunction),
-        GenericPos::Determiner => Some(PartOfSpeech::Article),
+        // Universal POS DET includes demonstratives and other determiner uses that
+        // do not map one-to-one to the STE dictionary's Article category. Treat it
+        // as unresolved evidence instead of manufacturing an STE part of speech.
+        GenericPos::Determiner => None,
         GenericPos::Noun | GenericPos::ProperNoun => Some(PartOfSpeech::Noun),
         GenericPos::Pronoun => Some(PartOfSpeech::Pronoun),
         GenericPos::Interjection
