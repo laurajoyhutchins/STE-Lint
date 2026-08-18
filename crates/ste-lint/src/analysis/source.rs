@@ -5,6 +5,7 @@ use pulldown_cmark::{Event, Parser, Tag, TagEnd};
 #[derive(Debug, Clone)]
 pub(crate) struct SourceDocument {
     projection: String,
+    protected: Vec<Range<usize>>,
 }
 
 impl SourceDocument {
@@ -41,11 +42,18 @@ impl SourceDocument {
         let visible = merged_ranges(visible);
         let protected = merged_ranges(protected);
         let projection = project_text(text, &visible, &protected);
-        Self { projection }
+        Self {
+            projection,
+            protected,
+        }
     }
 
     pub(crate) fn linguistic_projection(&self) -> &str {
         &self.projection
+    }
+
+    pub(crate) fn protected_ranges(&self) -> &[Range<usize>] {
+        &self.protected
     }
 }
 
