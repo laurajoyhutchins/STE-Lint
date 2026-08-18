@@ -198,17 +198,20 @@ fn token_evidence(
     np_member: bool,
     dictionary: &FstDictionary,
 ) -> LinguisticTokenEvidence {
-    let lemma = metadata.and_then(|metadata| {
-        if let Some(derived_from) = metadata.derived_from.as_ref() {
-            dictionary
-                .get_word_from_id(derived_from)
-                .map(|word| word.iter().collect::<String>())
-        } else if metadata.is_verb_lemma() {
-            Some(token_text.to_ascii_lowercase())
-        } else {
-            None
-        }
-    });
+    let closed_class_auxiliary_lemma = closed_class_auxiliary_lemma(token_text);
+    let lemma = metadata
+        .and_then(|metadata| {
+            if let Some(derived_from) = metadata.derived_from.as_ref() {
+                dictionary
+                    .get_word_from_id(derived_from)
+                    .map(|word| word.iter().collect::<String>())
+            } else if metadata.is_verb_lemma() {
+                Some(token_text.to_ascii_lowercase())
+            } else {
+                None
+            }
+        })
+        .or_else(|| closed_class_auxiliary_lemma.map(str::to_owned));
     let mut verb_forms = Vec::new();
     if metadata.is_some_and(DictWordMetadata::is_verb_lemma) {
         verb_forms.push(GenericVerbForm::Lemma);
@@ -240,13 +243,30 @@ fn token_evidence(
         nominal: metadata.is_some_and(DictWordMetadata::is_nominal),
         adjective: metadata.is_some_and(DictWordMetadata::is_adjective),
         verb: metadata.is_some_and(DictWordMetadata::is_verb),
-        auxiliary_verb: metadata.is_some_and(DictWordMetadata::is_auxiliary_verb),
+        auxiliary_verb: metadata.is_some_and(DictWordMetadata::is_auxiliary_verb)
+            || closed_class_auxiliary_lemma.is_some(),
         linking_verb: metadata.is_some_and(DictWordMetadata::is_linking_verb),
         np_member,
         comparative_adjective: metadata.is_some_and(DictWordMetadata::is_comparative_adjective),
         superlative_adjective: metadata.is_some_and(DictWordMetadata::is_superlative_adjective),
         verb_forms,
     }
+}
+
+fn closed_class_auxiliary_lemma(token_text: &str) -> Option<&'static str> {
+    if ["have", "has", "had"]
+        .iter()
+        .any(|form| token_text.eq_ignore_ascii_case(form))
+    {
+        return Some("have");
+    }
+    if ["be", "am", "is", "are", "was", "were", "been", "being"]
+        .iter()
+        .any(|form| token_text.eq_ignore_ascii_case(form))
+    {
+        return Some("be");
+    }
+    None
 }
 
 fn text_slice(chars: &[char], token: &Token) -> String {
@@ -350,5 +370,13 @@ mod tests {
             .map(|token| token.np_member)
             .collect::<Vec<_>>();
         assert_eq!(phrase, vec![true, true, true]);
+    }
+
+    #[test]
+    fn closed_class_auxiliary_forms_supply_only_generic_grammar_identity() {
+        let document = LinguisticDocument::new("HAS USED CB-1.");
+        let has = &document.tokens[0];
+        assert_eq!(has.lemma.as_deref(), Some("have"));
+        assert!(has.auxiliary_verb);
     }
 }
