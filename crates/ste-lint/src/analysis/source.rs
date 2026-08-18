@@ -230,7 +230,7 @@ mod tests {
         let document = SourceDocument::new(text);
         assert_eq!(document.heading_ranges().len(), 2);
         let first = document.heading_ranges()[0];
-        assert!(first.start <= 0 && "# FIRST HEADING".len() <= first.end);
+        assert!(first.start == 0 && "# FIRST HEADING".len() <= first.end);
         let second_start = text.find("SECOND HEADING").unwrap();
         let second = document.heading_ranges()[1];
         assert!(
