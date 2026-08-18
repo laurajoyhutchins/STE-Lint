@@ -8,17 +8,15 @@ use std::cmp::Reverse;
 
 pub use analysis::{
     ActionCardinality, ActionStructure, AnalysisDocument, AnalysisEvidence, AnalysisSentence,
-    AnalysisToken, CanonicalSpan,
-    AuxiliaryChain, AuxiliaryKind, DictionaryMatch, DocumentGraph, DocumentNode, DocumentNodeId,
-    DocumentNodeKind, DocumentReferenceRelation, DocumentRelation, DocumentRelationKind,
-    DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind,
-    EvidenceAlternative, EvidenceProvenance, EvidenceTarget,
-    GlossaryMatch, GrammarSpan, IngRole, IngUse, NounPhrase, ObservedRole, ObservedRoleEvidence,
-    ParticipleRole, ParticipleUse, ReferenceBasis, ReferenceLink, Resolution, SafetyEvidenceSource,
-    SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence, SenseEvidence,
-    SenseIdentity, SenseProvenance, SenseRestrictionTag, LexicalObservation, ModelIdentity,
-    ProviderIdentity, SubjectPredicate, VerbFormCandidate,
-    VerbFormRole,
+    AnalysisToken, AuxiliaryChain, AuxiliaryKind, CanonicalSpan, DictionaryMatch, DocumentGraph,
+    DocumentNode, DocumentNodeId, DocumentNodeKind, DocumentReferenceRelation, DocumentRelation,
+    DocumentRelationKind, DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention,
+    EntityMentionKind, EvidenceAlternative, EvidenceProvenance, EvidenceTarget, GlossaryMatch,
+    GrammarSpan, IngRole, IngUse, LexicalObservation, ModelIdentity, NounPhrase, ObservedRole,
+    ObservedRoleEvidence, ParticipleRole, ParticipleUse, ProviderIdentity, ReferenceBasis,
+    ReferenceLink, Resolution, SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence,
+    SafetySemantics, SafetySpanEvidence, SenseEvidence, SenseIdentity, SenseProvenance,
+    SenseRestrictionTag, SubjectPredicate, VerbFormCandidate, VerbFormRole,
 };
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, OccurrenceFact, ParenthesisUseKind,

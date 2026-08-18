@@ -3,8 +3,8 @@ use ste_glossary::{AliasKind, Glossary, GlossaryIdentityKind, TechnicalTerm, Ter
 
 use crate::{LintContext, LintMode};
 
-use super::grammar::{self, ObservedRoleEvidence};
 use super::evidence::{AnalysisEvidence, EvidenceTarget};
+use super::grammar::{self, ObservedRoleEvidence};
 use super::linguistic::{HarperProvider, LexicalObservation};
 use super::sentence::{AnalysisSentence, build_sentences};
 use super::source::{CanonicalSource, CanonicalSpan};
@@ -147,7 +147,9 @@ impl<'a> AnalysisDocument<'a> {
     }
 
     pub(crate) fn linguistic_token(&self, index: usize) -> Option<&LexicalObservation> {
-        self.lexical_evidence.get(index).map(|evidence| &evidence.value)
+        self.lexical_evidence
+            .get(index)
+            .map(|evidence| &evidence.value)
     }
 
     pub fn sentences(&self) -> &[AnalysisSentence] {

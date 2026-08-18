@@ -36,7 +36,9 @@ pub(crate) type LinguisticTokenEvidence = LexicalObservation;
 pub(crate) struct HarperProvider;
 
 impl HarperProvider {
-    pub(crate) fn analyze(source: &CanonicalSource<'_>) -> Vec<AnalysisEvidence<LexicalObservation>> {
+    pub(crate) fn analyze(
+        source: &CanonicalSource<'_>,
+    ) -> Vec<AnalysisEvidence<LexicalObservation>> {
         let text = source.text();
         let document = Document::new_plain_english_curated(text);
         let dictionary = FstDictionary::curated();

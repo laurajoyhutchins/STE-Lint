@@ -220,13 +220,7 @@ fn grammar_v1_counts_only_bounded_procedural_action_heads() {
 #[test]
 fn harper_maps_into_repository_owned_canonical_spans() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let analysis = AnalysisDocument::new(
-        "CAFÉ valve",
-        &lexicon,
-        None,
-        None,
-        LintMode::Descriptive,
-    );
+    let analysis = AnalysisDocument::new("CAFÉ valve", &lexicon, None, None, LintMode::Descriptive);
 
     let evidence = analysis.lexical_evidence();
     assert_eq!(evidence.len(), 2);
@@ -238,20 +232,17 @@ fn harper_maps_into_repository_owned_canonical_spans() {
         Some("2.7.0")
     );
     assert!(evidence[0].provenance.model.is_none());
-    assert_eq!((analysis.tokens()[0].start, analysis.tokens()[0].end), (0, 5));
+    assert_eq!(
+        (analysis.tokens()[0].start, analysis.tokens()[0].end),
+        (0, 5)
+    );
     assert!(analysis.canonical_span(4, 5).is_none());
 }
 
 #[test]
 fn evidence_ir_represents_scope_provenance_confidence_and_alternatives() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
-    let analysis = AnalysisDocument::new(
-        "OPEN VALVE.",
-        &lexicon,
-        None,
-        None,
-        LintMode::Procedural,
-    );
+    let analysis = AnalysisDocument::new("OPEN VALVE.", &lexicon, None, None, LintMode::Procedural);
     let source = analysis.canonical_span(0, 4).unwrap();
     let target = analysis.canonical_span(5, 10).unwrap();
     let evidence = AnalysisEvidence {
@@ -282,8 +273,14 @@ fn evidence_ir_represents_scope_provenance_confidence_and_alternatives() {
     let _supported_targets = [
         EvidenceTarget::Token(source),
         EvidenceTarget::Span(source),
-        EvidenceTarget::Sentence { id: 0, span: source },
-        EvidenceTarget::Paragraph { id: 0, span: source },
+        EvidenceTarget::Sentence {
+            id: 0,
+            span: source,
+        },
+        EvidenceTarget::Paragraph {
+            id: 0,
+            span: source,
+        },
         EvidenceTarget::Document,
     ];
 }
