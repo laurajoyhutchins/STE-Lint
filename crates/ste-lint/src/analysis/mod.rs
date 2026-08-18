@@ -9,7 +9,7 @@ mod safety;
 mod sense;
 mod sentence;
 pub(crate) mod source;
-mod token;
+pub(crate) mod token;
 
 pub use document::{
     AnalysisDocument, DictionaryMatch, GlossaryMatch, Resolution, VerbFormCandidate, VerbFormRole,
