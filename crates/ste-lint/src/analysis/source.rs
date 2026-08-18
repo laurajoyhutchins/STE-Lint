@@ -16,10 +16,6 @@ impl SourceSpan {
     pub(crate) fn intersects(self, start: usize, end: usize) -> bool {
         start < self.end && self.start < end
     }
-
-    pub(crate) fn contains(self, start: usize, end: usize) -> bool {
-        self.start <= start && end <= self.end
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -233,8 +229,10 @@ mod tests {
         let text = "# FIRST HEADING\n\nSECOND HEADING\n==============";
         let document = SourceDocument::new(text);
         assert_eq!(document.heading_ranges().len(), 2);
-        assert!(document.heading_ranges()[0].contains(0, "# FIRST HEADING".len()));
-        let second = text.find("SECOND HEADING").unwrap();
-        assert!(document.heading_ranges()[1].contains(second, second + "SECOND HEADING".len()));
+        let first = document.heading_ranges()[0];
+        assert!(first.start <= 0 && "# FIRST HEADING".len() <= first.end);
+        let second_start = text.find("SECOND HEADING").unwrap();
+        let second = document.heading_ranges()[1];
+        assert!(second.start <= second_start && second_start + "SECOND HEADING".len() <= second.end);
     }
 }
