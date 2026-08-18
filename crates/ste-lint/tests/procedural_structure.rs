@@ -94,19 +94,19 @@ fn note_in_procedure_uses_twenty_five_word_limit_not_twenty() {
 
 #[test]
 fn simple_vertical_list_requires_colon_before_first_item() {
-    let diagnostics = lint("REMOVE THESE PARTS.\n- The cover\n- The seal.");
+    let diagnostics = lint("REMOVE THESE PARTS.\n- The cover\n- The seal");
     assert!(has_code(&diagnostics, "STE-LIST-001"));
 }
 
 #[test]
 fn simple_vertical_list_items_start_with_uppercase() {
-    let diagnostics = lint("REMOVE THESE PARTS:\n- the cover\n- The seal.");
+    let diagnostics = lint("REMOVE THESE PARTS:\n- the cover\n- The seal");
     assert!(has_code(&diagnostics, "STE-LIST-002"));
 }
 
 #[test]
 fn simple_vertical_list_items_cannot_end_with_comma_or_semicolon() {
-    let diagnostics = lint("REMOVE THESE PARTS:\n- The cover,\n- The seal;\n- The bolt.");
+    let diagnostics = lint("REMOVE THESE PARTS:\n- The cover,\n- The seal;\n- The bolt");
     assert_eq!(
         diagnostics
             .iter()
@@ -117,14 +117,36 @@ fn simple_vertical_list_items_cannot_end_with_comma_or_semicolon() {
 }
 
 #[test]
-fn last_simple_vertical_list_item_requires_period() {
-    let diagnostics = lint("REMOVE THESE PARTS:\n- The cover\n- The seal");
-    assert!(has_code(&diagnostics, "STE-LIST-004"));
+fn fragment_vertical_list_item_must_not_end_with_period() {
+    let diagnostics = lint("REMOVE THESE PARTS:\n- The cover\n- The seal.");
+    let diagnostic = diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "STE-LIST-004")
+        .unwrap();
+    assert_eq!(diagnostic.severity, Severity::Error);
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["mechanic"],
+        "fragment_forbids_period"
+    );
 }
 
 #[test]
-fn well_formed_simple_vertical_list_has_no_list_diagnostics() {
-    let diagnostics = lint("REMOVE THESE PARTS:\n- The cover\n- The seal.");
+fn full_sentence_vertical_list_item_requires_period() {
+    let diagnostics = lint("DO THIS:\n- REMOVE THE COVER");
+    let diagnostic = diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "STE-LIST-004")
+        .unwrap();
+    assert_eq!(diagnostic.severity, Severity::Error);
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["mechanic"],
+        "sentence_requires_period"
+    );
+}
+
+#[test]
+fn well_formed_fragment_vertical_list_has_no_list_diagnostics() {
+    let diagnostics = lint("REMOVE THESE PARTS:\n- The cover\n- The seal");
     assert!(
         diagnostics
             .iter()
