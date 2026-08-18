@@ -2,8 +2,8 @@ use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, LexiconEntry, PartOfSpeech};
 
-use crate::analysis::linguistic::GenericVerbForm;
 use crate::AnalysisDocument;
+use crate::analysis::linguistic::GenericVerbForm;
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
@@ -80,9 +80,10 @@ fn is_generic_verb_inflection(
     generic: &crate::analysis::linguistic::LinguisticTokenEvidence,
 ) -> bool {
     generic.verb
-        && generic.verb_forms.iter().any(|form| {
-            !matches!(form, GenericVerbForm::Lemma)
-        })
+        && generic
+            .verb_forms
+            .iter()
+            .any(|form| !matches!(form, GenericVerbForm::Lemma))
 }
 
 fn generic_verb_form_names(forms: &[GenericVerbForm]) -> Vec<&'static str> {
@@ -94,9 +95,7 @@ fn generic_verb_form_names(forms: &[GenericVerbForm]) -> Vec<&'static str> {
             GenericVerbForm::SimplePast => Some("simple_past"),
             GenericVerbForm::PastParticiple => Some("past_participle"),
             GenericVerbForm::Progressive => Some("progressive"),
-            GenericVerbForm::ThirdPersonSingularPresent => {
-                Some("third_person_singular_present")
-            }
+            GenericVerbForm::ThirdPersonSingularPresent => Some("third_person_singular_present"),
         })
         .collect()
 }

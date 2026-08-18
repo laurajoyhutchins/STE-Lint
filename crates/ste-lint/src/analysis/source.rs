@@ -80,10 +80,16 @@ impl SourceDocument {
             }
         }
 
-        document.protected.sort_by_key(|span| (span.start, span.end));
+        document
+            .protected
+            .sort_by_key(|span| (span.start, span.end));
         document.protected = merge_spans(document.protected);
-        document.paragraphs.sort_by_key(|span| (span.start, span.end));
-        document.list_items.sort_by_key(|item| (item.span.start, item.span.end));
+        document
+            .paragraphs
+            .sort_by_key(|span| (span.start, span.end));
+        document
+            .list_items
+            .sort_by_key(|item| (item.span.start, item.span.end));
         document
     }
 

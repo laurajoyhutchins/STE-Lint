@@ -617,7 +617,6 @@ fn separator_is_whitespace(
     text[left.end..right.start].chars().all(char::is_whitespace)
 }
 
-
 fn is_copula(value: &str) -> bool {
     matches!(
         value.to_ascii_lowercase().as_str(),

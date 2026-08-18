@@ -149,7 +149,10 @@ impl<'a> LinguisticDocument<'a> {
 }
 
 fn char_to_byte_index(text: &str) -> Vec<usize> {
-    let mut table = text.char_indices().map(|(index, _)| index).collect::<Vec<_>>();
+    let mut table = text
+        .char_indices()
+        .map(|(index, _)| index)
+        .collect::<Vec<_>>();
     table.push(text.len());
     table
 }
@@ -164,8 +167,14 @@ mod tests {
         let document = LinguisticDocument::new(text);
         let tokens = document.analysis_tokens();
         assert_eq!(tokens.len(), 2);
-        assert_eq!((tokens[0].text, tokens[0].start, tokens[0].end), ("CAFÉ", 0, 5));
-        assert_eq!((tokens[1].text, tokens[1].start, tokens[1].end), ("valve", 6, 11));
+        assert_eq!(
+            (tokens[0].text, tokens[0].start, tokens[0].end),
+            ("CAFÉ", 0, 5)
+        );
+        assert_eq!(
+            (tokens[1].text, tokens[1].start, tokens[1].end),
+            ("valve", 6, 11)
+        );
     }
 
     #[test]

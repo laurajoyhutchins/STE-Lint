@@ -157,7 +157,6 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
             }
         }
 
-
         if let Some(is_phrasal_verb) = occurrence.phrasal_verb {
             if text_value.split_whitespace().count() < 2 {
                 diagnostics.push(invalid_occurrence_shape(

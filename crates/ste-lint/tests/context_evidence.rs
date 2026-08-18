@@ -190,7 +190,10 @@ fn explicit_phrasal_verb_evidence_enforces_rule_9_3() {
         .find(|item| item.code == "STE-PHRASE-001")
         .expect("explicit phrasal-verb classification must be enforced");
     assert_eq!(diagnostic.rules, vec!["9.3"]);
-    assert_eq!(diagnostic.evidence.as_ref().unwrap()["source"], "controlled-language review");
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["source"],
+        "controlled-language review"
+    );
 }
 
 #[test]
@@ -216,5 +219,10 @@ fn phrasal_verb_evidence_requires_a_multiword_span() {
             fix: false,
         },
     );
-    assert!(result.diagnostics.iter().any(|item| item.code == "STE-CTX-000"));
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-CTX-000")
+    );
 }

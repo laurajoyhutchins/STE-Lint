@@ -93,11 +93,20 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
     let rules = rules();
 
     assert_eq!(rules["1.4"]["status"], "partial");
-    assert_eq!(rules["1.4"]["diagnostic_codes"], serde_json::json!(["STE-FORM-001"]));
+    assert_eq!(
+        rules["1.4"]["diagnostic_codes"],
+        serde_json::json!(["STE-FORM-001"])
+    );
     assert_eq!(rules["3.1"]["status"], "partial");
-    assert_eq!(rules["3.1"]["diagnostic_codes"], serde_json::json!(["STE-FORM-001"]));
+    assert_eq!(
+        rules["3.1"]["diagnostic_codes"],
+        serde_json::json!(["STE-FORM-001"])
+    );
     assert_eq!(rules["9.3"]["status"], "partial");
-    assert_eq!(rules["9.3"]["diagnostic_codes"], serde_json::json!(["STE-PHRASE-001"]));
+    assert_eq!(
+        rules["9.3"]["diagnostic_codes"],
+        serde_json::json!(["STE-PHRASE-001"])
+    );
 
     assert_eq!(rules["2.2"]["status"], "partial");
     assert_eq!(
