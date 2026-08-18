@@ -4,6 +4,7 @@ pub(crate) use super::token;
 use super::evidence::{AnalysisEvidence, EvidenceProvenance, EvidenceTarget, ProviderIdentity};
 use super::source::CanonicalSource;
 
+// Keep provider-specific Harper/Brill extraction behind the repository-owned evidence IR.
 #[path = "linguistic_impl.rs"]
 mod implementation;
 
