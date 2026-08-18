@@ -63,7 +63,9 @@ impl<'a> CountGroupProjection<'a> {
                         TextAuthorityKind::DocumentNumbering => {
                             Some(CountGroupKind::DocumentNumberingExcluded)
                         }
-                        TextAuthorityKind::ProtectedText | TextAuthorityKind::CodeOrVerbatim => None,
+                        TextAuthorityKind::ProtectedText | TextAuthorityKind::CodeOrVerbatim => {
+                            None
+                        }
                     };
                     if let Some(kind) = kind {
                         groups.push(CountGroup {
