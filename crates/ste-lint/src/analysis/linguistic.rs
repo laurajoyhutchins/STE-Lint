@@ -147,7 +147,11 @@ fn append_sentence_evidence(
     }
     let strings = visible
         .iter()
-        .map(|token| chars[token.span.start..token.span.end].iter().collect::<String>())
+        .map(|token| {
+            chars[token.span.start..token.span.end]
+                .iter()
+                .collect::<String>()
+        })
         .collect::<Vec<_>>();
     let tags = tagger.tag_sentence(&strings);
     let noun_phrase_flags = chunker.chunk_sentence(&strings, &tags);
