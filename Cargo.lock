@@ -4217,6 +4217,7 @@ dependencies = [
 name = "ste-lint"
 version = "0.1.0"
 dependencies = [
+ "harper-brill",
  "harper-core",
  "pulldown-cmark",
  "serde",
