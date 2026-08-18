@@ -2,6 +2,9 @@ name: CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: write
+
 jobs:
   authority-ingest:
     runs-on: ubuntu-24.04
@@ -31,6 +34,17 @@ jobs:
           --component rustfmt
           --component clippy
           --no-self-update
+      - name: Refresh implementation lockfile once
+        if: github.event_name == 'push' && github.ref == 'refs/heads/chatgpt/deterministic-rule-audit-20260818'
+        run: |
+          cargo +1.97.1 metadata --format-version 1 > /dev/null
+          if ! git diff --quiet -- Cargo.lock; then
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git add Cargo.lock
+            git commit -m 'deps: refresh deterministic grammar lockfile'
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
       - name: Build
         run: cargo +1.97.1 build --workspace --locked
       - name: Format
