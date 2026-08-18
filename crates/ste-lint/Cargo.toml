@@ -12,3 +12,4 @@ ste-data = { path = "../ste-data" }
 ste-glossary = { path = "../ste-glossary" }
 pulldown-cmark.workspace = true
 harper-core.workspace = true
+harper-brill.workspace = true

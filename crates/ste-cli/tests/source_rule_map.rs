@@ -89,7 +89,7 @@ fn all_issue_nine_rules_have_source_audited_semantic_keys() {
 }
 
 #[test]
-fn audited_coverage_keeps_only_supported_rule_claims() {
+fn audited_coverage_preserves_the_verified_rule_boundary() {
     let rules = rules();
 
     assert_eq!(rules["1.4"]["status"], "partial");
@@ -117,11 +117,15 @@ fn audited_coverage_keeps_only_supported_rule_claims() {
     assert_eq!(rules["6.3"]["status"], "implemented");
     assert_eq!(rules["8.1"]["status"], "implemented");
     assert_eq!(rules["8.6"]["status"], "implemented");
-    assert_eq!(rules["8.4"]["status"], "partial");
     assert_eq!(rules["3.3"]["status"], "partial");
     assert_eq!(
         rules["3.3"]["diagnostic_codes"],
-        serde_json::json!(["STE-VERB-001", "STE-GRAM-003"])
+        serde_json::json!([
+            "STE-VERB-001",
+            "STE-VERB-003",
+            "STE-VERB-004",
+            "STE-GRAM-003"
+        ])
     );
     assert_eq!(rules["6.1"]["status"], "partial");
     assert_eq!(
@@ -138,6 +142,8 @@ fn audited_coverage_keeps_only_supported_rule_claims() {
         serde_json::json!(["crates/ste-lint/tests/context_evidence.rs"])
     );
 
+    assert_eq!(rules["6.6"]["status"], "implemented");
+    assert_eq!(rules["8.4"]["status"], "implemented");
     assert_eq!(
         rules["5.5"]["diagnostic_codes"],
         serde_json::json!(["STE-NOTE-001", "STE-NOTE-002"])
@@ -161,8 +167,8 @@ fn audited_coverage_keeps_only_supported_rule_claims() {
     for rule in rules.values() {
         *counts.entry(rule["status"].as_str().unwrap()).or_default() += 1;
     }
-    assert_eq!(counts.get("implemented"), Some(&7));
-    assert_eq!(counts.get("partial"), Some(&35));
+    assert_eq!(counts.get("implemented"), Some(&9));
+    assert_eq!(counts.get("partial"), Some(&33));
     assert_eq!(counts.get("context_required"), Some(&11));
     assert_eq!(counts.get("not_implemented"), None);
 }

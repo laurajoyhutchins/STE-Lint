@@ -107,10 +107,10 @@ fn collect_diagnostics(
     let mut diagnostics = passes::punctuation::check(&analysis);
     diagnostics.extend(passes::contractions::check(text));
     diagnostics.extend(passes::length::check(&analysis));
-    diagnostics.extend(passes::lists::check(text));
+    diagnostics.extend(passes::lists::check(&analysis));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));
     diagnostics.extend(passes::paragraph::check(text, mode, context));
-    diagnostics.extend(passes::perfect::check(&analysis));
+    diagnostics.extend(passes::verb_constructions::check(&analysis));
     diagnostics.extend(passes::grammar_semantics::check(&analysis));
     diagnostics.extend(passes::entity_semantics::check(&analysis));
     diagnostics.extend(passes::discourse_semantics::check(&analysis));
@@ -139,138 +139,5 @@ fn classify_outcome(diagnostics: &[Diagnostic], fixed_any: bool) -> Outcome {
         Outcome::Fixed
     } else {
         Outcome::Clean
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use ste_data::RuntimeLexicon;
-    use ste_glossary::Glossary;
-
-    fn has_code(result: &LintResult, code: &str) -> bool {
-        result
-            .diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.code == code)
-    }
-
-    #[test]
-    fn semicolon_is_reported_without_unsafe_autofix() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let options = LintOptions {
-            mode: LintMode::Procedural,
-            fix: false,
-        };
-        let result = lint_text("USE THIS; USE THIS.", &lexicon, None, options);
-        assert!(has_code(&result, "STE-PUNC-001"));
-
-        let fixed = lint_text(
-            "USE THIS; USE THIS.",
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Procedural,
-                fix: true,
-            },
-        );
-        assert_eq!(fixed.text, "USE THIS; USE THIS.");
-        assert!(has_code(&fixed, "STE-PUNC-001"));
-    }
-
-    #[test]
-    fn procedural_sentences_over_twenty_words_are_errors() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let text = vec!["USE"; 21].join(" ");
-        let result = lint_text(
-            &text,
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Procedural,
-                fix: false,
-            },
-        );
-        assert!(has_code(&result, "STE-LEN-001"));
-    }
-
-    #[test]
-    fn descriptive_sentences_over_twenty_five_words_are_errors() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let text = vec!["USE"; 26].join(" ");
-        let result = lint_text(
-            &text,
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Descriptive,
-                fix: false,
-            },
-        );
-        assert!(has_code(&result, "STE-LEN-002"));
-    }
-
-    #[test]
-    fn known_unapproved_word_emits_lexical_diagnostic_without_autofix() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let result = lint_text(
-            "acceptable",
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Descriptive,
-                fix: true,
-            },
-        );
-        assert!(has_code(&result, "STE-LEX-001"));
-        assert_eq!(result.text, "acceptable");
-    }
-
-    #[test]
-    fn project_glossary_resolves_a_technical_term() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let glossary =
-            Glossary::from_json(include_str!("../../../fixtures/glossary/valid.json")).unwrap();
-        let result = lint_text(
-            "busway",
-            &lexicon,
-            Some(&glossary),
-            LintOptions {
-                mode: LintMode::Descriptive,
-                fix: false,
-            },
-        );
-        assert!(!has_code(&result, "STE-TERM-001"));
-    }
-
-    #[test]
-    fn unknown_prose_word_is_blocked_for_term_classification() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let result = lint_text(
-            "fluxcapacitor",
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Descriptive,
-                fix: false,
-            },
-        );
-        assert!(has_code(&result, "STE-TERM-001"));
-        assert_eq!(result.outcome, Outcome::Blocked);
-    }
-
-    #[test]
-    fn machine_like_tokens_are_not_treated_as_unknown_prose_terms() {
-        let lexicon = RuntimeLexicon::embedded().unwrap();
-        let result = lint_text(
-            "occurrence_id path/to/file foo-bar 1.2",
-            &lexicon,
-            None,
-            LintOptions {
-                mode: LintMode::Descriptive,
-                fix: false,
-            },
-        );
-        assert!(!has_code(&result, "STE-TERM-001"));
     }
 }

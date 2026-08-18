@@ -207,10 +207,11 @@ mod tests {
                 .map(|rule| rule.status)
                 .unwrap()
         };
-        for id in ["2.2", "5.1", "6.3", "8.1", "8.5", "8.6", "8.7"] {
+        for id in [
+            "2.2", "5.1", "6.3", "6.6", "8.1", "8.4", "8.5", "8.6", "8.7",
+        ] {
             assert_eq!(status(id), CoverageStatus::Implemented, "rule {id}");
         }
-        assert_eq!(status("8.4"), CoverageStatus::Partial);
         assert_eq!(status("1.3"), CoverageStatus::Partial);
         assert_eq!(status("1.4"), CoverageStatus::Partial);
         assert_eq!(status("1.10"), CoverageStatus::Partial);
@@ -222,8 +223,8 @@ mod tests {
         assert_eq!(status("9.3"), CoverageStatus::Partial);
 
         let counts = manifest.status_counts();
-        assert_eq!(counts.get(&CoverageStatus::Implemented).copied(), Some(7));
-        assert_eq!(counts.get(&CoverageStatus::Partial).copied(), Some(35));
+        assert_eq!(counts.get(&CoverageStatus::Implemented).copied(), Some(9));
+        assert_eq!(counts.get(&CoverageStatus::Partial).copied(), Some(33));
         assert_eq!(
             counts.get(&CoverageStatus::ContextRequired).copied(),
             Some(11)

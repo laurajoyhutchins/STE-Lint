@@ -107,7 +107,11 @@ fn approved_noun_in_strong_action_position_is_rejected() {
         .expect("approved noun used as a verb must be diagnosed in a strong action frame");
     assert_eq!(diagnostic.rules, vec!["1.2", "3.7"]);
     let evidence = diagnostic.evidence.as_ref().unwrap();
-    assert_eq!(evidence["observed_role"], "verbal");
+    assert_eq!(evidence["observed_role"], "a verb");
+    assert_eq!(
+        evidence["role_basis"],
+        "procedural_sentence_initial_term_followed_by_determiner"
+    );
     assert_eq!(
         evidence["possible_parts_of_speech"],
         serde_json::json!(["noun"])
@@ -133,7 +137,7 @@ fn approved_verb_in_determiner_governed_noun_position_is_rejected() {
     assert_eq!(diagnostic.rules, vec!["1.2"]);
     assert_eq!(
         diagnostic.evidence.as_ref().unwrap()["observed_role"],
-        "nominal"
+        "a noun"
     );
 }
 

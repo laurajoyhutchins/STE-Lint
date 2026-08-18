@@ -44,6 +44,23 @@
         "end": 5,
         "start": 0
       }
+    },
+    {
+      "code": "STE-VERB-007",
+      "evidence": {
+        "generic_occurrence_pos": "verb",
+        "governed_technical_noun_identity": false,
+        "grammar_projection": "source_linked_ing_verbal_occurrence",
+        "ste_authority": "approved_runtime_lemma"
+      },
+      "rules": [
+        "3.5"
+      ],
+      "severity": "error",
+      "span": {
+        "end": 5,
+        "start": 0
+      }
     }
   ],
   "outcome": "error"

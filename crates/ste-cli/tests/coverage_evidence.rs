@@ -38,7 +38,9 @@ fn coverage_manifest_is_evidence_complete_and_path_valid() {
         .collect::<BTreeSet<_>>();
     assert_eq!(
         implemented,
-        BTreeSet::from(["2.2", "5.1", "6.3", "8.1", "8.5", "8.6", "8.7"])
+        BTreeSet::from([
+            "2.2", "5.1", "6.3", "6.6", "8.1", "8.4", "8.5", "8.6", "8.7"
+        ])
     );
 
     for rule in rules {

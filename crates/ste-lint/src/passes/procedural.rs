@@ -159,58 +159,125 @@ fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     for sentence_span in analysis.sentences() {
         let start = sentence_span.start;
         let end = sentence_span.end;
-        let sentence = text[start..end].trim_start();
+        let raw_sentence = &text[start..end];
+        let sentence = raw_sentence.trim_start();
         if sentence.is_empty()
             || starts_label(sentence, "NOTE")
             || starts_label(sentence, "WARNING")
             || starts_label(sentence, "CAUTION")
-            || starts_condition(sentence)
         {
             continue;
         }
 
-        let Some((token_index, token)) = analysis.first_token_in_span(start, end) else {
+        let command_start = if starts_condition(sentence) {
+            let Some(comma) = raw_sentence.find(',') else {
+                // Rule 5.4 owns the missing condition separator. Without the
+                // separator there is no deterministic command boundary for 5.3.
+                continue;
+            };
+            start + comma + 1
+        } else {
+            start
+        };
+
+        let Some((token_index, token)) = analysis.first_token_in_span(command_start, end) else {
             continue;
         };
         let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
+            // Unknown terminology is already fail-closed in the lexical pass.
+            // Do not manufacture an imperative identity from generic syntax.
             continue;
         };
-        if matched.candidates.len() != 1 {
-            continue;
-        }
-        let entry = matched.candidates[0];
-        if entry.status != ApprovalStatus::Approved
-            || entry.part_of_speech != Some(PartOfSpeech::Verb)
+
+        let approved_base_verbs = matched
+            .candidates
+            .iter()
+            .filter(|entry| {
+                entry.status == ApprovalStatus::Approved
+                    && entry.part_of_speech == Some(PartOfSpeech::Verb)
+                    && entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
+                        paradigm.classification == VerbClassification::Lexical
+                            && token.text.eq_ignore_ascii_case(&paradigm.base_form)
+                    })
+            })
+            .collect::<Vec<_>>();
+
+        if !approved_base_verbs.is_empty() && approved_base_verbs.len() == matched.candidates.len()
         {
             continue;
         }
-        let Some(paradigm) = &entry.verb_paradigm else {
-            continue;
-        };
-        if paradigm.classification != VerbClassification::Lexical
-            || token.text.eq_ignore_ascii_case(&paradigm.base_form)
-        {
+
+        if !approved_base_verbs.is_empty() {
+            diagnostics.push(Diagnostic {
+                code: "STE-PROC-004".into(),
+                severity: Severity::Blocked,
+                message: format!(
+                    "Procedural command head '{}' has competing authoritative identities; imperative status cannot be selected safely.",
+                    token.text
+                ),
+                span: Span {
+                    start: token.start,
+                    end: token.end,
+                },
+                rules: vec!["5.3".into()],
+                evidence: Some(json!({
+                    "command_head": token.text,
+                    "candidate_count": matched.candidates.len(),
+                    "approved_base_verb_candidates": approved_base_verbs.len(),
+                    "requires_disambiguation": true,
+                })),
+                autofix: None,
+            });
             continue;
         }
+
+        let source_backed_verbs = matched
+            .candidates
+            .iter()
+            .filter(|entry| {
+                entry.status == ApprovalStatus::Approved
+                    && entry.part_of_speech == Some(PartOfSpeech::Verb)
+                    && entry.verb_paradigm.is_some()
+            })
+            .collect::<Vec<_>>();
+        let base_forms = source_backed_verbs
+            .iter()
+            .filter_map(|entry| entry.verb_paradigm.as_ref())
+            .map(|paradigm| paradigm.base_form.as_str())
+            .collect::<Vec<_>>();
+        let base_form = if base_forms.len() == 1 {
+            base_forms.first().copied()
+        } else {
+            None
+        };
 
         diagnostics.push(Diagnostic {
             code: "STE-PROC-001".into(),
             severity: Severity::Error,
-            message: format!(
-                "Procedural instruction starts with non-imperative verb form '{}'; use the source-backed base form '{}'.",
-                token.text, paradigm.base_form
-            ),
+            message: if base_forms.len() == 1 {
+                format!(
+                    "Procedural command head '{}' is not the source-backed imperative base form '{}'.",
+                    token.text, base_forms[0]
+                )
+            } else {
+                format!(
+                    "Procedural instruction does not start its command with a uniquely approved imperative base-form verb; observed '{}'.",
+                    token.text
+                )
+            },
             span: Span {
                 start: token.start,
                 end: token.end,
             },
             rules: vec!["5.3".into()],
             evidence: Some(json!({
-                "lemma": entry.lemma,
+                "command_head": token.text,
                 "observed_form": token.text,
-                "base_form": paradigm.base_form,
-                "verb_classification": paradigm.classification,
-                "source_sequence": paradigm.source_sequence,
+                "candidate_count": matched.candidates.len(),
+                "source_backed_verb_candidates": source_backed_verbs.len(),
+                "base_form": base_form,
+                "base_forms": base_forms,
+                "condition_prefix": starts_condition(sentence),
             })),
             autofix: None,
         });

@@ -94,7 +94,13 @@ Rules 5.1, 6.3, 8.4, 8.5, 8.6, and 8.7 consume one canonical count-group project
 
 The projection deterministically handles numeric expressions, governed number-plus-unit groups, governed abbreviations and acronyms, alphanumeric identifiers, quoted text, structural headings, explicitly governed titles/placards/labels, governed proper nouns, parenthetical groups, and hyphenated groups. Project authority extends named-entity and measurement-unit identity without changing the counting algorithm.
 
-Rule 8.4 remains `partial` because complex or nested vertical-list boundary semantics are an independent structural requirement. Completing Rule 8.6 does not erase that boundary.
+Rule 8.4 is implemented for the supported source model through the parser-backed semantic list tree: the introducing colon terminates its count unit, and wrapped or nested items become independent count units. This does not decide the separate Rule 4.3 editorial question of when prose is complex enough to require a vertical list.
+
+## Deterministic grammar evidence
+
+Generic syntax and morphology are evidence layers, not STE authority. CommonMark supplies document structure, and the pinned Harper/Brill stack supplies deterministic generic token, part-of-speech, chunk, and morphology evidence. Approval, grammatical identity, allowed forms, and terminology identity still come from the verified ASD-STE100 runtime or governed project terminology. If competing authoritative interpretations would produce different rule verdicts, the linter blocks or leaves the application unresolved instead of selecting a heuristic answer.
+
+The deterministic-rule audit deliberately leaves source requirements partial when meaning or editorial judgment remains necessary. Rule 3.7 still requires identifying an action-denoting non-verb and the applicable approved verb. Rule 4.3 still requires deciding that prose is sufficiently complex to require a vertical list. Rule 1.14 still requires a versioned offline American-English spelling authority plus governed external-directive exceptions for a complete claim.
 
 ## Rule 8.1 authored-text boundary
 
@@ -112,12 +118,12 @@ Rule-specific fixtures for the implemented 2.2, 8.1, and 8.6 work are also indep
 
 The 53 rules classify as:
 
-- 7 `implemented`;
-- 35 `partial`;
+- 9 `implemented`;
+- 33 `partial`;
 - 11 `context_required`;
 - 0 `not_implemented`.
 
-The implemented rules are 2.2, 5.1, 6.3, 8.1, 8.5, 8.6, and 8.7. Rules 5.1 and 6.3 became complete when their sole remaining dependency, the shared Issue 9 count-group model, became complete. `data/rules.json` is the authority for every exact per-rule claim boundary.
+The implemented rules are 2.2, 5.1, 6.3, 6.6, 8.1, 8.4, 8.5, 8.6, and 8.7. Rules 5.1 and 6.3 use the completed shared Issue 9 count-group model. Rule 6.6 uses parser-backed paragraph identity, and Rule 8.4 uses the shared semantic list tree and canonical count projection. `data/rules.json` is the authority for every exact per-rule claim boundary.
 
 ## Claim boundary
 

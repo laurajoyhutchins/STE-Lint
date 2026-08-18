@@ -18,15 +18,15 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         };
 
         if matched.term.status == TermStatus::Approved
-            && let Some(observed) =
+            && let Some(evidence) =
                 analysis.technical_role_at(matched.token_start, matched.token_width)
             && let Some(diagnostic) = role_diagnostic(
                 matched.term,
                 &matched.text,
                 matched.start,
                 matched.end,
-                observed.role,
-                observed.basis,
+                evidence.role,
+                evidence.basis,
             )
         {
             diagnostics.push(diagnostic);
@@ -52,16 +52,14 @@ fn role_diagnostic(
             "nominal",
             "STE-TERM-004",
             "1.13",
-            format!("Technical verb '{matched_text}' is used in a bounded noun position."),
+            format!("Technical verb '{matched_text}' is used in a noun position."),
         ),
         ObservedRole::Verbal => (
             TermRole::Verb,
             "verbal",
             "STE-TERM-003",
             "1.7",
-            format!(
-                "Technical noun '{matched_text}' is used in a bounded imperative verb position."
-            ),
+            format!("Technical noun '{matched_text}' is used in a verb position."),
         ),
     };
     if term.has_role(required_role) {

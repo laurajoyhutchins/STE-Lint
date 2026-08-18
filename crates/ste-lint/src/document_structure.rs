@@ -1,4 +1,4 @@
-use crate::analysis::source::SourceDocument;
+use crate::analysis::source::{SourceDocument, SourceListItem};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct NoteBlock {
@@ -124,63 +124,91 @@ pub(crate) fn starts_condition(text: &str) -> bool {
 }
 
 pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
-    let lines = line_spans(text);
     let source = SourceDocument::new(text);
-    let mut blocks = Vec::new();
-    let mut index = 0;
+    let mut semantic = Vec::<(usize, usize, usize, SimpleListBlock)>::new();
 
-    while index < lines.len() {
-        let line = lines[index];
-        let Some((indent, _)) = list_item_layout(text, &source, line) else {
-            index += 1;
+    for list in source.lists() {
+        let mut items = source
+            .list_items()
+            .iter()
+            .filter(|item| item.list_id == list.id)
+            .map(|item| projected_list_item(text, &source, *item))
+            .collect::<Vec<_>>();
+        items.sort_by_key(|item| (item.line_start, item.line_end));
+        if items.is_empty() {
             continue;
-        };
-
-        let previous_nonblank = (0..index)
-            .rev()
-            .find(|candidate| !line_text(text, lines[*candidate]).trim().is_empty());
-        let introduced_by_colon = previous_nonblank
-            .map(|candidate| line_text(text, lines[candidate]).trim_end().ends_with(':'))
-            .unwrap_or(false);
-
-        let mut items = Vec::new();
-        while index < lines.len() {
-            let item_line = lines[index];
-            let Some((item_indent, item_content_offset)) =
-                list_item_layout(text, &source, item_line)
-            else {
-                break;
-            };
-            if item_indent != indent {
-                break;
-            }
-            let item_raw = line_text(text, item_line);
-            let content_start = item_line.start + item_content_offset;
-            let content_end = item_line.start + item_raw.len();
-            items.push(ListItem {
-                line_start: item_line.start,
-                line_end: item_line.start + item_raw.len(),
-                content_start,
-                content_end,
-            });
-            index += 1;
         }
 
-        if !items.is_empty() {
-            blocks.push(SimpleListBlock {
+        let introduced_by_colon = terminal_colon_before(text, list.span.start).is_some();
+        if let Some((depth, _, previous_end, previous)) = semantic.last_mut()
+            && *depth == list.depth
+            && adjacent_list_gap(&text[*previous_end..list.span.start])
+        {
+            previous.items.extend(items);
+            *previous_end = list.span.end;
+            continue;
+        }
+
+        semantic.push((
+            list.depth,
+            list.span.start,
+            list.span.end,
+            SimpleListBlock {
                 introduced_by_colon,
                 items,
-            });
-        }
+            },
+        ));
     }
 
-    blocks
+    semantic.into_iter().map(|(_, _, _, block)| block).collect()
 }
 
 pub(crate) fn overlaps_note(start: usize, end: usize, notes: &[NoteBlock]) -> bool {
     notes
         .iter()
         .any(|note| start < note.end && note.start < end)
+}
+
+fn projected_list_item(text: &str, source: &SourceDocument, item: SourceListItem) -> ListItem {
+    let child_start = source
+        .lists()
+        .iter()
+        .filter(|list| list.depth == item.depth + 1)
+        .filter(|list| list.span.start >= item.content_start && list.span.end <= item.span.end)
+        .map(|list| list.span.start)
+        .min();
+    let raw_end = child_start.unwrap_or(item.content_end);
+    let content_end = trim_trailing_whitespace(text, item.content_start, raw_end);
+    ListItem {
+        line_start: item.span.start,
+        line_end: item.span.end,
+        content_start: item.content_start,
+        content_end: content_end.max(item.content_start),
+    }
+}
+
+fn terminal_colon_before(text: &str, boundary: usize) -> Option<usize> {
+    let prefix = &text[..boundary];
+    let trimmed = prefix.trim_end();
+    trimmed.ends_with(':').then(|| trimmed.len() - 1)
+}
+
+fn adjacent_list_gap(gap: &str) -> bool {
+    gap.trim().is_empty() && !gap.contains("\n\n") && !gap.contains("\r\n\r\n")
+}
+
+fn trim_trailing_whitespace(text: &str, start: usize, end: usize) -> usize {
+    let mut end = end.min(text.len());
+    while end > start {
+        let Some(character) = text[start..end].chars().next_back() else {
+            break;
+        };
+        if !character.is_whitespace() {
+            break;
+        }
+        end -= character.len_utf8();
+    }
+    end
 }
 
 fn safety_label(text: &str) -> Option<(usize, SafetyLabel)> {
@@ -196,59 +224,6 @@ fn safety_label(text: &str) -> Option<(usize, SafetyLabel)> {
             let colon = text[name.len()..].find(':')? + name.len();
             return Some((colon + 1, label));
         }
-    }
-    None
-}
-
-fn list_item_layout(text: &str, source: &SourceDocument, line: LineSpan) -> Option<(usize, usize)> {
-    if let Some(item) = source
-        .list_items()
-        .iter()
-        .find(|item| item.span.start >= line.start && item.span.start < line.end)
-    {
-        return Some((
-            item.span.start.saturating_sub(line.start),
-            item.content_start.saturating_sub(line.start),
-        ));
-    }
-    legacy_ste_list_item_layout(line_text(text, line))
-}
-
-fn legacy_ste_list_item_layout(line: &str) -> Option<(usize, usize)> {
-    let trimmed = line.trim_start();
-    let leading = line.len() - trimmed.len();
-    if trimmed.starts_with("• ") {
-        return Some((leading, leading + "• ".len()));
-    }
-
-    let bytes = trimmed.as_bytes();
-    if bytes.first() == Some(&b'(') {
-        let mut index = 1;
-        let label_start = index;
-        while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
-            index += 1;
-        }
-        if index > label_start
-            && index + 1 < bytes.len()
-            && bytes[index] == b')'
-            && bytes[index + 1].is_ascii_whitespace()
-        {
-            return Some((leading, leading + index + 2));
-        }
-        return None;
-    }
-
-    let mut index = 0;
-    while index < bytes.len() && bytes[index].is_ascii_alphabetic() {
-        index += 1;
-    }
-    let label = &trimmed[..index];
-    if label.len() == 1
-        && index + 1 < bytes.len()
-        && matches!(bytes[index], b'.' | b')')
-        && bytes[index + 1].is_ascii_whitespace()
-    {
-        return Some((leading, leading + index + 2));
     }
     None
 }
@@ -295,13 +270,13 @@ mod tests {
 
     #[test]
     fn commonmark_list_items_use_parser_offsets() {
-        let blocks = simple_list_blocks("DO THIS:\n- Remove this.\n2. Remove that.");
+        let text = "DO THIS:\n- Remove this.\n2. Remove that.";
+        let blocks = simple_list_blocks(text);
         assert_eq!(blocks.len(), 1);
         assert!(blocks[0].introduced_by_colon);
         assert_eq!(blocks[0].items.len(), 2);
         assert_eq!(
-            &"DO THIS:\n- Remove this.\n2. Remove that."
-                [blocks[0].items[0].content_start..blocks[0].items[0].content_end],
+            &text[blocks[0].items[0].content_start..blocks[0].items[0].content_end],
             "Remove this."
         );
     }
@@ -312,5 +287,21 @@ mod tests {
         assert_eq!(blocks.len(), 1);
         assert!(blocks[0].introduced_by_colon);
         assert_eq!(blocks[0].items.len(), 2);
+    }
+
+    #[test]
+    fn wrapped_item_content_is_not_cut_at_the_first_source_line() {
+        let text = "DO THIS:\n- Remove the unit and\n  put it on the bench.";
+        let blocks = simple_list_blocks(text);
+        assert_eq!(blocks.len(), 1);
+        let item = blocks[0].items[0];
+        assert!(text[item.content_start..item.content_end].contains("bench."));
+    }
+
+    #[test]
+    fn nested_list_is_a_separate_semantic_block() {
+        let blocks = simple_list_blocks("DO THIS:\n- Remove this:\n  - Remove that.\n- Continue.");
+        assert_eq!(blocks.len(), 2);
+        assert!(blocks.iter().all(|block| block.introduced_by_colon));
     }
 }
