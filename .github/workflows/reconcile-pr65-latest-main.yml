@@ -1,0 +1,194 @@
+name: Reconcile PR 65 with latest main
+
+on:
+  push:
+    branches: [chatgpt/deterministic-rule-audit-20260818]
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/deterministic-rule-audit-20260818
+          fetch-depth: 0
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal --component rustfmt --no-self-update
+      - name: Reconcile current main conservatively
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pr65
+          cp crates/ste-lint/src/analysis/canonical.rs /tmp/pr65/canonical.rs
+          cp crates/ste-lint/src/analysis/source.rs /tmp/pr65/source.rs
+          cp crates/ste-lint/src/analysis/source_structure.rs /tmp/pr65/source_structure.rs
+          cp crates/ste-lint/src/passes/lists.rs /tmp/pr65/lists.rs
+          cp crates/ste-lint/src/structure.rs /tmp/pr65/structure.rs
+          cp data/rules.json /tmp/pr65/rules.json
+          cp crates/ste-cli/tests/source_rule_map.rs /tmp/pr65/source_rule_map.rs
+
+          git fetch origin main
+          set +e
+          git merge --no-commit --no-ff origin/main
+          merge_status=$?
+          set -e
+          if [ "$merge_status" -ne 0 ]; then
+            while IFS= read -r -d '' path; do
+              git checkout --theirs -- "$path"
+              git add "$path"
+            done < <(git diff --name-only --diff-filter=U -z)
+          fi
+
+          cp /tmp/pr65/canonical.rs crates/ste-lint/src/analysis/canonical.rs
+          cp /tmp/pr65/source.rs crates/ste-lint/src/analysis/source.rs
+          cp /tmp/pr65/source_structure.rs crates/ste-lint/src/analysis/source_structure.rs
+          cp /tmp/pr65/lists.rs crates/ste-lint/src/passes/lists.rs
+          cp /tmp/pr65/source_rule_map.rs crates/ste-cli/tests/source_rule_map.rs
+
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          def replace_between(text, start_marker, end_marker, replacement):
+              start = text.index(start_marker)
+              end = text.index(end_marker, start)
+              return text[:start] + replacement + text[end:]
+
+          # Context-aware canonical source while retaining the provider-neutral adapter.
+          p = Path('crates/ste-lint/src/analysis/canonical.rs')
+          s = p.read_text()
+          if 'use crate::LintContext;' not in s:
+              s = s.replace('use super::source::SourceDocument;\n', 'use super::source::SourceDocument;\nuse crate::LintContext;\n')
+          old = '''    pub(crate) fn new(text: &'a str) -> Self {\n        Self {\n            text,\n            structure: SourceDocument::new(text),\n        }\n    }\n'''
+          new = '''    pub(crate) fn new(text: &'a str) -> Self {\n        Self::with_context(text, None)\n    }\n\n    pub(crate) fn with_context(text: &'a str, context: Option<&LintContext>) -> Self {\n        Self {\n            text,\n            structure: SourceDocument::with_context(text, context),\n        }\n    }\n'''
+          s = s.replace(old, new)
+          p.write_text(s)
+
+          # Merge PR 67 authored-text/heading authority into PR 65's richer list tree.
+          p = Path('crates/ste-lint/src/analysis/source_structure.rs')
+          s = p.read_text()
+          if 'use crate::{LintContext, TextAuthorityKind};' not in s:
+              s = s.replace('use pulldown_cmark::{Event, Parser, Tag, TagEnd};\n', 'use pulldown_cmark::{Event, Parser, Tag, TagEnd};\n\nuse crate::{LintContext, TextAuthorityKind};\n')
+          s = s.replace('    protected: Vec<SourceSpan>,\n    paragraphs: Vec<SourceSpan>,', '    protected: Vec<SourceSpan>,\n    headings: Vec<SourceSpan>,\n    paragraphs: Vec<SourceSpan>,')
+          s = s.replace('''    pub(crate) fn new(text: &str) -> Self {\n        let mut document = Self::default();\n        let mut paragraph_starts = Vec::new();\n''', '''    pub(crate) fn new(text: &str) -> Self {\n        Self::with_context(text, None)\n    }\n\n    pub(crate) fn with_context(text: &str, context: Option<&LintContext>) -> Self {\n        let mut document = Self::default();\n        let mut paragraph_starts = Vec::new();\n        let mut heading_starts = Vec::new();\n''')
+          paragraph_end = '''                Event::End(TagEnd::Paragraph) => {\n                    if let Some(start) = paragraph_starts.pop()\n                        && let Some(span) = SourceSpan::new(start, trim_line_end(text, range.end))\n                    {\n                        document.paragraphs.push(span);\n                    }\n                }\n'''
+          heading_cases = paragraph_end + '''                Event::Start(Tag::Heading { .. }) => heading_starts.push(range.start),\n                Event::End(TagEnd::Heading(_)) => {\n                    if let Some(start) = heading_starts.pop()\n                        && let Some(span) = SourceSpan::new(start, trim_line_end(text, range.end))\n                    {\n                        document.headings.push(span);\n                    }\n                }\n'''
+          if 'Event::Start(Tag::Heading' not in s:
+              s = s.replace(paragraph_end, heading_cases)
+          marker = '        append_legacy_lists(text, &mut document, &mut next_list_id);\n'
+          if 'protects_from_authored_text_rules' not in s:
+              context_block = '''        if let Some(context) = context {\n            document.protected.extend(\n                context\n                    .occurrences\n                    .iter()\n                    .filter(|occurrence| {\n                        occurrence\n                            .text_authority\n                            .is_some_and(protects_from_authored_text_rules)\n                    })\n                    .filter_map(|occurrence| SourceSpan::new(occurrence.start, occurrence.end)),\n            );\n        }\n\n'''
+              s = s.replace(marker, context_block + marker)
+          sort_marker = '''        document.protected = merge_spans(document.protected);\n        document\n            .paragraphs\n'''
+          if 'document.headings.sort_by_key' not in s:
+              s = s.replace(sort_marker, '''        document.protected = merge_spans(document.protected);\n        document.headings.sort_by_key(|span| (span.start, span.end));\n        document.headings = merge_spans(document.headings);\n        document\n            .paragraphs\n''')
+          method_marker = '''    pub(crate) fn paragraph_ranges(&self) -> &[SourceSpan] {\n        &self.paragraphs\n    }\n'''
+          if 'pub(crate) fn heading_ranges' not in s:
+              s = s.replace(method_marker, '''    pub(crate) fn heading_ranges(&self) -> &[SourceSpan] {\n        &self.headings\n    }\n\n''' + method_marker)
+          list_items_method = '''    pub(crate) fn list_items(&self) -> &[SourceListItem] {\n        &self.list_items\n    }\n'''
+          if 'pub(crate) fn is_protected' not in s:
+              s = s.replace(list_items_method, list_items_method + '''\n    pub(crate) fn is_protected(&self, start: usize, end: usize) -> bool {\n        self.protected\n            .iter()\n            .any(|span| span.intersects(start, end))\n    }\n''')
+          helper_marker = 'fn merge_spans(spans: Vec<SourceSpan>) -> Vec<SourceSpan> {'
+          if 'fn protects_from_authored_text_rules' not in s:
+              helper = '''fn protects_from_authored_text_rules(authority: TextAuthorityKind) -> bool {\n    matches!(\n        authority,\n        TextAuthorityKind::ProtectedText\n            | TextAuthorityKind::QuotedExternalText\n            | TextAuthorityKind::CodeOrVerbatim\n            | TextAuthorityKind::Formula\n            | TextAuthorityKind::DocumentNumbering\n    )\n}\n\n'''
+              s = s.replace(helper_marker, helper + helper_marker)
+          p.write_text(s)
+
+          # Current main's count-group model remains authoritative; add the richer list tree only to unit segmentation.
+          ours = Path('/tmp/pr65/structure.rs').read_text()
+          p = Path('crates/ste-lint/src/structure.rs')
+          s = p.read_text()
+          s = s.replace('use crate::analysis::source::SourceDocument;', 'use crate::analysis::source::{SourceDocument, SourceList};')
+          ours_word = ours[ours.index('pub(crate) fn word_limit_units'):ours.index('pub(crate) fn paragraph_ranges')]
+          s = replace_between(s, 'pub(crate) fn word_limit_units', 'pub(crate) fn paragraph_ranges', ours_word)
+          ours_para_start = ours.index('pub(crate) fn paragraph_prose_sentence_count')
+          ours_para_end = ours.index('fn push_list_units', ours_para_start)
+          ours_para = ours[ours_para_start:ours_para_end]
+          s = replace_between(s, 'pub(crate) fn paragraph_prose_sentence_count', 'fn push_regular_units', ours_para)
+          helper_start = ours.index('fn push_list_units')
+          helper_end = ours.index('fn push_regular_units', helper_start)
+          s = s.replace('fn push_regular_units', ours[helper_start:helper_end] + 'fn push_regular_units', 1)
+          s = re.sub(r'\n#\[derive\(Debug, Clone, Copy\)\]\nstruct LineSpan \{.*?\n\}\n', '\n', s, flags=re.S)
+          s = re.sub(r'\nfn list_item_content_span\(.*?(?=\nfn trim_start)', '\n', s, flags=re.S)
+          s = re.sub(r'\nfn line_spans\(.*?\n\}\n', '\n', s, flags=re.S)
+          p.write_text(s)
+
+          # Provider-neutral analysis IR plus current count model plus PR 65 adapters.
+          p = Path('crates/ste-lint/src/analysis/mod.rs')
+          s = p.read_text()
+          if not s.startswith('mod canonical;'):
+              s = 'mod canonical;\n' + s
+          s = s.replace('\nmod token;\n', '\npub(crate) mod token;\n')
+          p.write_text(s)
+
+          # Keep current main's safer punctuation/counting pipeline; swap in PR 65 list and verb-construction passes.
+          p = Path('crates/ste-lint/src/lib.rs')
+          s = p.read_text()
+          s = s.replace('diagnostics.extend(passes::lists::check(text));', 'diagnostics.extend(passes::lists::check(&analysis));')
+          s = s.replace('diagnostics.extend(passes::perfect::check(&analysis));', 'diagnostics.extend(passes::verb_constructions::check(&analysis));')
+          p.write_text(s)
+
+          # Merge coverage authority: latest main wins generally, PR 65 owns its audited targets except 5.1/6.3 now completed by Rule 8.6.
+          ours_manifest = json.loads(Path('/tmp/pr65/rules.json').read_text())
+          p = Path('data/rules.json')
+          manifest = json.loads(p.read_text())
+          ours_rules = {r['id']: r for r in ours_manifest['rules']}
+          pr65_rules = {'1.2','1.4','1.7','1.13','1.14','2.1','3.1','3.2','3.3','3.4','3.5','3.7','4.3','5.3','6.6','8.4'}
+          manifest['rules'] = [ours_rules[r['id']] if r['id'] in pr65_rules else r for r in manifest['rules']]
+          p.write_text(json.dumps(manifest, separators=(',', ':')) + '\n')
+
+          # Coverage tests pin the combined, not stale, rule boundary.
+          p = Path('crates/ste-cli/tests/coverage.rs')
+          s = p.read_text().replace('implemented: 7', 'implemented: 9').replace('partial: 35', 'partial: 33')
+          p.write_text(s)
+
+          p = Path('crates/ste-cli/tests/coverage_evidence.rs')
+          s = p.read_text()
+          s = re.sub(r'BTreeSet::from\(\["2\.2", "5\.1", "6\.3", "8\.1", "8\.5", "8\.6", "8\.7"\]\)', 'BTreeSet::from(["2.2", "5.1", "6.3", "6.6", "8.1", "8.4", "8.5", "8.6", "8.7"])', s)
+          p.write_text(s)
+
+          p = Path('crates/ste-cli/src/coverage.rs')
+          s = p.read_text()
+          s = s.replace('for id in ["2.2", "5.1", "6.3", "8.1", "8.5", "8.6", "8.7"] {', 'for id in ["2.2", "5.1", "6.3", "6.6", "8.1", "8.4", "8.5", "8.6", "8.7"] {')
+          s = s.replace('        assert_eq!(status("8.4"), CoverageStatus::Partial);\n', '')
+          s = s.replace('Some(7)', 'Some(9)').replace('Some(35)', 'Some(33)')
+          p.write_text(s)
+
+          p = Path('crates/ste-cli/tests/source_rule_map.rs')
+          s = p.read_text()
+          s = s.replace('assert_eq!(rules["2.2"]["status"], "partial");', 'assert_eq!(rules["2.2"]["status"], "implemented");')
+          insertion = '''    assert_eq!(rules["5.1"]["status"], "implemented");\n    assert_eq!(rules["6.3"]["status"], "implemented");\n    assert_eq!(rules["8.1"]["status"], "implemented");\n    assert_eq!(rules["8.6"]["status"], "implemented");\n'''
+          needle = '    assert_eq!(rules["6.6"]["status"], "implemented");\n'
+          if insertion not in s:
+              s = s.replace(needle, insertion + needle)
+          s = s.replace('Some(&4)', 'Some(&9)').replace('Some(&38)', 'Some(&33)')
+          p.write_text(s)
+
+          # Public docs describe the combined authority without broadening the full-compliance claim.
+          p = Path('docs/rule-coverage.md')
+          s = p.read_text()
+          s = s.replace('Rule 8.4 remains `partial` because complex or nested vertical-list boundary semantics are an independent structural requirement. Completing Rule 8.6 does not erase that boundary.', 'Rule 8.4 is implemented for recognized vertical-list structures through the shared parser-backed list tree: the introducing colon terminates its count unit and wrapped or nested items become independent count units. This does not decide the separate Rule 4.3 editorial question of when prose is complex enough to require a list.')
+          s = s.replace('- 7 `implemented`;\n- 35 `partial`;', '- 9 `implemented`;\n- 33 `partial`;')
+          s = s.replace('The implemented rules are 2.2, 5.1, 6.3, 8.1, 8.5, 8.6, and 8.7. Rules 5.1 and 6.3 became complete when their sole remaining dependency, the shared Issue 9 count-group model, became complete.', 'The implemented rules are 2.2, 5.1, 6.3, 6.6, 8.1, 8.4, 8.5, 8.6, and 8.7. Rules 5.1 and 6.3 became complete when their sole remaining dependency, the shared Issue 9 count-group model, became complete. Rule 6.6 uses parser-backed paragraph identity, and Rule 8.4 uses the shared semantic list tree and canonical count projection.')
+          p.write_text(s)
+
+          p = Path('README.md')
+          s = p.read_text()
+          s = s.replace('- direct `HAVE`/`HAS`/`HAD` plus approved-past-participle detection for the deterministic portion of Rule 3.4;', '- a shared deterministic verb-construction projection for source-backed perfect, progressive, passive/adjectival, and allowed simple-future evidence, with ambiguity failing closed;')
+          s = s.replace('- bounded vertical-list mechanics with parser-backed Markdown structure plus STE-specific list forms and punctuation/counting semantics;', '- parser-backed semantic vertical-list structure with CommonMark and STE-specific list forms, wrapped/nested item identity, punctuation mechanics, and Rule 8.4 count-unit boundaries;\n- parser-backed Rule 6.6 enforcement of the six-sentence descriptive-paragraph limit;')
+          p.write_text(s)
+          PY
+
+          rm -f crates/ste-lint/src/passes/perfect.rs
+          cargo +1.97.1 generate-lockfile
+          cargo +1.97.1 fmt --all
+          rm .github/workflows/reconcile-pr65-latest-main.yml
+
+          git add -A
+          git status --short
+          git commit -m "Reconcile PR 65 with completed deterministic counting"
+          git push origin HEAD:chatgpt/deterministic-rule-audit-20260818
