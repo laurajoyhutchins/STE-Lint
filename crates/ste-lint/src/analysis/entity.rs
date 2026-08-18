@@ -278,15 +278,6 @@ fn exact_analysis_span(
         if last.end > end || last.sentence_id != sentence_id {
             return None;
         }
-        if token_end > token_start + 1 {
-            let previous = &tokens[token_end - 2];
-            if !analysis.text()[previous.end..last.start]
-                .chars()
-                .all(char::is_whitespace)
-            {
-                return None;
-            }
-        }
         if last.end == end {
             return Some(GrammarSpan {
                 token_start,
