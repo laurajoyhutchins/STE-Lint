@@ -100,8 +100,7 @@ fn observed_part_of_speech(
                     .collect::<Vec<_>>();
                 nominal_roles.sort_by_key(part_order);
                 nominal_roles.dedup();
-                return (nominal_roles.len() == 1)
-                    .then(|| (nominal_roles[0], bounded.basis));
+                return (nominal_roles.len() == 1).then(|| (nominal_roles[0], bounded.basis));
             }
         }
     }
