@@ -167,7 +167,11 @@ impl SourceDocument {
 }
 
 fn append_legacy_lists(text: &str, document: &mut SourceDocument, next_list_id: &mut usize) {
-    let commonmark_lists = document.lists.iter().map(|list| list.span).collect::<Vec<_>>();
+    let commonmark_lists = document
+        .lists
+        .iter()
+        .map(|list| list.span)
+        .collect::<Vec<_>>();
     let mut open_lists = Vec::<OpenLegacyList>::new();
     let mut open_items = Vec::<OpenLegacyItem>::new();
 
@@ -209,7 +213,10 @@ fn append_legacy_lists(text: &str, document: &mut SourceDocument, next_list_id: 
             .last()
             .expect("legacy list exists after opening marker")
             .id;
-        if open_items.last().is_some_and(|item| item.list_id == list_id) {
+        if open_items
+            .last()
+            .is_some_and(|item| item.list_id == list_id)
+        {
             close_legacy_item(text, line.start, document, &mut open_items);
         }
         open_items.push(OpenLegacyItem {
@@ -219,13 +226,7 @@ fn append_legacy_lists(text: &str, document: &mut SourceDocument, next_list_id: 
         });
     }
 
-    close_all_legacy(
-        text,
-        text.len(),
-        document,
-        &mut open_lists,
-        &mut open_items,
-    );
+    close_all_legacy(text, text.len(), document, &mut open_lists, &mut open_items);
 }
 
 fn close_all_legacy(
@@ -296,9 +297,7 @@ fn normalize_list_depths(document: &mut SourceDocument) {
             let parent = items
                 .iter()
                 .filter(|item| item.list_id != list.id)
-                .filter(|item| {
-                    item.span.start < list.span.start && list.span.end <= item.span.end
-                })
+                .filter(|item| item.span.start < list.span.start && list.span.end <= item.span.end)
                 .min_by_key(|item| item.span.end.saturating_sub(item.span.start));
             let Some(parent) = parent else {
                 continue;
@@ -473,7 +472,10 @@ mod tests {
         assert_eq!(document.list_items()[0].depth, 0);
         assert_eq!(document.list_items()[1].depth, 1);
         assert_eq!(document.list_items()[2].depth, 0);
-        assert_ne!(document.list_items()[0].list_id, document.list_items()[1].list_id);
+        assert_ne!(
+            document.list_items()[0].list_id,
+            document.list_items()[1].list_id
+        );
     }
 
     #[test]
