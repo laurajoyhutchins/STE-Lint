@@ -97,8 +97,7 @@ impl<'a> LinguisticDocument<'a> {
             let occurrence_pos = metadata.and_then(|metadata| {
                 metadata
                     .pos_tag
-                    .map(|tag| generic_pos_from_name(&tag.to_string()))
-                    .flatten()
+                    .and_then(|tag| generic_pos_from_name(&tag.to_string()))
             });
             let mut verb_forms = Vec::new();
             if token.kind.is_verb_lemma() {
