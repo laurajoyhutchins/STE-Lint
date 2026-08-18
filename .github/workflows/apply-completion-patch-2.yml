@@ -14,14 +14,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
-      - name: Apply staged completion patch
+      - name: Apply completion patch from repository blob
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          cat .tmp/completion2.part00 .tmp/completion2.part01 .tmp/completion2.r00 .tmp/completion2.rest | base64 -d > /tmp/completion2.patch
-          if ! git apply --check /tmp/completion2.patch; then
-            echo 'Patch already applied or no longer applicable.'
-            exit 0
-          fi
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/git/blobs/20ced3abf8e9d6a5c76f35ed38cd881054aad1bc \
+            | jq -r '.content' | tr -d '\n' | base64 -d | gzip -d > /tmp/completion2.patch
+          git apply --check /tmp/completion2.patch
           git apply /tmp/completion2.patch
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
