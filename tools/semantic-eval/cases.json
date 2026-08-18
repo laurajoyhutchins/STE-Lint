@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "imperative-object",
+      "text": "Open the access panel.",
+      "gold": {
+        "dependencies": [
+          {"dependent": "panel", "head": "Open", "relation": "obj"},
+          {"dependent": "the", "head": "panel", "relation": "det"}
+        ],
+        "constituency": [
+          {"label": "VP", "text": "Open the access panel"},
+          {"label": "NP", "text": "the access panel"}
+        ]
+      }
+    },
+    {
+      "id": "passive-state",
+      "text": "The valve is closed.",
+      "gold": {
+        "dependencies": [
+          {"dependent": "valve", "head": "closed", "relation": "nsubj:pass"},
+          {"dependent": "is", "head": "closed", "relation": "aux:pass"}
+        ]
+      }
+    },
+    {
+      "id": "condition-command",
+      "text": "If the pressure rises, close the inlet valve.",
+      "gold": {
+        "dependencies": [
+          {"dependent": "pressure", "head": "rises", "relation": "nsubj"},
+          {"dependent": "If", "head": "rises", "relation": "mark"},
+          {"dependent": "rises", "head": "close", "relation": "advcl"},
+          {"dependent": "valve", "head": "close", "relation": "obj"}
+        ],
+        "constituency": [
+          {"label": "SBAR", "text": "If the pressure rises"},
+          {"label": "VP", "text": "close the inlet valve"}
+        ]
+      }
+    },
+    {
+      "id": "modifier-subject",
+      "text": "The red indicator flashes.",
+      "gold": {
+        "dependencies": [
+          {"dependent": "indicator", "head": "flashes", "relation": "nsubj"},
+          {"dependent": "red", "head": "indicator", "relation": "amod"}
+        ],
+        "constituency": [
+          {"label": "NP", "text": "The red indicator"}
+        ]
+      }
+    },
+    {
+      "id": "temporal-subclause",
+      "text": "Install the filter before the pump starts.",
+      "gold": {
+        "dependencies": [
+          {"dependent": "filter", "head": "Install", "relation": "obj"},
+          {"dependent": "pump", "head": "starts", "relation": "nsubj"}
+        ]
+      }
+    },
+    {
+      "id": "ner-boeing-seattle",
+      "text": "Boeing services engines in Seattle.",
+      "gold": {
+        "entities": [
+          {"text": "Boeing", "type": "ORG"},
+          {"text": "Seattle", "type": "GPE"}
+        ]
+      }
+    },
+    {
+      "id": "ner-nasa-houston",
+      "text": "NASA tested the system in Houston.",
+      "gold": {
+        "entities": [
+          {"text": "NASA", "type": "ORG"},
+          {"text": "Houston", "type": "GPE"}
+        ]
+      }
+    },
+    {
+      "id": "ner-person-org",
+      "text": "Alice works at Stanford University.",
+      "gold": {
+        "entities": [
+          {"text": "Alice", "type": "PERSON"},
+          {"text": "Stanford University", "type": "ORG"}
+        ]
+      }
+    },
+    {
+      "id": "coref-person-pronoun",
+      "text": "The technician inspected the pump. She replaced the seal.",
+      "gold": {
+        "coreference": [
+          {"mention": "She", "antecedent": "technician"}
+        ]
+      }
+    },
+    {
+      "id": "coref-machine-pronoun",
+      "text": "The pump feeds the reservoir. It runs continuously.",
+      "gold": {
+        "coreference": [
+          {"mention": "It", "antecedent": "pump"}
+        ]
+      }
+    },
+    {
+      "id": "coref-ambiguous-control",
+      "text": "The pump is beside the valve. It is open.",
+      "ambiguity": {"coreference": true}
+    },
+    {
+      "id": "unicode-byte-alignment",
+      "text": "Inspect the café valve before start-up.",
+      "gold": {
+        "dependencies": [
+          {"dependent": "valve", "head": "Inspect", "relation": "obj"}
+        ]
+      }
+    }
+  ]
+}
