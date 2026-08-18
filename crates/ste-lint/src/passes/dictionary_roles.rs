@@ -30,8 +30,15 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             .iter()
             .all(|entry| entry.status == ApprovalStatus::Approved)
         {
-            match observed_part_of_speech(analysis, &matched.candidates, matched.token_start, matched.token_width) {
-                Some((observed, basis)) if !part_has_compatible_candidate(observed, &matched.candidates) => {
+            match observed_part_of_speech(
+                analysis,
+                &matched.candidates,
+                matched.token_start,
+                matched.token_width,
+            ) {
+                Some((observed, basis))
+                    if !part_has_compatible_candidate(observed, &matched.candidates) =>
+                {
                     diagnostics.push(role_diagnostic(
                         &matched.text,
                         matched.start,
@@ -83,7 +90,7 @@ fn observed_part_of_speech(
                 .collect::<Vec<_>>();
             nominal_roles.sort_by_key(part_order);
             nominal_roles.dedup();
-            (nominal_roles.len() == 1).then_some((nominal_roles[0], bounded.basis))
+            (nominal_roles.len() == 1).then(|| (nominal_roles[0], bounded.basis))
         }
     }
 }
@@ -143,7 +150,7 @@ fn unresolved_role_diagnostic(
     let mut evidence = dictionary_evidence(candidates, false);
     evidence["role_basis"] = json!("syntactic_role_unresolved");
     Diagnostic {
-        code: "STE-GRAM-002".into(),
+        code: "STE-GRAM-004".into(),
         severity: Severity::Blocked,
         message: format!(
             "Cannot resolve the grammatical role of approved dictionary word '{matched_text}' without guessing; Rule 1.2 compliance is unresolved."
