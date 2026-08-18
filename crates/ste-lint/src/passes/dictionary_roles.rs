@@ -70,29 +70,43 @@ fn observed_part_of_speech(
     token_start: usize,
     token_width: usize,
 ) -> Option<(PartOfSpeech, &'static str)> {
-    if token_width == 1
-        && let Some(role) = analysis
-            .linguistic_token(token_start)
-            .and_then(|evidence| evidence.occurrence_pos)
-            .and_then(generic_pos_to_ste)
-    {
-        return Some((role, "harper_brill_pos_tag"));
-    }
+    let generic = (token_width == 1)
+        .then(|| analysis.linguistic_token(token_start))
+        .flatten()
+        .and_then(|evidence| evidence.occurrence_pos)
+        .and_then(generic_pos_to_ste);
 
-    let bounded = analysis.dictionary_role_at(token_start, token_width)?;
-    match bounded.role {
-        ObservedRole::Verbal => Some((PartOfSpeech::Verb, bounded.basis)),
-        ObservedRole::Nominal => {
-            let mut nominal_roles = candidates
-                .iter()
-                .filter_map(|entry| entry.part_of_speech)
-                .filter(|role| matches!(role, PartOfSpeech::Noun | PartOfSpeech::Pronoun))
-                .collect::<Vec<_>>();
-            nominal_roles.sort_by_key(part_order);
-            nominal_roles.dedup();
-            (nominal_roles.len() == 1).then(|| (nominal_roles[0], bounded.basis))
+    if let Some(bounded) = analysis.dictionary_role_at(token_start, token_width) {
+        match bounded.role {
+            ObservedRole::Verbal => {
+                // The bounded procedural frame is the STE grammatical projection.
+                // A generic tagger result can corroborate it, but cannot override it.
+                let basis = if generic == Some(PartOfSpeech::Verb) {
+                    "harper_brill_pos_tag"
+                } else {
+                    bounded.basis
+                };
+                return Some((PartOfSpeech::Verb, basis));
+            }
+            ObservedRole::Nominal => {
+                if let Some(role @ (PartOfSpeech::Noun | PartOfSpeech::Pronoun)) = generic {
+                    return Some((role, "harper_brill_pos_tag"));
+                }
+
+                let mut nominal_roles = candidates
+                    .iter()
+                    .filter_map(|entry| entry.part_of_speech)
+                    .filter(|role| matches!(role, PartOfSpeech::Noun | PartOfSpeech::Pronoun))
+                    .collect::<Vec<_>>();
+                nominal_roles.sort_by_key(part_order);
+                nominal_roles.dedup();
+                return (nominal_roles.len() == 1)
+                    .then(|| (nominal_roles[0], bounded.basis));
+            }
         }
     }
+
+    generic.map(|role| (role, "harper_brill_pos_tag"))
 }
 
 fn generic_pos_to_ste(pos: GenericPos) -> Option<PartOfSpeech> {
