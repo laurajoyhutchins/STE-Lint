@@ -1,0 +1,23 @@
+name: Export completion snapshot
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Package exact branch tree
+        run: tar --exclude=.git --exclude=target -czf /tmp/ste-lint-completion.tgz .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ste-lint-completion-snapshot
+          path: /tmp/ste-lint-completion.tgz
+          if-no-files-found: error
