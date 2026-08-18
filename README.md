@@ -47,11 +47,12 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - Rule 2.2 long-technical-noun ordering through governed identity: full form first, then an authorized short form, abbreviation, or acronym;
 - Rule 8.1 semicolon detection only in STE-authored text, with protected/code/verbatim/immutable external boundaries and no meaning-changing automatic replacement;
 - contraction detection for the deterministic portion of Rule 4.2;
-- direct `HAVE`/`HAS`/`HAD` plus approved-past-participle detection for the deterministic portion of Rule 3.4;
+- a shared deterministic verb-construction projection for source-backed perfect, progressive, passive/adjectival, and allowed simple-future evidence, with ambiguity failing closed;
 - one canonical Issue 9 count-group projection shared by Rules 5.1, 6.3, 8.4, 8.5, 8.6, and 8.7;
 - deterministic counting for numeric expressions, governed number+unit groups, abbreviations/acronyms, alphanumeric identifiers, quoted text, headings, governed titles/placards/labels, governed proper nouns, parentheticals, and hyphenated groups;
 - procedural `NOTE:` recognition: note sentences use the descriptive 25-word limit, and source-backed sentence-initial imperative candidates are diagnosed or blocked when ambiguous;
-- bounded vertical-list mechanics with parser-backed Markdown structure plus STE-specific list forms and punctuation/counting semantics;
+- parser-backed semantic vertical-list structure with CommonMark and STE-specific list forms, wrapped/nested item identity, punctuation mechanics, and Rule 8.4 count-unit boundaries;
+- parser-backed Rule 6.6 enforcement of the six-sentence descriptive-paragraph limit;
 - unapproved-word/phrase diagnostics and blockers for unresolved dictionary ambiguity or unknown project terminology;
 - semantic rewrite checks for modality, negation, and numeric-literal changes;
 - human-readable and JSON CLI output.

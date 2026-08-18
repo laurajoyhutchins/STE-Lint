@@ -32,8 +32,8 @@ fn coverage_human_output_states_that_full_compliance_is_not_claimed() {
         .success()
         .stdout(predicate::str::contains("ASD-STE100 Issue 9"))
         .stdout(predicate::str::contains("53 rules tracked"))
-        .stdout(predicate::str::contains("implemented: 7"))
-        .stdout(predicate::str::contains("partial: 35"))
+        .stdout(predicate::str::contains("implemented: 9"))
+        .stdout(predicate::str::contains("partial: 33"))
         .stdout(predicate::str::contains("context_required: 11"))
         .stdout(predicate::str::contains("not_implemented: 0"))
         .stdout(predicate::str::contains(
