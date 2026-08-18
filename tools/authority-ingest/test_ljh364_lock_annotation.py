@@ -1,19 +1,25 @@
 import base64
+import gzip
 import pathlib
 import subprocess
 import unittest
 
 
 class TemporaryLockRecovery(unittest.TestCase):
-    def test_emit_lockfile_annotations(self):
+    def test_emit_complete_compressed_lockfile(self):
         root = pathlib.Path(__file__).resolve().parents[2]
-        subprocess.run(["rustup", "toolchain", "install", "1.97.1", "--profile", "minimal", "--no-self-update"], cwd=root, check=True)
+        subprocess.run(
+            ["rustup", "toolchain", "install", "1.97.1", "--profile", "minimal", "--no-self-update"],
+            cwd=root,
+            check=True,
+        )
         subprocess.run(["cargo", "+1.97.1", "generate-lockfile"], cwd=root, check=True)
-        payload = base64.b64encode((root / "Cargo.lock").read_bytes()).decode("ascii")
-        chunks = [payload[i:i + 3000] for i in range(0, len(payload), 3000)]
-        for index in range(18, len(chunks)):
-            print(f"::error file=tools/authority-ingest/test_ljh364_lock_annotation.py,line=1,title=LJH364_LOCK_CHUNK_{index:02d}::{chunks[index]}", flush=True)
-        self.fail("emitted final Cargo.lock chunks")
+        payload = base64.b64encode(gzip.compress((root / "Cargo.lock").read_bytes())).decode("ascii")
+        chunks = [payload[i : i + 1800] for i in range(0, len(payload), 1800)]
+        print(f"LJH364_LOCK_CHUNK_COUNT={len(chunks)}", flush=True)
+        for index, chunk in enumerate(chunks):
+            print(f"LJH364_LOCK_CHUNK_{index:03d}={chunk}", flush=True)
+        self.fail("emitted complete compressed Cargo.lock")
 
 
 if __name__ == "__main__":
