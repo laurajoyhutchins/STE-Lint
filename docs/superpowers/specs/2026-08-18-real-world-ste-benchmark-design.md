@@ -14,6 +14,15 @@ The benchmark is evidence about production writing and STE-Lint behavior. It is 
 
 Use the existing STE-Lint repository with a separate `ste-benchmark` binary crate and a separate `benchmarks/real-world/` data surface.
 
+The alternatives evaluate as follows:
+
+| Architecture | Strength | Main cost | Decision |
+|---|---|---|---|
+| Same repository, separate benchmark crate | Exact STE-Lint/runtime/schema identity from one commit; direct typed API reuse | Adds benchmark-only dependencies to the workspace lockfile | Selected |
+| Separate corpus repository | Strong repository-level data separation | Cross-repository versioning, duplicated contracts, weaker exact-candidate reproducibility | Reject for seed v1 |
+| Scripts under `tools/` | Low initial code overhead | Encourages duplicate models and shell-level coupling to product output | Reject |
+| Hosted corpus/evaluation service | Centralized storage and large-scale automation | Adds service authority, availability, security, and operations before needed | Reject |
+
 This is preferred over a separate corpus repository because benchmark result meaning depends on the exact STE-Lint implementation, runtime identity, and schemas. Keeping them in one repository makes a candidate reproducible from one commit and avoids cross-repository version coordination.
 
 This is preferred over scripts under `tools/` because the benchmark must consume the same typed runtime and lint APIs as the product. A first-class Rust crate can reuse `ste-data`, `ste-lint`, `ste-core`, and the pinned workspace toolchain instead of reimplementing result semantics.
@@ -96,6 +105,7 @@ Required conceptual fields are:
   "document_type": "maintenance_manual",
   "url": "https://...",
   "media_type": "application/pdf",
+  "retrieval_date": "2026-08-18",
   "identity": {
     "sha256": "...",
     "byte_size": 123,
@@ -108,6 +118,9 @@ Required conceptual fields are:
       "method": "publisher_statement",
       "note": "Curator paraphrase of the declaration location."
     }
+  },
+  "verification": {
+    "state": "unknown"
   },
   "rights": {
     "redistribution": "manifest_only",
@@ -125,6 +138,8 @@ STE claim kinds are exactly `explicit_asd_ste100`, `explicit_ste`, `qualified_as
 Verification/adjudication kinds are exactly `unknown`, `rule_verified`, `known_violation`, and `manually_adjudicated`.
 
 The first seed uses `unknown` unless independent adjudication exists. Lint output does not automatically promote a document into another verification state.
+
+`retrieval_date` records when the exact source identity was admitted to the corpus. A later successful hydration of the same hash does not rewrite it. A source revision with different bytes is a new identity and requires an intentional manifest update or successor record.
 
 ## Rights policy
 
@@ -222,6 +237,8 @@ A suite selects immutable source identities and bounded physical-page ranges:
     {
       "id": "source:procedures",
       "source_id": "source",
+      "cohort": "declared_ste_deep",
+      "match_group": null,
       "first_page": 20,
       "last_page": 29,
       "mode": "procedural"
@@ -229,6 +246,8 @@ A suite selects immutable source identities and bounded physical-page ranges:
   ]
 }
 ```
+
+`cohort` is required and is exactly one of `declared_ste_deep`, `declared_ste_broad`, or `claim_none_control`. `match_group` is optional and links broad declared-STE selections to controls selected under the same matching decision; it is evidence of matching, not a claim that the documents are linguistically equivalent.
 
 Pages are one-based physical PDF pages. `first_page <= last_page` and both must fit the source identity page count.
 
@@ -259,7 +278,7 @@ pub struct BenchmarkDiagnostic {
 }
 ```
 
-Each page observation contains source ID, selection ID, physical page, lint mode, normalized text SHA-256, normalized byte count, word count, lint outcome, and rights-safe diagnostics.
+Each page observation contains source ID, selection ID, cohort, match group when present, physical page, lint mode, normalized text SHA-256, normalized byte count, word count, lint outcome, and rights-safe diagnostics.
 
 It must contain no extracted prose, diagnostic message, evidence object, autofix replacement, or source excerpt.
 
@@ -287,7 +306,7 @@ The executable hash is the decisive local software identity because it covers th
 
 Reports provide measurements, not a synthetic compliance score.
 
-Required aggregate dimensions are sources, selected pages, bytes, words, clean/error/blocked outcomes, diagnostics per 1,000 words, diagnostics by code, diagnostics by ASD rule reference, blocked diagnostics by code, source family, publisher claim cohort, and procedural versus descriptive mode.
+Required aggregate dimensions are sources, selected pages, bytes, words, clean/error/blocked outcomes, diagnostics per 1,000 words, diagnostics by code, diagnostics by ASD rule reference, blocked diagnostics by code, source family, publisher claim cohort, suite cohort, match group, and procedural versus descriptive mode.
 
 There is no single `STE score` in seed v1.
 
@@ -295,9 +314,9 @@ There is no single `STE score` in seed v1.
 
 The first seed has three cohorts:
 
-1. `declared-ste-deep`: one official Lycoming maintenance manual that explicitly declares STE. Select one contiguous 10-page procedural window and one contiguous 10-page descriptive window from clearly labeled sections. Select these ranges before running STE-Lint.
-2. `declared-ste-broad`: 20 Aston Martin communications from the NHTSA archive with explicit ASD-STE100 or STE declarations. Use the whole document only when its English technical text is homogeneous; otherwise select an objectively bounded page range before linting.
-3. `claim-none-control`: 20 NHTSA manufacturer communications for which no explicit STE declaration is established, matched as closely as practical by publication era, document class, purpose, and length. These are controls for publisher claim, not proven non-STE examples.
+1. `declared_ste_deep`: one official Lycoming maintenance manual that explicitly declares STE. Select one contiguous 10-page procedural window and one contiguous 10-page descriptive window from clearly labeled sections. Select these ranges before running STE-Lint.
+2. `declared_ste_broad`: 20 Aston Martin communications from the NHTSA archive with explicit ASD-STE100 or STE declarations. Use the whole document only when its English technical text is homogeneous; otherwise select an objectively bounded page range before linting.
+3. `claim_none_control`: 20 NHTSA manufacturer communications for which no explicit STE declaration is established, matched as closely as practical by publication era, document class, purpose, and length. These are controls for publisher claim, not proven non-STE examples. Record matching decisions with `match_group` values in the suite.
 
 FAA/Regulations.gov and NTSB sources are deferred until after seed v1. The source model must already be general enough to add them without a schema rewrite.
 
@@ -324,7 +343,7 @@ A seed run is fail-closed. If one selected page cannot be evaluated exactly, the
 
 Normal CI remains hermetic. It does not contact Lycoming, NHTSA, require Poppler, or require the private Issue 9 runtime.
 
-Tests use synthetic tiny files and fake fetcher/extractor implementations to cover strict manifest/suite parsing, HTTPS and page-range validation, cache identity success and mismatch, temporary-file cleanup and size ceiling, extraction identity and normalization, exact page-local byte spans, invalid runtime rejection, rights-safe serialization, aggregation/cohort dimensions, and CLI validation/summarization.
+Tests use synthetic tiny files and fake fetcher/extractor implementations to cover strict manifest/suite parsing, HTTPS and page-range validation, cache identity success and mismatch, temporary-file cleanup and size ceiling, extraction identity and normalization, exact page-local byte spans, invalid runtime rejection, rights-safe serialization, aggregation/cohort/match-group dimensions, and CLI validation/summarization.
 
 Real-source hydration and benchmark execution are explicit maintainer operations.
 
@@ -341,6 +360,7 @@ Seed v1 is complete when:
 7. Real benchmark runs require verified Issue 9 runtime data.
 8. Committed result records contain no source prose, diagnostic evidence, or autofix replacement text.
 9. Seed v1 contains 1 deep Lycoming source, 20 declared-STE Aston Martin/NHTSA documents, and 20 claim-none NHTSA controls.
-10. Selected Lycoming windows are fixed before inspecting lint findings.
-11. A machine-readable baseline and aggregate summary can be regenerated from manifests plus locally hydrated source objects.
-12. Hermetic workspace CI passes without network access, Poppler, or private source material.
+10. Selected Lycoming windows and all other suite page selections are fixed before inspecting lint findings.
+11. Control matching decisions are explicitly represented rather than reconstructed after evaluation.
+12. A machine-readable baseline and aggregate summary can be regenerated from manifests plus locally hydrated source objects.
+13. Hermetic workspace CI passes without network access, Poppler, or private source material.
