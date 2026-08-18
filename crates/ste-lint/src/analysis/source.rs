@@ -17,16 +17,26 @@ impl SourceSpan {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct SourceList {
+    pub id: usize,
+    pub span: SourceSpan,
+    pub depth: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SourceListItem {
     pub span: SourceSpan,
     pub content_start: usize,
     pub content_end: usize,
+    pub list_id: usize,
+    pub depth: usize,
 }
 
 #[derive(Debug, Clone, Default)]
 pub(crate) struct SourceDocument {
     protected: Vec<SourceSpan>,
     paragraphs: Vec<SourceSpan>,
+    lists: Vec<SourceList>,
     list_items: Vec<SourceListItem>,
 }
 
@@ -34,8 +44,10 @@ impl SourceDocument {
     pub(crate) fn new(text: &str) -> Self {
         let mut document = Self::default();
         let mut paragraph_starts = Vec::new();
-        let mut item_starts = Vec::new();
+        let mut list_starts = Vec::<(usize, usize, usize)>::new();
+        let mut item_starts = Vec::<(usize, usize, usize)>::new();
         let mut code_block_starts = Vec::new();
+        let mut next_list_id = 0usize;
 
         for (event, range) in Parser::new(text).into_offset_iter() {
             match event {
@@ -47,9 +59,26 @@ impl SourceDocument {
                         document.paragraphs.push(span);
                     }
                 }
-                Event::Start(Tag::Item) => item_starts.push(range.start),
+                Event::Start(Tag::List(_)) => {
+                    let id = next_list_id;
+                    next_list_id += 1;
+                    let depth = list_starts.len();
+                    list_starts.push((id, range.start, depth));
+                }
+                Event::End(TagEnd::List(_)) => {
+                    if let Some((id, start, depth)) = list_starts.pop()
+                        && let Some(span) = SourceSpan::new(start, range.end)
+                    {
+                        document.lists.push(SourceList { id, span, depth });
+                    }
+                }
+                Event::Start(Tag::Item) => {
+                    if let Some((list_id, _, depth)) = list_starts.last().copied() {
+                        item_starts.push((range.start, list_id, depth));
+                    }
+                }
                 Event::End(TagEnd::Item) => {
-                    if let Some(start) = item_starts.pop()
+                    if let Some((start, list_id, depth)) = item_starts.pop()
                         && let Some(span) = SourceSpan::new(start, range.end)
                     {
                         let content_start = list_item_content_start(text, span);
@@ -59,6 +88,8 @@ impl SourceDocument {
                                 span,
                                 content_start,
                                 content_end,
+                                list_id,
+                                depth,
                             });
                         }
                     }
@@ -88,8 +119,11 @@ impl SourceDocument {
             .paragraphs
             .sort_by_key(|span| (span.start, span.end));
         document
+            .lists
+            .sort_by_key(|list| (list.span.start, list.depth, list.span.end));
+        document
             .list_items
-            .sort_by_key(|item| (item.span.start, item.span.end));
+            .sort_by_key(|item| (item.span.start, item.depth, item.span.end));
         document
     }
 
@@ -99,6 +133,10 @@ impl SourceDocument {
 
     pub(crate) fn paragraph_ranges(&self) -> &[SourceSpan] {
         &self.paragraphs
+    }
+
+    pub(crate) fn lists(&self) -> &[SourceList] {
+        &self.lists
     }
 
     pub(crate) fn list_items(&self) -> &[SourceListItem] {
@@ -175,7 +213,9 @@ mod tests {
     fn source_document_tracks_commonmark_list_item_content() {
         let text = "DO THIS:\n- Remove this.\n2. Remove that.";
         let document = SourceDocument::new(text);
+        assert_eq!(document.lists().len(), 1);
         assert_eq!(document.list_items().len(), 2);
+        assert_eq!(document.list_items()[0].depth, 0);
         assert_eq!(
             &text[document.list_items()[0].content_start..document.list_items()[0].content_end],
             "Remove this."
@@ -184,5 +224,19 @@ mod tests {
             &text[document.list_items()[1].content_start..document.list_items()[1].content_end],
             "Remove that."
         );
+    }
+
+    #[test]
+    fn source_document_preserves_nested_list_identity_and_depth() {
+        let text = "DO THIS:\n- Remove this:\n  - Remove that.\n- Continue.";
+        let document = SourceDocument::new(text);
+        assert_eq!(document.lists().len(), 2);
+        assert_eq!(document.list_items().len(), 3);
+        assert_eq!(document.lists()[0].depth, 0);
+        assert_eq!(document.lists()[1].depth, 1);
+        assert_eq!(document.list_items()[0].depth, 0);
+        assert_eq!(document.list_items()[1].depth, 1);
+        assert_eq!(document.list_items()[2].depth, 0);
+        assert_ne!(document.list_items()[0].list_id, document.list_items()[1].list_id);
     }
 }
