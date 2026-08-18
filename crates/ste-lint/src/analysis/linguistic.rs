@@ -1,5 +1,7 @@
-use harper_core::Document;
+use harper_brill::{Chunker, Tagger, UPOS, brill_chunker, brill_tagger};
+use harper_core::parsers::{Parser, PlainEnglish};
 use harper_core::spell::{Dictionary, FstDictionary};
+use harper_core::{DictWordMetadata, Token};
 
 use super::source::SourceDocument;
 use super::token::AnalysisToken;
@@ -60,83 +62,38 @@ pub(crate) struct LinguisticDocument<'a> {
 
 impl<'a> LinguisticDocument<'a> {
     pub(crate) fn new(text: &'a str) -> Self {
-        let document = Document::new_plain_english_curated(text);
+        let chars = text.chars().collect::<Vec<_>>();
+        let raw_tokens = PlainEnglish.parse(&chars);
         let dictionary = FstDictionary::curated();
+        let tagger = brill_tagger();
+        let chunker = brill_chunker();
         let source = SourceDocument::new(text);
         let char_to_byte = char_to_byte_index(text);
         let mut tokens = Vec::new();
+        let mut sentence_start = 0usize;
 
-        for token in document.tokens().filter(|token| token.kind.is_word()) {
-            let Some(&start) = char_to_byte.get(token.span.start) else {
+        for boundary in 0..=raw_tokens.len() {
+            let at_end = boundary == raw_tokens.len();
+            let at_sentence_end = !at_end && raw_tokens[boundary].kind.is_sentence_terminator();
+            if !at_end && !at_sentence_end {
                 continue;
+            }
+            let sentence_end = if at_sentence_end {
+                boundary + 1
+            } else {
+                boundary
             };
-            let Some(&end) = char_to_byte.get(token.span.end) else {
-                continue;
-            };
-            if start >= end
-                || source
-                    .protected_ranges()
-                    .iter()
-                    .any(|span| span.intersects(start, end))
-            {
-                continue;
-            }
-
-            let metadata = token.kind.as_word().and_then(|word| word.as_ref());
-            let lemma = metadata.and_then(|metadata| {
-                if let Some(derived_from) = metadata.derived_from.as_ref() {
-                    dictionary
-                        .get_word_from_id(derived_from)
-                        .map(|word| word.iter().collect::<String>())
-                } else if metadata.is_verb_lemma() {
-                    Some(text[start..end].to_ascii_lowercase())
-                } else {
-                    None
-                }
-            });
-            let occurrence_pos = metadata.and_then(|metadata| {
-                metadata
-                    .pos_tag
-                    .and_then(|tag| generic_pos_from_name(&tag.to_string()))
-            });
-            let mut verb_forms = Vec::new();
-            if token.kind.is_verb_lemma() {
-                verb_forms.push(GenericVerbForm::Lemma);
-            }
-            if token.kind.is_verb_past_form() {
-                verb_forms.push(GenericVerbForm::Past);
-            }
-            if token.kind.is_verb_simple_past_form() {
-                verb_forms.push(GenericVerbForm::SimplePast);
-            }
-            if token.kind.is_verb_past_participle_form() {
-                verb_forms.push(GenericVerbForm::PastParticiple);
-            }
-            if token.kind.is_verb_progressive_form() {
-                verb_forms.push(GenericVerbForm::Progressive);
-            }
-            if token.kind.is_verb_third_person_singular_present_form() {
-                verb_forms.push(GenericVerbForm::ThirdPersonSingularPresent);
-            }
-
-            tokens.push(LinguisticTokenEvidence {
-                start,
-                end,
-                lemma,
-                occurrence_pos,
-                determiner: token.kind.is_determiner(),
-                conjunction: token.kind.is_conjunction(),
-                noun: token.kind.is_noun(),
-                nominal: token.kind.is_nominal(),
-                adjective: token.kind.is_adjective(),
-                verb: token.kind.is_verb(),
-                auxiliary_verb: token.kind.is_auxiliary_verb(),
-                linking_verb: token.kind.is_linking_verb(),
-                np_member: token.kind.is_np_member(),
-                comparative_adjective: token.kind.is_comparative_adjective(),
-                superlative_adjective: token.kind.is_superlative_adjective(),
-                verb_forms,
-            });
+            append_sentence_evidence(
+                &raw_tokens[sentence_start..sentence_end],
+                &chars,
+                &char_to_byte,
+                &dictionary,
+                tagger.as_ref(),
+                chunker.as_ref(),
+                &source,
+                &mut tokens,
+            );
+            sentence_start = sentence_end;
         }
 
         Self { text, tokens }
@@ -170,23 +127,149 @@ impl<'a> LinguisticDocument<'a> {
     }
 }
 
-fn generic_pos_from_name(name: &str) -> Option<GenericPos> {
-    match name {
-        "Adjective" => Some(GenericPos::Adjective),
-        "Adposition" => Some(GenericPos::Adposition),
-        "Adverb" => Some(GenericPos::Adverb),
-        "Auxiliary" => Some(GenericPos::Auxiliary),
-        "Coordinating conjunction" | "Subordinating conjunction" => Some(GenericPos::Conjunction),
-        "Determiner" => Some(GenericPos::Determiner),
-        "Interjection" => Some(GenericPos::Interjection),
-        "Noun" => Some(GenericPos::Noun),
-        "Numeral" => Some(GenericPos::Numeral),
-        "Particle" => Some(GenericPos::Particle),
-        "Pronoun" => Some(GenericPos::Pronoun),
-        "Proper noun" => Some(GenericPos::ProperNoun),
-        "Symbol" => Some(GenericPos::Symbol),
-        "Verb" => Some(GenericPos::Verb),
-        _ => None,
+#[allow(clippy::too_many_arguments)]
+fn append_sentence_evidence(
+    sentence: &[Token],
+    chars: &[char],
+    char_to_byte: &[usize],
+    dictionary: &FstDictionary,
+    tagger: &impl Tagger,
+    chunker: &impl Chunker,
+    source: &SourceDocument,
+    output: &mut Vec<LinguisticTokenEvidence>,
+) {
+    let visible = sentence
+        .iter()
+        .filter(|token| !token.kind.is_whitespace())
+        .collect::<Vec<_>>();
+    if visible.is_empty() {
+        return;
+    }
+    let strings = visible
+        .iter()
+        .map(|token| chars[token.span.start..token.span.end].iter().collect::<String>())
+        .collect::<Vec<_>>();
+    let tags = tagger.tag_sentence(&strings);
+    let noun_phrase_flags = chunker.chunk_sentence(&strings, &tags);
+
+    for ((token, tag), noun_phrase_member) in visible
+        .into_iter()
+        .zip(tags.into_iter())
+        .zip(noun_phrase_flags.into_iter())
+    {
+        if !token.kind.is_word() {
+            continue;
+        }
+        let Some(&start) = char_to_byte.get(token.span.start) else {
+            continue;
+        };
+        let Some(&end) = char_to_byte.get(token.span.end) else {
+            continue;
+        };
+        if start >= end
+            || source
+                .protected_ranges()
+                .iter()
+                .any(|span| span.intersects(start, end))
+        {
+            continue;
+        }
+
+        let metadata = dictionary.get_word_metadata(&chars[token.span.start..token.span.end]);
+        let metadata = metadata.as_deref();
+        output.push(token_evidence(
+            start,
+            end,
+            &text_slice(chars, token),
+            metadata,
+            tag.and_then(generic_pos_from_upos),
+            noun_phrase_member,
+            dictionary,
+        ));
+    }
+}
+
+fn token_evidence(
+    start: usize,
+    end: usize,
+    token_text: &str,
+    metadata: Option<&DictWordMetadata>,
+    occurrence_pos: Option<GenericPos>,
+    np_member: bool,
+    dictionary: &FstDictionary,
+) -> LinguisticTokenEvidence {
+    let lemma = metadata.and_then(|metadata| {
+        if let Some(derived_from) = metadata.derived_from.as_ref() {
+            dictionary
+                .get_word_from_id(derived_from)
+                .map(|word| word.iter().collect::<String>())
+        } else if metadata.is_verb_lemma() {
+            Some(token_text.to_ascii_lowercase())
+        } else {
+            None
+        }
+    });
+    let mut verb_forms = Vec::new();
+    if metadata.is_some_and(DictWordMetadata::is_verb_lemma) {
+        verb_forms.push(GenericVerbForm::Lemma);
+    }
+    if metadata.is_some_and(DictWordMetadata::is_verb_past_form) {
+        verb_forms.push(GenericVerbForm::Past);
+    }
+    if metadata.is_some_and(DictWordMetadata::is_verb_simple_past_form) {
+        verb_forms.push(GenericVerbForm::SimplePast);
+    }
+    if metadata.is_some_and(DictWordMetadata::is_verb_past_participle_form) {
+        verb_forms.push(GenericVerbForm::PastParticiple);
+    }
+    if metadata.is_some_and(DictWordMetadata::is_verb_progressive_form) {
+        verb_forms.push(GenericVerbForm::Progressive);
+    }
+    if metadata.is_some_and(DictWordMetadata::is_verb_third_person_singular_present_form) {
+        verb_forms.push(GenericVerbForm::ThirdPersonSingularPresent);
+    }
+
+    LinguisticTokenEvidence {
+        start,
+        end,
+        lemma,
+        occurrence_pos,
+        determiner: metadata.is_some_and(DictWordMetadata::is_determiner),
+        conjunction: metadata.is_some_and(DictWordMetadata::is_conjunction),
+        noun: metadata.is_some_and(DictWordMetadata::is_noun),
+        nominal: metadata.is_some_and(DictWordMetadata::is_nominal),
+        adjective: metadata.is_some_and(DictWordMetadata::is_adjective),
+        verb: metadata.is_some_and(DictWordMetadata::is_verb),
+        auxiliary_verb: metadata.is_some_and(DictWordMetadata::is_auxiliary_verb),
+        linking_verb: metadata.is_some_and(DictWordMetadata::is_linking_verb),
+        np_member,
+        comparative_adjective: metadata.is_some_and(DictWordMetadata::is_comparative_adjective),
+        superlative_adjective: metadata.is_some_and(DictWordMetadata::is_superlative_adjective),
+        verb_forms,
+    }
+}
+
+fn text_slice(chars: &[char], token: &Token) -> String {
+    chars[token.span.start..token.span.end].iter().collect()
+}
+
+fn generic_pos_from_upos(pos: UPOS) -> Option<GenericPos> {
+    match pos {
+        UPOS::ADJ => Some(GenericPos::Adjective),
+        UPOS::ADP => Some(GenericPos::Adposition),
+        UPOS::ADV => Some(GenericPos::Adverb),
+        UPOS::AUX => Some(GenericPos::Auxiliary),
+        UPOS::CCONJ | UPOS::SCONJ => Some(GenericPos::Conjunction),
+        UPOS::DET => Some(GenericPos::Determiner),
+        UPOS::INTJ => Some(GenericPos::Interjection),
+        UPOS::NOUN => Some(GenericPos::Noun),
+        UPOS::NUM => Some(GenericPos::Numeral),
+        UPOS::PART => Some(GenericPos::Particle),
+        UPOS::PRON => Some(GenericPos::Pronoun),
+        UPOS::PROPN => Some(GenericPos::ProperNoun),
+        UPOS::SYM => Some(GenericPos::Symbol),
+        UPOS::VERB => Some(GenericPos::Verb),
+        UPOS::PUNCT => None,
     }
 }
 
@@ -258,7 +341,7 @@ mod tests {
     }
 
     #[test]
-    fn harper_curated_analysis_marks_bare_nominal_phrase_members() {
+    fn deterministic_brill_chunker_marks_bare_nominal_phrase_members() {
         let document = LinguisticDocument::new("Fuel pump pressure is stable.");
         let phrase = document
             .tokens
