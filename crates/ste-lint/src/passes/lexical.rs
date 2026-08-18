@@ -166,5 +166,17 @@ fn is_machine_marker(character: char) -> bool {
 }
 
 fn is_machine_like(token: &str) -> bool {
-    token.chars().any(is_machine_marker) || token.chars().any(|c| c.is_ascii_digit())
+    if token.chars().any(|character| character.is_ascii_digit()) {
+        return true;
+    }
+
+    let characters = token.chars().collect::<Vec<_>>();
+    characters.windows(3).any(|window| {
+        window[0].is_alphanumeric()
+            && is_machine_marker(window[1])
+            && window[2].is_alphanumeric()
+    }) || token.starts_with("./")
+        || token.starts_with("../")
+        || token.starts_with('/')
+        || token.starts_with('\\')
 }
