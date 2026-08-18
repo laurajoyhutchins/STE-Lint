@@ -73,7 +73,11 @@ fn lint(text: &str, mode: LintMode, adjective_identity: bool) -> Vec<ste_core::D
 
 #[test]
 fn progressive_construction_is_rejected_by_rules_3_2_3_4_and_3_5() {
-    let diagnostics = lint("THE UNIT IS REMOVING THE PART.", LintMode::Descriptive, false);
+    let diagnostics = lint(
+        "THE UNIT IS REMOVING THE PART.",
+        LintMode::Descriptive,
+        false,
+    );
     assert!(diagnostics.iter().any(|diagnostic| {
         diagnostic.rules.iter().any(|rule| rule == "3.2")
             && diagnostic.rules.iter().any(|rule| rule == "3.4")
@@ -103,7 +107,11 @@ fn passive_or_adjectival_participle_with_competing_authoritative_identities_bloc
 
 #[test]
 fn simple_future_with_will_and_base_form_is_not_rejected_as_complex() {
-    let diagnostics = lint("THE UNIT WILL REMOVE THE PART.", LintMode::Descriptive, false);
+    let diagnostics = lint(
+        "THE UNIT WILL REMOVE THE PART.",
+        LintMode::Descriptive,
+        false,
+    );
     assert!(diagnostics.iter().all(|diagnostic| {
         !(diagnostic.rules.iter().any(|rule| rule == "3.2")
             || diagnostic.rules.iter().any(|rule| rule == "3.4"))
@@ -112,10 +120,13 @@ fn simple_future_with_will_and_base_form_is_not_rejected_as_complex() {
 
 #[test]
 fn source_linked_ing_form_used_as_a_verb_is_a_rule_3_5_error() {
-    let diagnostics = lint("THE UNIT IS REMOVING THE PART.", LintMode::Descriptive, false);
+    let diagnostics = lint(
+        "THE UNIT IS REMOVING THE PART.",
+        LintMode::Descriptive,
+        false,
+    );
     assert!(diagnostics.iter().any(|diagnostic| {
-        diagnostic.rules.iter().any(|rule| rule == "3.5")
-            && diagnostic.severity == Severity::Error
+        diagnostic.rules.iter().any(|rule| rule == "3.5") && diagnostic.severity == Severity::Error
     }));
 }
 
@@ -169,8 +180,7 @@ fn conditional_instruction_still_requires_imperative_command() {
         false,
     );
     assert!(diagnostics.iter().any(|diagnostic| {
-        diagnostic.rules.iter().any(|rule| rule == "5.3")
-            && diagnostic.severity == Severity::Error
+        diagnostic.rules.iter().any(|rule| rule == "5.3") && diagnostic.severity == Severity::Error
     }));
 }
 
@@ -178,8 +188,7 @@ fn conditional_instruction_still_requires_imperative_command() {
 fn ordinary_procedural_sentence_requires_imperative_command() {
     let diagnostics = lint("THE UNIT REMOVES THE PART.", LintMode::Procedural, false);
     assert!(diagnostics.iter().any(|diagnostic| {
-        diagnostic.rules.iter().any(|rule| rule == "5.3")
-            && diagnostic.severity == Severity::Error
+        diagnostic.rules.iter().any(|rule| rule == "5.3") && diagnostic.severity == Severity::Error
     }));
 }
 
