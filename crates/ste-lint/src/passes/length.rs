@@ -103,7 +103,7 @@ fn length_diagnostic(
             "word_count": unit.word_count,
             "limit": limit,
             "note_uses_descriptive_limit": note,
-            "implemented_counting_rules": ["8.4", "8.5", "8.6", "8.7"],
+            "shared_counting_rules": ["8.4", "8.5", "8.6", "8.7"],
             "authority": [
                 "document-native structure",
                 "verified terminology identity",
