@@ -27,12 +27,9 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 
         if glossary_wins {
             let matched = glossary_match.unwrap();
-            if let Some(diagnostic) = glossary_diagnostic(
-                &matched.text,
-                matched.start,
-                matched.end,
-                matched.term,
-            ) {
+            if let Some(diagnostic) =
+                glossary_diagnostic(&matched.text, matched.start, matched.end, matched.term)
+            {
                 diagnostics.push(diagnostic);
             }
             index += matched.token_width;
