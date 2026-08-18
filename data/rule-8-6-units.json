@@ -1,0 +1,37 @@
+{
+  "schema": "ste-rule-8.6-units/v1",
+  "sources": [
+    {
+      "id": "bipm-si-brochure-9",
+      "title": "BIPM SI Brochure, 9th edition, updated 2026",
+      "url": "https://www.bipm.org/en/publications/si-brochure"
+    },
+    {
+      "id": "nist-sp-811",
+      "title": "NIST Guide for the Use of the International System of Units (SI), SP 811",
+      "url": "https://www.nist.gov/pml/special-publication-811"
+    }
+  ],
+  "symbols": [
+    "s", "m", "kg", "A", "K", "mol", "cd",
+    "rad", "sr", "Hz", "N", "Pa", "J", "W", "C", "V", "F", "Ω", "Ω", "S", "Wb", "T", "H", "°C", "lm", "lx", "Bq", "Gy", "Sv", "kat",
+    "min", "h", "d", "°", "′", "″", "ha", "L", "l", "t", "Np", "B", "dB", "eV", "Da", "u", "bar", "mmHg",
+    "in", "ft", "yd", "mi", "psi", "°F", "°R", "rpm"
+  ],
+  "names": [
+    "second", "seconds", "meter", "meters", "metre", "metres", "gram", "grams", "ampere", "amperes", "kelvin", "kelvins", "mole", "moles", "candela", "candelas",
+    "radian", "radians", "steradian", "steradians", "hertz", "newton", "newtons", "pascal", "pascals", "joule", "joules", "watt", "watts", "coulomb", "coulombs", "volt", "volts", "farad", "farads", "ohm", "ohms", "siemens", "weber", "webers", "tesla", "teslas", "henry", "henries", "lumen", "lumens", "lux", "becquerel", "becquerels", "gray", "grays", "sievert", "sieverts", "katal", "katals",
+    "minute", "minutes", "hour", "hours", "day", "days", "degree", "degrees", "hectare", "hectares", "liter", "liters", "litre", "litres", "tonne", "tonnes", "neper", "nepers", "bel", "bels", "decibel", "decibels", "electronvolt", "electronvolts", "dalton", "daltons", "bar", "bars",
+    "inch", "inches", "foot", "feet", "yard", "yards", "mile", "miles", "pound", "pounds"
+  ],
+  "multiword_names": [
+    "degree Celsius", "degrees Celsius", "degree Fahrenheit", "degrees Fahrenheit", "degree Rankine", "degrees Rankine",
+    "nautical mile", "nautical miles", "pound per square inch", "pounds per square inch"
+  ],
+  "prefix_symbols": ["q", "r", "y", "z", "a", "f", "p", "n", "µ", "μ", "m", "c", "d", "da", "h", "k", "M", "G", "T", "P", "E", "Z", "Y", "R", "Q"],
+  "prefix_names": ["quecto", "ronto", "yocto", "zepto", "atto", "femto", "pico", "nano", "micro", "milli", "centi", "deci", "deca", "deka", "hecto", "kilo", "mega", "giga", "tera", "peta", "exa", "zetta", "yotta", "ronna", "quetta"],
+  "prefixable_symbols": ["g", "m", "s", "A", "K", "mol", "cd", "rad", "sr", "Hz", "N", "Pa", "J", "W", "C", "V", "F", "Ω", "Ω", "S", "Wb", "T", "H", "°C", "lm", "lx", "Bq", "Gy", "Sv", "kat", "L", "l", "eV", "Da", "u"],
+  "prefixable_names": [
+    "gram", "meter", "metre", "second", "ampere", "kelvin", "mole", "candela", "radian", "steradian", "hertz", "newton", "pascal", "joule", "watt", "coulomb", "volt", "farad", "ohm", "siemens", "weber", "tesla", "henry", "degree Celsius", "lumen", "lux", "becquerel", "gray", "sievert", "katal", "liter", "litre", "electronvolt", "dalton"
+  ]
+}

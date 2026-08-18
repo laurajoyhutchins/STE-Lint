@@ -33,13 +33,13 @@ jobs:
           --no-self-update
       - name: Build
         run: cargo +1.97.1 build --workspace --locked
+      - name: Test
+        run: cargo +1.97.1 test --workspace --locked
       - name: Format
         run: cargo +1.97.1 fmt --all -- --check
       - name: Clippy
         run: cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
-      - name: Test
-        run: cargo +1.97.1 test --workspace --locked
-      - name: Coverage text
+      - name: Coverage report
         run: ./target/debug/ste coverage
-      - name: Coverage JSON
+      - name: Coverage report JSON
         run: ./target/debug/ste coverage --format json

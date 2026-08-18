@@ -36,7 +36,10 @@ fn coverage_manifest_is_evidence_complete_and_path_valid() {
         .filter(|rule| rule["status"] == "implemented")
         .map(|rule| rule["id"].as_str().unwrap())
         .collect::<BTreeSet<_>>();
-    assert_eq!(implemented, BTreeSet::from(["6.6", "8.4", "8.5", "8.7"]));
+    assert_eq!(
+        implemented,
+        BTreeSet::from(["2.2", "5.1", "6.3", "8.1", "8.5", "8.6", "8.7"])
+    );
 
     for rule in rules {
         let id = rule["id"].as_str().expect("rule id");

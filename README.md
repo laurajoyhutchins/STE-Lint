@@ -36,20 +36,20 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - a versioned runtime lexicon model with exact private-runtime identity verification;
 - explicit runtime selection with `--lexicon` or `STE_LINT_LEXICON`, with fail-closed lint/dictionary operation;
 - exact-pinned CommonMark structure parsing with `pulldown-cmark`, projected back to canonical UTF-8 byte spans;
-- exact-pinned, in-process generic English token, morphology, POS, and chunk evidence from `harper-core` and `harper-brill`, behind an authority firewall that prevents generic parser evidence from granting STE approval, grammatical identity, or allowed forms;
+- exact-pinned, in-process generic English evidence from `harper-core`, behind an authority firewall that prevents parser vocabulary or morphology from granting STE approval;
 - ambiguity-preserving, longest-match dictionary and glossary phrase lookup;
 - source-backed approved verb paradigms that preserve lexical, irregular-auxiliary, and defective-modal distinctions;
 - bounded rejection of source-linked out-of-inventory verb/adjective forms for Rules 1.4 and 3.1;
-- shared structural verb-construction evidence for bounded perfect, passive, and progressive enforcement, with competing authoritative identities blocked rather than guessed;
 - explicit project-authority phrasal-verb evidence for the safely enforceable Rule 9.3 slice;
-- governed reusable and repo-local technical terminology, including technical nouns, technical verbs, dual-use terms, explicit forms, aliases, provenance, and lifecycle status;
+- governed reusable and repo-local technical terminology, including technical nouns, technical verbs, dual-use terms, explicit forms, typed aliases, provenance, and lifecycle status;
 - deterministic composition of opt-in `software-core`, `git`, and `github` terminology profiles with repo-local `.ste/terms.json`;
-- repo-local `.ste/context.json` evidence for bounded sense, terminology-scope, spelling, and other decisions that raw text cannot safely establish;
-- semicolon detection with a whitelisted deterministic autofix;
+- repo-local `.ste/context.json` authority for governed named entities, measurement units, protected text, document structure, and other bounded decisions that raw text cannot safely establish;
+- Rule 2.2 long-technical-noun ordering through governed identity: full form first, then an authorized short form, abbreviation, or acronym;
+- Rule 8.1 semicolon detection only in STE-authored text, with protected/code/verbatim/immutable external boundaries and no meaning-changing automatic replacement;
 - contraction detection for the deterministic portion of Rule 4.2;
-- Issue 9-aware procedural/descriptive sentence-length counting and structurally complete descriptive paragraph limits for Rule 6.6;
-- deterministic text-level handling for vertical-list boundaries, parentheticals, quoted text, identifiers, number+unit groups, decimals, and hyphenated groups;
-- structural Rule 8.4 counting across supported CommonMark and STE-style vertical lists, including wrapped and nested list items;
+- direct `HAVE`/`HAS`/`HAD` plus approved-past-participle detection for the deterministic portion of Rule 3.4;
+- one canonical Issue 9 count-group projection shared by Rules 5.1, 6.3, 8.4, 8.5, 8.6, and 8.7;
+- deterministic counting for numeric expressions, governed number+unit groups, abbreviations/acronyms, alphanumeric identifiers, quoted text, headings, governed titles/placards/labels, governed proper nouns, parentheticals, and hyphenated groups;
 - procedural `NOTE:` recognition: note sentences use the descriptive 25-word limit, and source-backed sentence-initial imperative candidates are diagnosed or blocked when ambiguous;
 - bounded vertical-list mechanics with parser-backed Markdown structure plus STE-specific list forms and punctuation/counting semantics;
 - unapproved-word/phrase diagnostics and blockers for unresolved dictionary ambiguity or unknown project terminology;
@@ -91,11 +91,9 @@ cargo +1.97.1 test --workspace --locked
 cargo +1.97.1 fmt --all -- --check
 cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
 python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
-./target/debug/ste coverage
-./target/debug/ste coverage --format json
 ```
 
-CI runs the same pinned Rust verification, authority-ingest suite, and both coverage-report forms.
+CI runs the same pinned Rust verification plus the authority-ingest suite.
 
 ## Runtime dictionary
 
@@ -269,23 +267,43 @@ Unknown words are not added automatically. `STE-TERM-001` means the term needs c
 
 ## Repo-local context evidence
 
-When a rule needs a fact that cannot be established safely from raw text, a repository can provide explicit occurrence evidence in the nearest ancestor `.ste/context.json`. A present but malformed context file is an error; STE-Lint does not silently lint without it.
+When a rule needs a fact that cannot be established safely from raw text, a repository can provide governed authority in the nearest ancestor `.ste/context.json`. A present but malformed context file is an error; STE-Lint does not silently lint without it.
+
+Stable named entities and measurement units belong in the document-level registries instead of being repeated as per-occurrence guesses. Named entities carry an explicit class (`person`, `group`, `organization`, or `geopolitical_entity`) plus canonical and alternate forms. Measurement units carry canonical and alternate forms. Identity collisions fail closed.
+
+Occurrence facts remain available for genuinely local evidence, including protected/external text boundaries and explicit structural identities such as titles, placards, and labels. Counting authority and authored-text authority are separate: a title can count as one word while remaining STE-authored and therefore still subject to Rule 8.1.
 
 ```json
 {
+  "named_entities": [
+    {
+      "id": "example-standards-council",
+      "canonical": "Example Aerospace Standards Council",
+      "class": "organization",
+      "forms": ["EASC"],
+      "source": "project terminology authority"
+    }
+  ],
+  "measurement_units": [
+    {
+      "id": "widget-flux",
+      "canonical": "widget flux",
+      "forms": ["wf"],
+      "source": "project measurement authority"
+    }
+  ],
   "occurrences": [
     {
       "start": 0,
-      "end": 6,
-      "source": "terminology review 2026-08-16",
-      "spelling": "non_american",
-      "official_technical_name": false
+      "end": 12,
+      "source": "document structure authority",
+      "text_authority": "title"
     }
   ]
 }
 ```
 
-The context schema carries explicit project facts rather than classifications invented by the linter. Those facts drive bounded checks only where the corresponding rule pass consumes them, and diagnostic evidence retains supplied provenance. See `docs/rule-coverage.md` for the exact fields and claim boundary.
+The context schema carries explicit project facts rather than classifications invented by the linter. STE-Lint does not run probabilistic NER for Rule 8.6 and does not infer that an arbitrary word following a number is a unit. Diagnostic evidence retains supplied provenance. See `docs/rule-coverage.md` for the exact fields and claim boundary.
 
 ## Agent use
 

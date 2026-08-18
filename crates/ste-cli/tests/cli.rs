@@ -82,7 +82,7 @@ fn lint_json_reports_stable_diagnostic_and_exit_code() {
 }
 
 #[test]
-fn lint_fix_applies_only_safe_fix_and_exits_clean() {
+fn lint_fix_does_not_apply_unsafe_semicolon_replacement() {
     let mut file = tempfile::NamedTempFile::new().unwrap();
     writeln!(file, "USE THIS; USE THIS.").unwrap();
 
@@ -97,11 +97,12 @@ fn lint_fix_applies_only_safe_fix_and_exits_clean() {
             "procedural",
         ])
         .assert()
-        .success();
+        .code(1)
+        .stdout(predicate::str::contains("STE-PUNC-001"));
 
     assert_eq!(
         fs::read_to_string(file.path()).unwrap(),
-        "USE THIS. USE THIS.\n"
+        "USE THIS; USE THIS.\n"
     );
 }
 
