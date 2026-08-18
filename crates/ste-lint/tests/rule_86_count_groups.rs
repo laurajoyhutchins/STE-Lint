@@ -2,25 +2,15 @@ use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
 use ste_lint::{LintContext, LintMode, LintOptions, lint_text_with_context};
 
-fn glossary_with_named_entity() -> Glossary {
-    Glossary::from_json(
+fn entity_context() -> LintContext {
+    LintContext::from_json(
         r#"{
-          "schema":"ste-terminology/v2",
-          "domain":"fixture",
-          "sources":{"fixture":{"title":"Independent named-entity fixture authority"}},
-          "terms":[{
+          "named_entities":[{
             "id":"north-atlantic-treaty-organization",
             "canonical":"North Atlantic Treaty Organization",
-            "roles":["noun"],
-            "definition":"A synthetic organization identity used only by this test.",
-            "forms":[],
-            "aliases":[{"text":"NATO","kind":"acronym"}],
-            "sources":[{
-              "source":"fixture",
-              "supports":["admission","definition","role","alias","status"]
-            }],
-            "status":"approved",
-            "entity_class":"organization"
+            "class":"organization",
+            "forms":["NATO"],
+            "source":"independent named-entity fixture authority"
           }]
         }"#,
     )
@@ -80,28 +70,28 @@ fn uses(count: usize) -> String {
 
 #[test]
 fn rule_86_governed_multiword_proper_noun_counts_as_one_in_procedure() {
-    let glossary = glossary_with_named_entity();
+    let context = entity_context();
     let text = format!("{} North Atlantic Treaty Organization.", uses(19));
-    let result = lint(&text, LintMode::Procedural, Some(&glossary), None);
+    let result = lint(&text, LintMode::Procedural, None, Some(&context));
     assert!(!has_length_error(&result));
 }
 
 #[test]
 fn rule_86_governed_multiword_proper_noun_counts_as_one_in_description() {
-    let glossary = glossary_with_named_entity();
+    let context = entity_context();
     let text = format!("{} North Atlantic Treaty Organization.", uses(24));
-    let result = lint(&text, LintMode::Descriptive, Some(&glossary), None);
+    let result = lint(&text, LintMode::Descriptive, None, Some(&context));
     assert!(!has_length_error(&result));
 }
 
 #[test]
 fn rule_86_named_entity_authority_survives_document_edits() {
-    let glossary = glossary_with_named_entity();
+    let context = entity_context();
     for text in [
         format!("{} North Atlantic Treaty Organization.", uses(19)),
         format!("USE.\n\n{} North Atlantic Treaty Organization.", uses(19)),
     ] {
-        let result = lint(&text, LintMode::Procedural, Some(&glossary), None);
+        let result = lint(&text, LintMode::Procedural, None, Some(&context));
         assert!(!has_length_error(&result), "{text}");
     }
 }
@@ -164,6 +154,20 @@ fn rule_86_quoted_text_counts_as_one() {
 }
 
 #[test]
+fn rule_86_formula_authority_counts_the_formula_as_quoted_text() {
+    let formula = "C = (A - B) - 0.063 mm";
+    let text = format!("{} {formula}.", uses(19));
+    let start = text.find(formula).unwrap();
+    let end = start + formula.len();
+    let context = LintContext::from_json(&format!(
+        r#"{{"occurrences":[{{"start":{start},"end":{end},"source":"formula node","text_authority":"formula"}}]}}"#
+    ))
+    .unwrap();
+    let result = lint(&text, LintMode::Procedural, None, Some(&context));
+    assert!(!has_length_error(&result));
+}
+
+#[test]
 fn rule_86_markdown_atx_heading_is_one_structural_count_group() {
     let text = format!("# {}", uses(25));
     let result = lint(&text, LintMode::Procedural, None, None);
@@ -185,14 +189,7 @@ fn rule_86_explicit_title_placard_and_label_groups_remain_supported() {
         let start = text.find(group).unwrap();
         let end = start + group.len();
         let context = LintContext::from_json(&format!(
-            r#"{{
-              "occurrences":[{{
-                "start":{start},
-                "end":{end},
-                "source":"document structure fixture",
-                "count_group":"{kind}"
-              }}]
-            }}"#
+            r#"{{"occurrences":[{{"start":{start},"end":{end},"source":"document structure fixture","count_group":"{kind}"}}]}}"#
         ))
         .unwrap();
         let result = lint(&text, LintMode::Procedural, None, Some(&context));
@@ -207,15 +204,7 @@ fn rule_86_protected_external_text_is_shared_with_punctuation_scope() {
     let start = text.find('"').unwrap();
     let end = text.rfind('"').unwrap() + 1;
     let context = LintContext::from_json(&format!(
-        r#"{{
-          "occurrences":[{{
-            "start":{start},
-            "end":{end},
-            "source":"immutable UI contract",
-            "official_technical_name":true,
-            "text_authority":"quoted_external_text"
-          }}]
-        }}"#
+        r#"{{"occurrences":[{{"start":{start},"end":{end},"source":"immutable UI contract","text_authority":"quoted_external_text"}}]}}"#
     ))
     .unwrap();
     let result = lint(&text, LintMode::Procedural, None, Some(&context));
@@ -224,23 +213,37 @@ fn rule_86_protected_external_text_is_shared_with_punctuation_scope() {
 }
 
 #[test]
+fn rule_86_document_numbering_can_be_explicitly_excluded() {
+    let numbering = "12.4.3";
+    let text = format!("{} {numbering}.", uses(20));
+    let start = text.find(numbering).unwrap();
+    let end = start + numbering.len();
+    let context = LintContext::from_json(&format!(
+        r#"{{"occurrences":[{{"start":{start},"end":{end},"source":"document numbering node","text_authority":"document_numbering"}}]}}"#
+    ))
+    .unwrap();
+    let result = lint(&text, LintMode::Procedural, None, Some(&context));
+    assert!(!has_length_error(&result));
+}
+
+#[test]
 fn rule_84_list_boundary_and_rule_86_entity_group_use_same_counter() {
-    let glossary = glossary_with_named_entity();
+    let context = entity_context();
     let text = format!(
         "DO THIS:\n- {} North Atlantic Treaty Organization.",
         uses(19)
     );
-    let result = lint(&text, LintMode::Procedural, Some(&glossary), None);
+    let result = lint(&text, LintMode::Procedural, None, Some(&context));
     assert!(!has_length_error(&result));
 }
 
 #[test]
 fn rules_85_86_and_87_share_count_semantics_inside_parenthetical() {
-    let glossary = glossary_with_named_entity();
+    let context = entity_context();
     let text = format!(
         "USE THIS ({} North Atlantic Treaty Organization high-pressure).",
         uses(18)
     );
-    let result = lint(&text, LintMode::Procedural, Some(&glossary), None);
+    let result = lint(&text, LintMode::Procedural, None, Some(&context));
     assert!(!has_length_error(&result));
 }
