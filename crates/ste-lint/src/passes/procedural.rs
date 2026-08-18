@@ -245,6 +245,7 @@ fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             .filter_map(|entry| entry.verb_paradigm.as_ref())
             .map(|paradigm| paradigm.base_form.as_str())
             .collect::<Vec<_>>();
+        let base_form = (base_forms.len() == 1).then_some(base_forms[0]);
 
         diagnostics.push(Diagnostic {
             code: "STE-PROC-001".into(),
@@ -267,8 +268,10 @@ fn imperative_forms(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             rules: vec!["5.3".into()],
             evidence: Some(json!({
                 "command_head": token.text,
+                "observed_form": token.text,
                 "candidate_count": matched.candidates.len(),
                 "source_backed_verb_candidates": source_backed_verbs.len(),
+                "base_form": base_form,
                 "base_forms": base_forms,
                 "condition_prefix": starts_condition(sentence),
             })),
