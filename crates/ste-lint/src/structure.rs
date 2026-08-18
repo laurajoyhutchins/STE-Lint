@@ -11,11 +11,7 @@ struct LineSpan {
     end: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct ProtectedSpan {
-    start: usize,
-    end: usize,
-}
+REMOVEME
 
 pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
     let lines = line_spans(text);
