@@ -114,9 +114,7 @@ impl SourceDocument {
             .protected
             .sort_by_key(|span| (span.start, span.end));
         document.protected = merge_spans(document.protected);
-        document
-            .headings
-            .sort_by_key(|span| (span.start, span.end));
+        document.headings.sort_by_key(|span| (span.start, span.end));
         document.headings = merge_spans(document.headings);
         document
             .paragraphs
