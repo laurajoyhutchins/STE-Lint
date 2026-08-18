@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ste-lint.local/schemas/benchmark-result.schema.json",
+  "title": "STE-Lint rights-safe real-world benchmark result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "suite_id",
+    "authoritative_runtime",
+    "pages"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "suite_id": { "type": "string", "minLength": 1 },
+    "authoritative_runtime": { "type": "boolean" },
+    "pages": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/page_observation" }
+    }
+  },
+  "$defs": {
+    "page_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "selection_id",
+        "cohort",
+        "physical_page",
+        "mode",
+        "normalized_text_sha256",
+        "normalized_byte_count",
+        "word_count",
+        "outcome",
+        "diagnostics"
+      ],
+      "properties": {
+        "source_id": { "type": "string", "minLength": 1 },
+        "selection_id": { "type": "string", "minLength": 1 },
+        "cohort": {
+          "enum": [
+            "declared_ste_deep",
+            "declared_ste_broad",
+            "claim_none_control"
+          ]
+        },
+        "match_group": { "type": ["string", "null"], "minLength": 1 },
+        "physical_page": { "type": "integer", "minimum": 1 },
+        "mode": { "enum": ["procedural", "descriptive"] },
+        "normalized_text_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "normalized_byte_count": { "type": "integer", "minimum": 0 },
+        "word_count": { "type": "integer", "minimum": 0 },
+        "outcome": { "enum": ["clean", "fixed", "error", "blocked"] },
+        "diagnostics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/diagnostic" }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "rules", "span"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["error", "warning", "blocked"] },
+        "rules": { "type": "array", "items": { "type": "string" } },
+        "span": { "$ref": "#/$defs/span" }
+      }
+    },
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
