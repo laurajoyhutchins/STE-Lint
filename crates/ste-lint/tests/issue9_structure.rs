@@ -84,6 +84,24 @@ fn vertical_list_item_over_limit_is_reported() {
 }
 
 #[test]
+fn wrapped_vertical_list_item_is_one_word_limit_unit() {
+    let prefix = vec!["USE"; 20].join(" ");
+    let first_line = vec!["USE"; 10].join(" ");
+    let continuation = vec!["USE"; 11].join(" ");
+    let text = format!("{prefix}:\n- {first_line}\n  {continuation}");
+    assert!(codes(&text, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
+}
+
+#[test]
+fn nested_vertical_list_items_remain_independent_word_limit_units() {
+    let prefix = vec!["USE"; 20].join(" ");
+    let outer = vec!["USE"; 20].join(" ");
+    let nested = vec!["USE"; 20].join(" ");
+    let text = format!("{prefix}:\n- {outer}:\n  - {nested}");
+    assert!(!codes(&text, LintMode::Procedural).contains(&"STE-LEN-001".to_string()));
+}
+
+#[test]
 fn descriptive_paragraph_over_six_sentences_is_reported() {
     let text = "USE. USE. USE. USE. USE. USE. USE.";
     assert!(codes(text, LintMode::Descriptive).contains(&"STE-PARA-001".to_string()));
@@ -92,6 +110,18 @@ fn descriptive_paragraph_over_six_sentences_is_reported() {
 #[test]
 fn six_sentence_descriptive_paragraph_is_allowed() {
     let text = "USE. USE. USE. USE. USE. USE.";
+    assert!(!codes(text, LintMode::Descriptive).contains(&"STE-PARA-001".to_string()));
+}
+
+#[test]
+fn wrapped_source_lines_stay_in_one_descriptive_paragraph() {
+    let text = "USE. USE. USE.\nUSE. USE. USE. USE.";
+    assert!(codes(text, LintMode::Descriptive).contains(&"STE-PARA-001".to_string()));
+}
+
+#[test]
+fn heading_does_not_join_adjacent_descriptive_paragraphs() {
+    let text = "USE. USE. USE. USE.\n\n# HEADING\n\nUSE. USE. USE. USE.";
     assert!(!codes(text, LintMode::Descriptive).contains(&"STE-PARA-001".to_string()));
 }
 
