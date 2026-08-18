@@ -49,6 +49,9 @@ impl HarperProvider {
             .into_iter()
             .filter_map(|observation| {
                 let span = source.span(observation.start, observation.end)?;
+                if source.is_protected(span) {
+                    return None;
+                }
                 Some(AnalysisEvidence::new(
                     LexicalObservation {
                         lemma: observation.lemma,
