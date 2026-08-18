@@ -82,11 +82,7 @@ fn is_multiword_noun_member(analysis: &AnalysisDocument<'_>, token_index: usize)
         })
 }
 
-fn compound_separator_is_valid(
-    analysis: &AnalysisDocument<'_>,
-    left: usize,
-    right: usize,
-) -> bool {
+fn compound_separator_is_valid(analysis: &AnalysisDocument<'_>, left: usize, right: usize) -> bool {
     let separator = &analysis.text()[analysis.tokens()[left].end..analysis.tokens()[right].start];
     !separator.is_empty()
         && separator
@@ -101,8 +97,8 @@ fn multiword_noun_word_count(
 ) -> usize {
     let mut count = 1usize;
     for index in token_start + 1..token_end {
-        let separator = &analysis.text()
-            [analysis.tokens()[index - 1].end..analysis.tokens()[index].start];
+        let separator =
+            &analysis.text()[analysis.tokens()[index - 1].end..analysis.tokens()[index].start];
         let hyphenated = separator.contains('-') && !separator.chars().any(char::is_whitespace);
         if !hyphenated {
             count += 1;
