@@ -105,9 +105,10 @@ fn generic_pos_to_ste(pos: GenericPos) -> Option<PartOfSpeech> {
         GenericPos::Determiner => Some(PartOfSpeech::Article),
         GenericPos::Noun | GenericPos::ProperNoun => Some(PartOfSpeech::Noun),
         GenericPos::Pronoun => Some(PartOfSpeech::Pronoun),
-        GenericPos::Interjection | GenericPos::Numeral | GenericPos::Particle | GenericPos::Symbol => {
-            None
-        }
+        GenericPos::Interjection
+        | GenericPos::Numeral
+        | GenericPos::Particle
+        | GenericPos::Symbol => None,
     }
 }
 
