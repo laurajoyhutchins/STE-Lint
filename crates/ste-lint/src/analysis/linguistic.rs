@@ -5,6 +5,24 @@ use super::source::SourceDocument;
 use super::token::AnalysisToken;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum GenericPos {
+    Adjective,
+    Adposition,
+    Adverb,
+    Auxiliary,
+    Conjunction,
+    Determiner,
+    Interjection,
+    Noun,
+    Numeral,
+    Particle,
+    Pronoun,
+    ProperNoun,
+    Symbol,
+    Verb,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum GenericVerbForm {
     Lemma,
     Past,
@@ -19,6 +37,7 @@ pub(crate) struct LinguisticTokenEvidence {
     pub start: usize,
     pub end: usize,
     pub lemma: Option<String>,
+    pub occurrence_pos: Option<GenericPos>,
     pub determiner: bool,
     pub conjunction: bool,
     pub noun: bool,
@@ -75,6 +94,12 @@ impl<'a> LinguisticDocument<'a> {
                     None
                 }
             });
+            let occurrence_pos = metadata.and_then(|metadata| {
+                metadata
+                    .pos_tag
+                    .map(|tag| generic_pos_from_name(&tag.to_string()))
+                    .flatten()
+            });
             let mut verb_forms = Vec::new();
             if token.kind.is_verb_lemma() {
                 verb_forms.push(GenericVerbForm::Lemma);
@@ -99,6 +124,7 @@ impl<'a> LinguisticDocument<'a> {
                 start,
                 end,
                 lemma,
+                occurrence_pos,
                 determiner: token.kind.is_determiner(),
                 conjunction: token.kind.is_conjunction(),
                 noun: token.kind.is_noun(),
@@ -142,6 +168,26 @@ impl<'a> LinguisticDocument<'a> {
             })
             .collect();
         (analysis_tokens, self.tokens)
+    }
+}
+
+fn generic_pos_from_name(name: &str) -> Option<GenericPos> {
+    match name {
+        "Adjective" => Some(GenericPos::Adjective),
+        "Adposition" => Some(GenericPos::Adposition),
+        "Adverb" => Some(GenericPos::Adverb),
+        "Auxiliary" => Some(GenericPos::Auxiliary),
+        "Coordinating conjunction" | "Subordinating conjunction" => Some(GenericPos::Conjunction),
+        "Determiner" => Some(GenericPos::Determiner),
+        "Interjection" => Some(GenericPos::Interjection),
+        "Noun" => Some(GenericPos::Noun),
+        "Numeral" => Some(GenericPos::Numeral),
+        "Particle" => Some(GenericPos::Particle),
+        "Pronoun" => Some(GenericPos::Pronoun),
+        "Proper noun" => Some(GenericPos::ProperNoun),
+        "Symbol" => Some(GenericPos::Symbol),
+        "Verb" => Some(GenericPos::Verb),
+        _ => None,
     }
 }
 
@@ -197,6 +243,19 @@ mod tests {
         assert!(checks[0].verb);
         assert!(checks[0].noun || checks[0].nominal);
         assert!(checks[1].noun || checks[1].nominal);
+    }
+
+    #[test]
+    fn harper_pos_tag_disambiguates_homograph_occurrences() {
+        let document = LinguisticDocument::new("Check the valve. The check is complete.");
+        let checks = document
+            .tokens
+            .iter()
+            .filter(|token| document.text[token.start..token.end].eq_ignore_ascii_case("check"))
+            .collect::<Vec<_>>();
+        assert_eq!(checks.len(), 2);
+        assert_eq!(checks[0].occurrence_pos, Some(GenericPos::Verb));
+        assert_eq!(checks[1].occurrence_pos, Some(GenericPos::Noun));
     }
 
     #[test]
