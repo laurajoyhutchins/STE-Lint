@@ -25,7 +25,7 @@ Every rule entry contains:
 - `unresolved_requirements`: what still prevents a broader claim; this must be non-empty for every rule that is not `implemented`;
 - `claim_scope`: the bounded statement that the current status actually supports.
 
-CI verifies that the manifest contains all 53 unique rule IDs, that only Rules 8.5 and 8.7 are currently marked `implemented`, that executable rules cite real repository paths, and that incomplete rules explicitly state what remains unresolved. Runtime validation also rejects structurally incomplete evidence metadata.
+CI verifies that the manifest contains all 53 unique rule IDs, that Rules 6.6, 8.4, 8.5, and 8.7 are currently marked `implemented`, that executable rules cite real repository paths, and that incomplete rules explicitly state what remains unresolved. Runtime validation also rejects structurally incomplete evidence metadata.
 
 An evidence path is proof of implementation or regression coverage, not proof that every semantic application of the source rule is decidable. The `claim_scope` and `unresolved_requirements` fields define that boundary.
 
@@ -76,6 +76,12 @@ Example:
 
 Context facts are assertions supplied by project authority. They are not classifications silently invented by the linter.
 
+## Deterministic grammar evidence
+
+Generic syntax and morphology are evidence layers, not STE authority. CommonMark supplies document structure, and the pinned Harper/Brill stack supplies deterministic generic token, part-of-speech, chunk, and morphology evidence. Approval, grammatical identity, allowed forms, and terminology identity still come from the verified ASD-STE100 runtime or governed project terminology. If competing authoritative interpretations would produce different rule verdicts, the linter blocks or leaves the rule application unresolved instead of selecting a heuristic answer.
+
+The Issue 9 deterministic-rule audit deliberately left rules partial where the source requirement still needs meaning or editorial judgment. In particular, Rule 3.7 still requires identifying an action-denoting non-verb and the applicable approved verb, while Rule 4.3 still requires deciding that prose is sufficiently complex to require a vertical list. Rules 5.1 and 6.3 remain partial because unannotated Rule 8.6 semantic count-group identities can change the word count.
+
 ## Representative regression evidence
 
 `fixtures/corpus/manifest.json` defines a public synthetic engineering regression corpus. Its cases are written specifically for STE-Lint and are not copied from ASD-STE100 or third-party manuals. The corpus test requires exact outcomes and exact diagnostic-code sets across clean controls, punctuation, lexical errors, blockers, notes, lists, context evidence, word counting, paragraphs, safety, procedures, contractions, and verb morphology.
@@ -86,12 +92,12 @@ This corpus improves regression breadth. It does not change a rule's status by i
 
 The 53 rules classify as:
 
-- 2 `implemented`;
-- 40 `partial`;
+- 4 `implemented`;
+- 38 `partial`;
 - 11 `context_required`;
 - 0 `not_implemented`.
 
-Only Rules 8.5 and 8.7 are marked `implemented`. All other rules carry at least one explicit unresolved requirement. `data/rules.json` is the authority for the exact per-rule claim boundary.
+Rules 6.6, 8.4, 8.5, and 8.7 are marked `implemented`. All other rules carry at least one explicit unresolved requirement. `data/rules.json` is the authority for the exact per-rule claim boundary.
 
 ## Claim boundary
 
