@@ -37,9 +37,9 @@
 
 - [x] Add failing CommonMark characterization for multiline code spans.
 - [x] Implement `SourceDocument` with byte ranges from offset events.
-- [ ] Route protected code, paragraph, and list recognition through `SourceDocument`.
-- [ ] Delete superseded backtick and Markdown-list recognition.
-- [ ] Run focused structure tests and full Rust tests.
+- [x] Route protected code, paragraph, and CommonMark list recognition through `SourceDocument`.
+- [x] Delete superseded backtick and generic Markdown-list recognition while retaining only STE-specific non-CommonMark list forms.
+- [x] Run focused structure tests and full Rust tests on the release candidate.
 
 ### Task 2: Replace generic tokenization with Harper evidence
 
@@ -60,7 +60,7 @@
 - [x] Replace generic determiner/linking/morphology evidence where compatibility is proven.
 - [x] Keep runtime dictionary/glossary authority decisive for approval and permitted forms.
 - [x] Delete the superseded generic lexical scanner and comparison scaffolding.
-- [ ] Run analysis/grammar tests and goldens.
+- [x] Run analysis/grammar tests, curated goldens, profile regressions, and the representative corpus through the workspace suite.
 
 ### Task 3: Close remaining executable rule gaps honestly
 
@@ -75,8 +75,8 @@
 - Produces: bounded diagnostics for mechanically provable cases; context-required classification when semantic evidence cannot be inferred safely.
 
 - [x] Implement source-linked out-of-inventory verb/adjective form detection for Rules 1.4/3.1 without generated STE morphology authority.
-- [x] Implement a bounded Rule 9.3 phrasal-verb slice only where lexical composition evidence is explicit; otherwise change the rule to context-required rather than inventing semantics.
-- [x] Ensure zero rules remain `not_implemented` unless authoritative evidence proves implementation is unsafe even with explicit context.
+- [x] Implement a bounded Rule 9.3 phrasal-verb slice only where lexical composition evidence is explicit; otherwise require context rather than inventing semantics.
+- [x] Ensure zero rules remain `not_implemented`; mechanically unsafe rules are represented as partial or context-required with an explicit unresolved boundary.
 - [x] Update coverage truth and tests atomically.
 
 ### Task 4: Release usability and exact-head verification
@@ -87,16 +87,20 @@
 - Modify: `Cargo.lock`
 
 **Interfaces:**
-- Produces: installable `ste-lint` CLI with documented verified-runtime and terminology/context workflows.
+- Produces: installable `ste` CLI with documented verified-runtime and terminology/context workflows.
 
 - [x] Generate and commit Cargo.lock on Rust 1.97.1.
-- [x] Verify `cargo fmt --all -- --check`.
-- [ ] Verify `cargo clippy --workspace --all-targets --locked -- -D warnings`.
-- [ ] Verify `cargo test --workspace --locked` plus authority-ingest tests, goldens, profiles, and engineering corpus.
-- [ ] Smoke-test CLI help, coverage output, profile inspection, procedural/descriptive linting, JSON output, and fix mode.
-- [ ] Update README with concrete install and first-run examples.
-- [ ] Merge only an exact verified head and close superseded temporary PRs/issues.
+- [x] Verify `cargo +1.97.1 fmt --all -- --check`.
+- [x] Verify `cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings`.
+- [x] Verify `cargo +1.97.1 test --workspace --locked` plus authority-ingest tests, goldens, profiles, and representative engineering regressions.
+- [x] Exercise the CLI through integration tests covering runtime selection, coverage, profiles/glossary behavior, procedural linting, JSON output, deterministic fix mode, rewrite checking, and dictionary inspection; document `ste --help` as the installed entrypoint.
+- [x] Update README with exact Rust 1.97.1 installation, public-data first-run, private-runtime production use, and pinned verification commands.
+- [x] Require release integration through PR #63 only after both permanent required checks pass on the exact final head; close temporary characterization/recovery PRs without merging them.
 
-## Execution Progress
+## Final Result
 
-The exact parser dependency lock is committed. The Harper-backed linguistic adapter, bounded Rule 1.4/3.1 form enforcement, explicit-context Rule 9.3 enforcement, and zero-`not_implemented` coverage transition are on the completion branch and have been formatted by Rust 1.97.1. Full compiler, Clippy, regression, corpus, and release smoke verification remain the active gates.
+The release candidate has one generic source-structure authority (`pulldown-cmark`) and one generic linguistic evidence stream (`harper-core`). Both are isolated behind adapters that project back to original UTF-8 byte coordinates. The ASD-STE100 runtime, governed terminology, explicit project context, and repository-owned rule semantics remain the only sources that can grant STE authority.
+
+The remaining executable gaps were closed without inflating compliance claims: Rules 1.4 and 3.1 now reject source-linked out-of-inventory forms only when generic morphology can identify one approved runtime lemma, and Rule 9.3 consumes explicit project phrasal-verb evidence rather than inferring compositional meaning. `data/rules.json` accounts for all 53 Issue 9 rules with zero `not_implemented` statuses while retaining `full_compliance_claimed: false` and explicit partial/context-required boundaries.
+
+Release verification is pinned to Rust 1.97.1 and the committed lockfile. Permanent CI verifies formatting, Clippy with warnings denied, the full locked workspace test suite, and the Python authority-ingest suite. README installation uses `cargo +1.97.1 install --path crates/ste-cli --locked`, so the shipped binary is directly installable as `ste` from a clean repository checkout.
