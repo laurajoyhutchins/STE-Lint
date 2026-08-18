@@ -35,8 +35,8 @@
 - Produces: `SourceDocument::new(&str)`, canonical paragraph/list/code spans.
 - Consumes: `pulldown-cmark::Parser::into_offset_iter`.
 
-- [ ] Add failing CommonMark characterization for multiline code spans.
-- [ ] Implement `SourceDocument` with byte ranges from offset events.
+- [x] Add failing CommonMark characterization for multiline code spans.
+- [x] Implement `SourceDocument` with byte ranges from offset events.
 - [ ] Route protected code, paragraph, and list recognition through `SourceDocument`.
 - [ ] Delete superseded backtick and Markdown-list recognition.
 - [ ] Run focused structure tests and full Rust tests.
@@ -89,7 +89,7 @@
 **Interfaces:**
 - Produces: installable `ste-lint` CLI with documented verified-runtime and terminology/context workflows.
 
-- [ ] Generate and commit Cargo.lock on Rust 1.97.1.
+- [x] Generate and commit Cargo.lock on Rust 1.97.1.
 - [ ] Verify `cargo fmt --all -- --check`.
 - [ ] Verify `cargo clippy --workspace --all-targets --locked -- -D warnings`.
 - [ ] Verify `cargo test --workspace --locked` plus authority-ingest tests, goldens, profiles, and engineering corpus.
