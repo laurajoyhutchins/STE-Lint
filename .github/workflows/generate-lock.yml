@@ -1,0 +1,23 @@
+name: Generate parser lockfile
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal --no-self-update
+      - name: Generate exact lockfile
+        run: cargo +1.97.1 generate-lockfile
+      - name: Upload lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: ste-lint-cargo-lock
+          path: Cargo.lock
+          if-no-files-found: error
