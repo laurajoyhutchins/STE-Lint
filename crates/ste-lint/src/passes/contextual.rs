@@ -157,6 +157,33 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
             }
         }
 
+
+        if let Some(is_phrasal_verb) = occurrence.phrasal_verb {
+            if text_value.split_whitespace().count() < 2 {
+                diagnostics.push(invalid_occurrence_shape(
+                    occurrence,
+                    "phrasal_verb evidence must identify a multiword text span",
+                ));
+            } else if is_phrasal_verb {
+                diagnostics.push(Diagnostic {
+                    code: "STE-PHRASE-001".into(),
+                    severity: Severity::Error,
+                    message: format!(
+                        "Do not use '{text_value}'; project authority explicitly classifies this occurrence as a phrasal verb."
+                    ),
+                    span,
+                    rules: vec!["9.3".into()],
+                    evidence: Some(json!({
+                        "source": occurrence.source,
+                        "fact": "phrasal_verb",
+                        "value": is_phrasal_verb,
+                        "span": {"start": occurrence.start, "end": occurrence.end},
+                        "authority": "explicit project evidence; STE-Lint does not infer phrasal-verb meaning composition from raw text"
+                    })),
+                    autofix: None,
+                });
+            }
+        }
         if let Some(parenthesis_use) = occurrence.parenthesis_use {
             let trimmed = text_value.trim();
             if !(trimmed.starts_with('(') && trimmed.ends_with(')')) {

@@ -31,6 +31,8 @@ pub struct OccurrenceFact {
     pub hyphen_direct_relation: Option<bool>,
     #[serde(default)]
     pub parenthesis_use: Option<ParenthesisUseKind>,
+    #[serde(default)]
+    pub phrasal_verb: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -204,6 +206,7 @@ impl LintContext {
                 && occurrence.count_group.is_none()
                 && occurrence.hyphen_direct_relation.is_none()
                 && occurrence.parenthesis_use.is_none()
+                && occurrence.phrasal_verb.is_none()
             {
                 return Err(format!(
                     "context occurrence {index} must contain at least one evidence fact"

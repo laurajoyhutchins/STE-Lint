@@ -318,7 +318,14 @@ fn ing_use(analysis: &AnalysisDocument<'_>, token_index: usize) -> Resolution<In
     let Some(token) = analysis.tokens().get(token_index) else {
         return Resolution::Unknown;
     };
-    if !token.text.to_ascii_lowercase().ends_with("ing") {
+    if !analysis
+        .linguistic_token(token_index)
+        .is_some_and(|evidence| {
+            evidence
+                .verb_forms
+                .contains(&super::linguistic::GenericVerbForm::Progressive)
+        })
+    {
         return Resolution::Unknown;
     }
     let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
@@ -467,10 +474,10 @@ fn is_base_form_verb(analysis: &AnalysisDocument<'_>, token_index: usize) -> boo
 }
 
 fn is_determiner_token(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
-    analysis.tokens().get(token_index).is_some_and(|token| {
-        is_determiner(token.text)
-            || token_has_part_of_speech(analysis, token_index, PartOfSpeech::Article)
-    })
+    analysis
+        .linguistic_token(token_index)
+        .is_some_and(|evidence| evidence.determiner)
+        || token_has_part_of_speech(analysis, token_index, PartOfSpeech::Article)
 }
 
 fn token_has_part_of_speech(
@@ -610,12 +617,6 @@ fn separator_is_whitespace(
     text[left.end..right.start].chars().all(char::is_whitespace)
 }
 
-fn is_determiner(value: &str) -> bool {
-    matches!(
-        value.to_ascii_lowercase().as_str(),
-        "a" | "an" | "the" | "this" | "that" | "these" | "those"
-    )
-}
 
 fn is_copula(value: &str) -> bool {
     matches!(

@@ -2,6 +2,7 @@ mod document;
 mod document_graph;
 mod entity;
 mod grammar;
+mod linguistic;
 mod safety;
 mod sense;
 mod sentence;

@@ -36,13 +36,13 @@ An evidence path is proof of implementation or regression coverage, not proof th
 - `context_required`: no safe automatic verdict is available without grammar, document structure, identity, terminology authority, discourse, or domain semantics identified in `unresolved_requirements`.
 - `not_implemented`: no executable check currently establishes the source-audited rule requirement; the remaining evidence or implementation condition stays explicit in `unresolved_requirements`.
 
-A `not_implemented` entry is an explicit capability gap, not a silent pass. Reducing that count does not mean full standards implementation: `partial` and `context_required` entries also preserve unresolved source-defined applications.
+A `not_implemented` entry is an explicit capability gap, not a silent pass. The current manifest has zero entries in this state. This does not mean full standards implementation: `partial` and `context_required` entries preserve unresolved source-defined applications.
 
 ## Project context evidence
 
 Some Issue 9 decisions cannot be inferred safely from raw text. A project can provide explicit evidence in the nearest ancestor `.ste/context.json`. The CLI discovers that file using the same nearest-project-file rule as `.ste/terms.json`. A present but malformed context file is invalid data and causes exit code 3; STE-Lint never silently ignores it.
 
-Occurrence evidence can supply bounded facts for dictionary meaning, technical-noun scope, spelling, Rule 8.6 count-group identity, Rule 8.2 hyphen relation, and Rule 8.3 parenthesis use. Paragraph-topic evidence can identify topic spans for the bounded Rule 6.5 check. Semantic-ordering evidence can identify an explicit before/after relationship between exact sentence, paragraph, topic, or entity-mention graph targets for the bounded Rule 6.1 check; missing, ambiguous, overlapping, or self-referential targets do not produce an automatic verdict. All supplied facts retain provenance and are validated for byte-range and UTF-8 safety before use.
+Occurrence evidence can supply bounded facts for dictionary meaning, technical-noun scope, spelling, Rule 8.6 count-group identity, Rule 8.2 hyphen relation, Rule 8.3 parenthesis use, and explicit Rule 9.3 phrasal-verb classification. Paragraph-topic evidence can identify topic spans for the bounded Rule 6.5 check. Semantic-ordering evidence can identify an explicit before/after relationship between exact sentence, paragraph, topic, or entity-mention graph targets for the bounded Rule 6.1 check; missing, ambiguous, overlapping, or self-referential targets do not produce an automatic verdict. All supplied facts retain provenance and are validated for byte-range and UTF-8 safety before use.
 
 Example:
 
@@ -87,9 +87,9 @@ This corpus improves regression breadth. It does not change a rule's status by i
 The 53 rules classify as:
 
 - 2 `implemented`;
-- 37 `partial`;
+- 40 `partial`;
 - 11 `context_required`;
-- 3 `not_implemented`.
+- 0 `not_implemented`.
 
 Only Rules 8.5 and 8.7 are marked `implemented`. All other rules carry at least one explicit unresolved requirement. `data/rules.json` is the authority for the exact per-rule claim boundary.
 

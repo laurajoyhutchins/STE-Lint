@@ -4,8 +4,9 @@ use ste_glossary::{AliasKind, Glossary, GlossaryIdentityKind, TechnicalTerm, Ter
 use crate::{LintContext, LintMode};
 
 use super::grammar::{self, ObservedRoleEvidence};
+use super::linguistic::{LinguisticDocument, LinguisticTokenEvidence};
 use super::sentence::{AnalysisSentence, build_sentences};
-use super::token::{AnalysisToken, HyphenAwareToken, hyphen_aware_tokens, lexical_tokens};
+use super::token::{AnalysisToken, HyphenAwareToken, hyphen_aware_tokens};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerbFormRole {
@@ -55,6 +56,7 @@ pub struct AnalysisDocument<'a> {
     context: Option<&'a LintContext>,
     mode: LintMode,
     tokens: Vec<AnalysisToken<'a>>,
+    linguistic_tokens: Vec<LinguisticTokenEvidence>,
     hyphen_aware_tokens: Vec<HyphenAwareToken<'a>>,
     sentences: Vec<AnalysisSentence>,
     max_dictionary_words: usize,
@@ -69,7 +71,8 @@ impl<'a> AnalysisDocument<'a> {
         context: Option<&'a LintContext>,
         mode: LintMode,
     ) -> Self {
-        let mut tokens = lexical_tokens(text);
+        let linguistic = LinguisticDocument::new(text);
+        let (mut tokens, linguistic_tokens) = linguistic.into_parts();
         let sentences = build_sentences(text, &mut tokens);
         let max_dictionary_words = lexicon
             .entries()
@@ -87,6 +90,7 @@ impl<'a> AnalysisDocument<'a> {
             context,
             mode,
             tokens,
+            linguistic_tokens,
             hyphen_aware_tokens: hyphen_aware_tokens(text),
             sentences,
             max_dictionary_words,
@@ -116,6 +120,10 @@ impl<'a> AnalysisDocument<'a> {
 
     pub fn tokens(&self) -> &[AnalysisToken<'a>] {
         &self.tokens
+    }
+
+    pub(crate) fn linguistic_token(&self, index: usize) -> Option<&LinguisticTokenEvidence> {
+        self.linguistic_tokens.get(index)
     }
 
     pub fn sentences(&self) -> &[AnalysisSentence] {
