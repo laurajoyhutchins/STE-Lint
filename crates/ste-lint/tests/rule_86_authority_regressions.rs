@@ -80,7 +80,7 @@ fn rule_86_does_not_guess_an_unknown_word_is_a_measurement_unit() {
 #[test]
 fn rule_86_numeric_forms_count_as_one() {
     for number in ["+10.5", "−10.5", "0.125", "3/8", "10-12", "10–12"] {
-        let text = format!("{} {number}.", uses(20));
+        let text = format!("{} {number}.", uses(19));
         let result = lint(&text, LintMode::Procedural, None);
         assert!(!has_length_error(&result), "number {number}: {text}");
     }
@@ -89,7 +89,7 @@ fn rule_86_numeric_forms_count_as_one() {
 #[test]
 fn rule_86_alphanumeric_identifiers_count_as_one_without_ner() {
     for identifier in ["A320", "PANEL-3A", "ABC_12", "R2/D2"] {
-        let text = format!("{} {identifier}.", uses(20));
+        let text = format!("{} {identifier}.", uses(19));
         let result = lint(&text, LintMode::Procedural, None);
         assert!(!has_length_error(&result), "identifier {identifier}: {text}");
     }
