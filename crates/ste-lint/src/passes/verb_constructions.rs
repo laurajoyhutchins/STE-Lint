@@ -29,7 +29,10 @@ fn perfect_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 
     for (index, word) in words.iter().enumerate() {
         let auxiliary_resolution = auxiliary_identity(analysis, index, AuxiliaryKind::Have);
-        if matches!(auxiliary_resolution, Resolution::Resolved(false) | Resolution::Unknown) {
+        if matches!(
+            auxiliary_resolution,
+            Resolution::Resolved(false) | Resolution::Unknown
+        ) {
             continue;
         }
 
@@ -98,9 +101,7 @@ fn passive_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 
     for token_index in 0..analysis.tokens().len() {
         match analysis.participle_use_at(token_index) {
-            Resolution::Resolved(participle)
-                if participle.role == ParticipleRole::PassiveVerb =>
-            {
+            Resolution::Resolved(participle) if participle.role == ParticipleRole::PassiveVerb => {
                 diagnostics.push(Diagnostic {
                     code: "STE-VERB-003".into(),
                     severity: Severity::Error,
@@ -289,11 +290,13 @@ fn source_links_to_approved_verb(analysis: &AnalysisDocument<'_>, token_index: u
 
 fn governed_technical_noun_member(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
     (0..=token_index).any(|start| {
-        analysis.longest_glossary_match_at(start).is_some_and(|matched| {
-            token_index >= matched.token_start
-                && token_index < matched.token_start + matched.token_width
-                && matched.roles.contains(&TermRole::Noun)
-        })
+        analysis
+            .longest_glossary_match_at(start)
+            .is_some_and(|matched| {
+                token_index >= matched.token_start
+                    && token_index < matched.token_start + matched.token_width
+                    && matched.roles.contains(&TermRole::Noun)
+            })
     })
 }
 
@@ -316,7 +319,8 @@ fn previous_auxiliary_identity(
     if token_index == 0
         || analysis.tokens()[token_index - 1].sentence_id
             != analysis.tokens()[token_index].sentence_id
-        || !analysis.text()[analysis.tokens()[token_index - 1].end..analysis.tokens()[token_index].start]
+        || !analysis.text()
+            [analysis.tokens()[token_index - 1].end..analysis.tokens()[token_index].start]
             .chars()
             .all(char::is_whitespace)
     {
