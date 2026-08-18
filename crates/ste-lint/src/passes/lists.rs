@@ -144,7 +144,8 @@ fn item_syntax(analysis: &AnalysisDocument<'_>, item: ListItem) -> ItemSyntax {
         .filter(|(_, token)| token.start >= item.content_start && token.end <= item.content_end)
         .map(|(index, _)| index)
         .collect::<Vec<_>>();
-    let (Some(&first), Some(&last_inclusive)) = (token_indices.first(), token_indices.last()) else {
+    let (Some(&first), Some(&last_inclusive)) = (token_indices.first(), token_indices.last())
+    else {
         return ItemSyntax::Unresolved;
     };
     let last = last_inclusive + 1;
