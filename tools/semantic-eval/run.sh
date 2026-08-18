@@ -47,3 +47,6 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
   --output-md "$OUT_DIR/semantic-provider-results.md"
 
 cat "$OUT_DIR/semantic-provider-results.md"
+printf '%s\n' 'SEMANTIC_PROVIDER_RESULTS_JSON_BEGIN'
+cat "$OUT_DIR/semantic-provider-results.json"
+printf '%s\n' 'SEMANTIC_PROVIDER_RESULTS_JSON_END'

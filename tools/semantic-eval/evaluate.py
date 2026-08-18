@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import math
 import pathlib
@@ -167,15 +168,17 @@ def stanza_load(model_dir, offline):
     processors = "tokenize,mwt,pos,lemma,depparse,constituency,ner,coref"
     if not offline:
         stanza.download("en", model_dir=str(model_dir), package="default_accurate", processors=processors, verbose=False)
-    return stanza.Pipeline(
-        "en",
-        dir=str(model_dir),
-        package="default_accurate",
-        processors=processors,
-        use_gpu=False,
-        download_method=None if offline else stanza.pipeline.core.DownloadMethod.REUSE_RESOURCES,
-        verbose=False,
-    )
+    options = {
+        "lang": "en",
+        "dir": str(model_dir),
+        "package": "default_accurate",
+        "processors": processors,
+        "use_gpu": False,
+        "verbose": False,
+    }
+    if offline:
+        options["download_method"] = None
+    return stanza.Pipeline(**options)
 
 
 def stanza_extract(pipeline, case):
@@ -360,7 +363,7 @@ def evaluate_provider(provider, cases_path, harper_path, model_dir, output, offl
         extractor = spacy_extract
         model_identity = {
             "provider": "spacy", "provider_version": __import__("spacy").__version__, "model": "en_core_web_sm",
-            "model_version": __import__("en_core_web_sm").__version__, "processors": list(pipeline.pipe_names),
+            "model_version": importlib.metadata.version("en-core-web-sm"), "processors": list(pipeline.pipe_names),
         }
     else:
         raise ValueError(provider)
