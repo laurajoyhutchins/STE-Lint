@@ -65,11 +65,8 @@ fn classify_representation(mention: &EntityMention, canonical_word_count: usize)
     match mention.glossary_identity_kind {
         Some(GlossaryIdentityKind::Canonical) => Representation::FullForm,
         Some(GlossaryIdentityKind::Form) => {
-            let surface_word_count = word_count(&mention.surface);
-            if surface_word_count >= canonical_word_count {
+            if word_count(&mention.surface) >= canonical_word_count {
                 Representation::FullForm
-            } else if surface_word_count <= 3 {
-                Representation::AuthorizedShortening
             } else {
                 Representation::NotAuthorizedForRule22
             }
