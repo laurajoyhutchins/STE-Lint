@@ -30,6 +30,20 @@ fn question_and_exclamation_marks_inside_multi_backtick_code_stay_protected() {
 }
 
 #[test]
+fn multiline_inline_code_terminal_punctuation_stays_inside_one_analysis_sentence() {
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let text = "USE `alpha.\nbeta` in this sentence. USE this.";
+    let analysis = AnalysisDocument::new(text, &lexicon, None, None, LintMode::Descriptive);
+
+    assert_eq!(analysis.sentences().len(), 2);
+    let first = analysis.sentences()[0];
+    assert_eq!(
+        &text[first.start..first.end],
+        "USE `alpha.\nbeta` in this sentence."
+    );
+}
+
+#[test]
 fn descriptive_length_uses_the_complete_sentence_around_inline_code() {
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let text = format!(

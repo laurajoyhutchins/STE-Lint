@@ -2,9 +2,11 @@ mod document;
 mod document_graph;
 mod entity;
 mod grammar;
+pub(crate) mod linguistic;
 mod safety;
 mod sense;
 mod sentence;
+pub(crate) mod source;
 mod token;
 
 pub use document::{

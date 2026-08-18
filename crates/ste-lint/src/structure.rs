@@ -11,14 +11,11 @@ struct LineSpan {
     end: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct ProtectedSpan {
-    start: usize,
-    end: usize,
-}
+use crate::analysis::source::SourceDocument;
 
 pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
     let lines = line_spans(text);
+    let source = SourceDocument::new(text);
     let mut units = Vec::new();
     let mut segment_start = 0;
     let mut index = 0;
@@ -27,21 +24,21 @@ pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
         let line = lines[index];
         let line_text = text[line.start..line.end].trim_end_matches(['\r', '\n']);
         let next_line = lines[index + 1];
-        let next_text = text[next_line.start..next_line.end].trim_end_matches(['\r', '\n']);
 
-        if line_text.trim_end().ends_with(':') && list_item_content_offset(next_text).is_some() {
+        if line_text.trim_end().ends_with(':')
+            && list_item_content_span(text, &source, next_line).is_some()
+        {
             let colon = line.start + line_text.rfind(':').unwrap();
             push_regular_units(text, segment_start, colon + 1, true, &mut units);
 
             index += 1;
             while index < lines.len() {
                 let item_line = lines[index];
-                let raw = text[item_line.start..item_line.end].trim_end_matches(['\r', '\n']);
-                let Some(content_offset) = list_item_content_offset(raw) else {
+                let Some((content_start, content_end)) =
+                    list_item_content_span(text, &source, item_line)
+                else {
                     break;
                 };
-                let content_start = item_line.start + content_offset;
-                let content_end = item_line.start + raw.len();
                 if content_start < content_end {
                     push_span_and_parentheticals(text, content_start, content_end, &mut units);
                 }
@@ -63,50 +60,43 @@ pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
 }
 
 pub(crate) fn paragraph_ranges(text: &str) -> Vec<(usize, usize)> {
-    let lines = line_spans(text);
-    let mut ranges = Vec::new();
-    let mut paragraph_start: Option<usize> = None;
-    let mut paragraph_end = 0;
-
-    for line in lines {
-        let raw = text[line.start..line.end].trim_end_matches(['\r', '\n']);
-        if raw.trim().is_empty() {
-            if let Some(start) = paragraph_start.take() {
-                ranges.push((start, paragraph_end));
-            }
-            continue;
-        }
-        paragraph_start.get_or_insert(line.start);
-        paragraph_end = line.end;
-    }
-
-    if let Some(start) = paragraph_start {
-        ranges.push((start, paragraph_end));
-    }
-    ranges
+    let source = SourceDocument::new(text);
+    source
+        .paragraph_ranges()
+        .iter()
+        .filter(|paragraph| {
+            !source
+                .list_items()
+                .iter()
+                .any(|item| paragraph.start >= item.span.start && paragraph.end <= item.span.end)
+        })
+        .map(|span| (span.start, span.end))
+        .collect()
 }
 
 pub(crate) fn paragraph_prose_sentence_count(paragraph: &str) -> usize {
-    let lines = paragraph.lines().collect::<Vec<_>>();
+    let lines = line_spans(paragraph);
+    let source = SourceDocument::new(paragraph);
     let mut prose = String::new();
     let mut index = 0;
 
     while index < lines.len() {
         let line = lines[index];
-        if list_item_content_offset(line).is_some() {
+        let raw = paragraph[line.start..line.end].trim_end_matches(['\r', '\n']);
+        if list_item_content_span(paragraph, &source, line).is_some() {
             index += 1;
             continue;
         }
 
-        let introduces_list = line.trim_end().ends_with(':')
+        let introduces_list = raw.trim_end().ends_with(':')
             && lines
                 .get(index + 1)
-                .is_some_and(|next| list_item_content_offset(next).is_some());
+                .is_some_and(|next| list_item_content_span(paragraph, &source, *next).is_some());
         if introduces_list {
-            prose.push_str(line.trim_end_matches(':'));
+            prose.push_str(raw.trim_end_matches(':'));
             prose.push('.');
         } else {
-            prose.push_str(line);
+            prose.push_str(raw);
         }
         prose.push('\n');
         index += 1;
@@ -154,7 +144,13 @@ fn sentence_spans(
     let mut sentence_start = start;
     let mut paren_depth = 0usize;
     let mut quote_end: Option<char> = None;
-    let protected_spans = markdown_inline_code_spans(text, start, end);
+    let source = SourceDocument::new(text);
+    let protected_spans = source
+        .protected_ranges()
+        .iter()
+        .copied()
+        .filter(|span| span.intersects(start, end))
+        .collect::<Vec<_>>();
     let mut protected_index = 0usize;
 
     for (relative, character) in text[start..end].char_indices() {
@@ -221,57 +217,6 @@ fn sentence_spans(
     if sentence_start < end && !text[sentence_start..end].trim().is_empty() {
         spans.push((trim_start(text, sentence_start, end), end));
     }
-    spans
-}
-
-fn markdown_inline_code_spans(text: &str, start: usize, end: usize) -> Vec<ProtectedSpan> {
-    let bytes = text.as_bytes();
-    let mut spans = Vec::new();
-    let mut cursor = start;
-
-    while cursor < end {
-        if bytes[cursor] != b'`' {
-            cursor += 1;
-            continue;
-        }
-
-        let open_start = cursor;
-        let mut delimiter_width = 1usize;
-        while open_start + delimiter_width < end && bytes[open_start + delimiter_width] == b'`' {
-            delimiter_width += 1;
-        }
-
-        let mut search = open_start + delimiter_width;
-        let mut close_end = None;
-        while search < end && bytes[search] != b'\n' && bytes[search] != b'\r' {
-            if bytes[search] != b'`' {
-                search += 1;
-                continue;
-            }
-
-            let close_start = search;
-            let mut close_width = 1usize;
-            while close_start + close_width < end && bytes[close_start + close_width] == b'`' {
-                close_width += 1;
-            }
-            if close_width == delimiter_width {
-                close_end = Some(close_start + close_width);
-                break;
-            }
-            search = close_start + close_width;
-        }
-
-        if let Some(span_end) = close_end {
-            spans.push(ProtectedSpan {
-                start: open_start,
-                end: span_end,
-            });
-            cursor = span_end;
-        } else {
-            cursor = open_start + delimiter_width;
-        }
-    }
-
     spans
 }
 
@@ -536,26 +481,58 @@ fn is_unit(token: &str) -> bool {
     LOWER_UNITS.contains(&lower.as_str())
 }
 
-fn list_item_content_offset(line: &str) -> Option<usize> {
+fn list_item_content_span(
+    text: &str,
+    source: &SourceDocument,
+    line: LineSpan,
+) -> Option<(usize, usize)> {
+    let line_text_end = line.start
+        + text[line.start..line.end]
+            .trim_end_matches(['\r', '\n'])
+            .len();
+    if let Some(item) = source
+        .list_items()
+        .iter()
+        .find(|item| item.span.start >= line.start && item.span.start < line.end)
+    {
+        return Some((item.content_start, item.content_end.min(line_text_end)));
+    }
+
+    let raw = &text[line.start..line_text_end];
+    legacy_ste_list_item_content_offset(raw).map(|offset| (line.start + offset, line_text_end))
+}
+
+fn legacy_ste_list_item_content_offset(line: &str) -> Option<usize> {
     let trimmed = line.trim_start();
     let leading = line.len() - trimmed.len();
 
-    for marker in ["- ", "* ", "• "] {
-        if trimmed.starts_with(marker) {
-            return Some(leading + marker.len());
-        }
+    if trimmed.starts_with("• ") {
+        return Some(leading + "• ".len());
     }
 
     let bytes = trimmed.as_bytes();
+    if bytes.first() == Some(&b'(') {
+        let mut index = 1;
+        let label_start = index;
+        while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
+            index += 1;
+        }
+        if index > label_start
+            && index + 1 < bytes.len()
+            && bytes[index] == b')'
+            && bytes[index + 1].is_ascii_whitespace()
+        {
+            return Some(leading + index + 2);
+        }
+        return None;
+    }
+
     let mut index = 0;
-    while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
+    while index < bytes.len() && bytes[index].is_ascii_alphabetic() {
         index += 1;
     }
     let label = &trimmed[..index];
-    let valid_label = label.chars().all(|character| character.is_ascii_digit())
-        || (label.len() == 1 && label.as_bytes()[0].is_ascii_alphabetic());
-    if valid_label
-        && index > 0
+    if label.len() == 1
         && index + 1 < bytes.len()
         && matches!(bytes[index], b'.' | b')')
         && bytes[index + 1].is_ascii_whitespace()
@@ -614,9 +591,22 @@ mod tests {
     }
 
     #[test]
+    fn commonmark_list_item_paragraphs_are_not_prose_paragraphs() {
+        let text = "INTRODUCTION.\n\nDO THIS:\n- Remove this.\n- Remove that.";
+        let ranges = paragraph_ranges(text);
+        assert_eq!(ranges.len(), 2);
+        assert_eq!(&text[ranges[0].0..ranges[0].1], "INTRODUCTION.");
+        assert_eq!(&text[ranges[1].0..ranges[1].1], "DO THIS:");
+    }
+
+    #[test]
     fn prose_word_followed_by_period_is_not_a_list_label() {
-        assert_eq!(list_item_content_offset("USE. USE THIS."), None);
-        assert_eq!(list_item_content_offset("1. USE THIS."), Some(3));
-        assert_eq!(list_item_content_offset("A) USE THIS."), Some(3));
+        assert_eq!(legacy_ste_list_item_content_offset("USE. USE THIS."), None);
+        assert_eq!(legacy_ste_list_item_content_offset("A) USE THIS."), Some(3));
+        assert_eq!(
+            legacy_ste_list_item_content_offset("(a) USE THIS."),
+            Some(4)
+        );
+        assert_eq!(legacy_ste_list_item_content_offset("• USE THIS."), Some(4));
     }
 }

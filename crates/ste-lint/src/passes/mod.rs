@@ -1,5 +1,6 @@
 pub(crate) mod contextual;
 pub(crate) mod contractions;
+pub(crate) mod dictionary_forms;
 pub(crate) mod dictionary_roles;
 pub(crate) mod discourse_semantics;
 pub(crate) mod entity_semantics;

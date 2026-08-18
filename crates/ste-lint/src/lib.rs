@@ -112,6 +112,7 @@ fn collect_diagnostics(
     diagnostics.extend(passes::entity_semantics::check(&analysis));
     diagnostics.extend(passes::discourse_semantics::check(&analysis));
     diagnostics.extend(passes::technical_roles::check(&analysis));
+    diagnostics.extend(passes::dictionary_forms::check(&analysis));
     diagnostics.extend(passes::dictionary_roles::check(&analysis));
     diagnostics.extend(passes::procedural::check(&analysis));
     diagnostics.extend(passes::contextual::check(text, context));

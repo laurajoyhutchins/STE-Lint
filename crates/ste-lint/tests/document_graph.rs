@@ -43,7 +43,7 @@ fn graph_reuses_sentence_paragraph_topic_and_entity_evidence() {
         .filter(|node| node.id.kind == DocumentNodeKind::Paragraph)
         .collect::<Vec<_>>();
     assert_eq!(paragraphs.len(), 2);
-    assert_eq!((paragraphs[0].span.start, paragraphs[0].span.end), (0, 33));
+    assert_eq!((paragraphs[0].span.start, paragraphs[0].span.end), (0, 32));
     assert_eq!((paragraphs[1].span.start, paragraphs[1].span.end), (34, 52));
 
     let sentences = graph

@@ -160,3 +160,69 @@ fn context_validation_rejects_invalid_spans_and_missing_source() {
         .is_err()
     );
 }
+
+#[test]
+fn explicit_phrasal_verb_evidence_enforces_rule_9_3() {
+    let context = LintContext::from_json(
+        r#"{
+          "occurrences": [{
+            "start": 0,
+            "end": 8,
+            "source": "controlled-language review",
+            "phrasal_verb": true
+          }]
+        }"#,
+    )
+    .unwrap();
+    let result = lint_text_with_context(
+        "TURN OFF",
+        &lexicon(),
+        None,
+        Some(&context),
+        LintOptions {
+            mode: LintMode::Descriptive,
+            fix: false,
+        },
+    );
+    let diagnostic = result
+        .diagnostics
+        .iter()
+        .find(|item| item.code == "STE-PHRASE-001")
+        .expect("explicit phrasal-verb classification must be enforced");
+    assert_eq!(diagnostic.rules, vec!["9.3"]);
+    assert_eq!(
+        diagnostic.evidence.as_ref().unwrap()["source"],
+        "controlled-language review"
+    );
+}
+
+#[test]
+fn phrasal_verb_evidence_requires_a_multiword_span() {
+    let context = LintContext::from_json(
+        r#"{
+          "occurrences": [{
+            "start": 0,
+            "end": 4,
+            "source": "controlled-language review",
+            "phrasal_verb": true
+          }]
+        }"#,
+    )
+    .unwrap();
+    let result = lint_text_with_context(
+        "TURN",
+        &lexicon(),
+        None,
+        Some(&context),
+        LintOptions {
+            mode: LintMode::Descriptive,
+            fix: false,
+        },
+    );
+    assert!(
+        result
+            .diagnostics
+            .iter()
+            .any(|item| item.code == "STE-CTX-000")
+    );
+}

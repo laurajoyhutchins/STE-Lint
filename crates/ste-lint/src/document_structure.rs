@@ -1,3 +1,5 @@
+use crate::analysis::source::SourceDocument;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct NoteBlock {
     pub start: usize,
@@ -123,13 +125,13 @@ pub(crate) fn starts_condition(text: &str) -> bool {
 
 pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
     let lines = line_spans(text);
+    let source = SourceDocument::new(text);
     let mut blocks = Vec::new();
     let mut index = 0;
 
     while index < lines.len() {
         let line = lines[index];
-        let raw = line_text(text, line);
-        let Some((indent, _)) = list_item_layout(raw) else {
+        let Some((indent, _)) = list_item_layout(text, &source, line) else {
             index += 1;
             continue;
         };
@@ -144,13 +146,15 @@ pub(crate) fn simple_list_blocks(text: &str) -> Vec<SimpleListBlock> {
         let mut items = Vec::new();
         while index < lines.len() {
             let item_line = lines[index];
-            let item_raw = line_text(text, item_line);
-            let Some((item_indent, item_content_offset)) = list_item_layout(item_raw) else {
+            let Some((item_indent, item_content_offset)) =
+                list_item_layout(text, &source, item_line)
+            else {
                 break;
             };
             if item_indent != indent {
                 break;
             }
+            let item_raw = line_text(text, item_line);
             let content_start = item_line.start + item_content_offset;
             let content_end = item_line.start + item_raw.len();
             items.push(ListItem {
@@ -196,19 +200,30 @@ fn safety_label(text: &str) -> Option<(usize, SafetyLabel)> {
     None
 }
 
-fn list_item_layout(line: &str) -> Option<(usize, usize)> {
+fn list_item_layout(text: &str, source: &SourceDocument, line: LineSpan) -> Option<(usize, usize)> {
+    if let Some(item) = source
+        .list_items()
+        .iter()
+        .find(|item| item.span.start >= line.start && item.span.start < line.end)
+    {
+        return Some((
+            item.span.start.saturating_sub(line.start),
+            item.content_start.saturating_sub(line.start),
+        ));
+    }
+    legacy_ste_list_item_layout(line_text(text, line))
+}
+
+fn legacy_ste_list_item_layout(line: &str) -> Option<(usize, usize)> {
     let trimmed = line.trim_start();
     let leading = line.len() - trimmed.len();
-    for marker in ["- ", "* ", "• "] {
-        if trimmed.starts_with(marker) {
-            return Some((leading, leading + marker.len()));
-        }
+    if trimmed.starts_with("• ") {
+        return Some((leading, leading + "• ".len()));
     }
 
     let bytes = trimmed.as_bytes();
-    let mut index = 0;
     if bytes.first() == Some(&b'(') {
-        index = 1;
+        let mut index = 1;
         let label_start = index;
         while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
             index += 1;
@@ -223,14 +238,12 @@ fn list_item_layout(line: &str) -> Option<(usize, usize)> {
         return None;
     }
 
-    while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
+    let mut index = 0;
+    while index < bytes.len() && bytes[index].is_ascii_alphabetic() {
         index += 1;
     }
     let label = &trimmed[..index];
-    let valid_label = label.chars().all(|character| character.is_ascii_digit())
-        || (label.len() == 1 && label.as_bytes()[0].is_ascii_alphabetic());
-    if valid_label
-        && index > 0
+    if label.len() == 1
         && index + 1 < bytes.len()
         && matches!(bytes[index], b'.' | b')')
         && bytes[index + 1].is_ascii_whitespace()
@@ -277,6 +290,19 @@ mod tests {
         assert_eq!(
             &text[notes[0].content_start..notes[0].end],
             "REMOVE THIS.\n  CONTINUATION.\n"
+        );
+    }
+
+    #[test]
+    fn commonmark_list_items_use_parser_offsets() {
+        let blocks = simple_list_blocks("DO THIS:\n- Remove this.\n2. Remove that.");
+        assert_eq!(blocks.len(), 1);
+        assert!(blocks[0].introduced_by_colon);
+        assert_eq!(blocks[0].items.len(), 2);
+        assert_eq!(
+            &"DO THIS:\n- Remove this.\n2. Remove that."
+                [blocks[0].items[0].content_start..blocks[0].items[0].content_end],
+            "Remove this."
         );
     }
 

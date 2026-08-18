@@ -2,7 +2,7 @@
 
 STE-Lint is a compiler-style language tool for writing controlled technical English with agent assistance.
 
-**Current status:** STE-Lint can lint real technical prose with the verified private ASD-STE100 Issue 9 runtime dictionary. It is **not yet a complete ASD-STE100 Issue 9 implementation**. Use `ste coverage` to inspect exactly which of the 53 writing rules are implemented, partial, context-dependent, or not implemented.
+**Software status:** STE-Lint is a release-grade, installable CLI for the ASD-STE100 Issue 9 coverage it claims. All 53 Issue 9 rules are represented in the executable coverage contract, and no rule is left as `not_implemented`. Mechanically provable cases are enforced in code; rules that require document, domain, or human judgment are explicitly partial or context-required instead of being guessed. STE-Lint does **not** claim complete automatic ASD-STE100 Issue 9 compliance. Use `ste coverage` to inspect the exact boundary.
 
 The linter owns the checks it implements. An LLM can propose repairs, but it does not declare its own output compliant.
 
@@ -35,34 +35,64 @@ Normal runtime use does **not** fetch or read the ASD-STE100 PDF. Source documen
 - stable JSON diagnostics and machine-readable 53-rule coverage reporting;
 - a versioned runtime lexicon model with exact private-runtime identity verification;
 - explicit runtime selection with `--lexicon` or `STE_LINT_LEXICON`, with fail-closed lint/dictionary operation;
+- exact-pinned CommonMark structure parsing with `pulldown-cmark`, projected back to canonical UTF-8 byte spans;
+- exact-pinned, in-process generic English evidence from `harper-core`, behind an authority firewall that prevents parser vocabulary or morphology from granting STE approval;
 - ambiguity-preserving, longest-match dictionary and glossary phrase lookup;
 - source-backed approved verb paradigms that preserve lexical, irregular-auxiliary, and defective-modal distinctions;
+- bounded rejection of source-linked out-of-inventory verb/adjective forms for Rules 1.4 and 3.1;
+- explicit project-authority phrasal-verb evidence for the safely enforceable Rule 9.3 slice;
 - governed reusable and repo-local technical terminology, including technical nouns, technical verbs, dual-use terms, explicit forms, aliases, provenance, and lifecycle status;
 - deterministic composition of opt-in `software-core`, `git`, and `github` terminology profiles with repo-local `.ste/terms.json`;
-- repo-local `.ste/context.json` evidence for bounded sense, terminology-scope, and spelling decisions that raw text cannot safely establish;
+- repo-local `.ste/context.json` evidence for bounded sense, terminology-scope, spelling, and other decisions that raw text cannot safely establish;
 - semicolon detection with a whitelisted deterministic autofix;
 - contraction detection for the deterministic portion of Rule 4.2;
 - direct `HAVE`/`HAS`/`HAD` plus approved-past-participle detection for the deterministic portion of Rule 3.4;
 - Issue 9-aware procedural/descriptive sentence-length counting and descriptive paragraph limits;
 - deterministic text-level handling for vertical-list boundaries, parentheticals, quoted text, identifiers, number+unit groups, decimals, and hyphenated groups;
 - procedural `NOTE:` recognition: note sentences use the descriptive 25-word limit, and source-backed sentence-initial imperative candidates are diagnosed or blocked when ambiguous;
-- bounded simple vertical-list mechanics: colon introduction, uppercase item starts, comma/semicolon prohibition, and final-item period;
+- bounded vertical-list mechanics with parser-backed Markdown structure plus STE-specific list forms and punctuation/counting semantics;
 - unapproved-word/phrase diagnostics and blockers for unresolved dictionary ambiguity or unknown project terminology;
 - semantic rewrite checks for modality, negation, and numeric-literal changes;
 - human-readable and JSON CLI output.
 
-The executable deliberately does not guess document semantics that raw prose cannot establish. Nested/wrapped list grammar, sentence-versus-fragment classification, article choice, non-imperative requirements in notes, general POS/sense resolution, and many other Issue 9 rules still require deeper grammar, document structure, or domain context. `ste coverage --format json` is the authority for that boundary.
+The executable deliberately does not guess document semantics that raw prose cannot establish. Article choice, terminology-category approval, discourse quality, safety consequences, document-wide consistency, and other judgment-heavy Issue 9 requirements remain partial or context-required. `ste coverage --format json` is the authority for that boundary.
+
+## Install
+
+STE-Lint is pinned to Rust `1.97.1`. From a repository checkout:
+
+```bash
+rustup toolchain install 1.97.1 --profile minimal
+cargo +1.97.1 install --path crates/ste-cli --locked
+ste --help
+```
+
+The installed binary is named `ste`.
+
+For a public-data first run that does not require the private production dictionary:
+
+```bash
+ste coverage
+ste profile list
+ste --allow-test-lexicon version
+ste --allow-test-lexicon dictionary lookup USE
+```
+
+`--allow-test-lexicon` is an explicit development/demo opt-in. Do not use the embedded test lexicon as production ASD-STE100 authority.
 
 ## Build and test
 
-Requires stable Rust.
+Use the pinned toolchain and committed lockfile:
 
 ```bash
-cargo build --workspace
-cargo test --workspace
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
+cargo +1.97.1 build --workspace --locked
+cargo +1.97.1 test --workspace --locked
+cargo +1.97.1 fmt --all -- --check
+cargo +1.97.1 clippy --workspace --all-targets --locked -- -D warnings
+python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
 ```
+
+CI runs the same pinned Rust verification plus the authority-ingest suite.
 
 ## Runtime dictionary
 
@@ -220,7 +250,7 @@ A repository can extend the effective lexicon with `.ste/terms.json` without cha
 }
 ```
 
-`id` is the stable concept identity and `canonical` is its preferred display spelling. `roles` is a set containing `noun`, `verb`, or both. `forms` are explicit governed spellings and retain the grammatical roles that each spelling can represent. STE-Lint does not stem terms or generate plurals, participles, conjugations, or other morphology.
+`id` is the stable concept identity and `canonical` is its preferred display spelling. `roles` is a set containing `noun`, `verb`, or both. `forms` are explicit governed spellings and retain the grammatical roles that each spelling can represent. STE-Lint does not stem terms or generate plurals, participles, conjugations, or other morphology as STE authority.
 
 Aliases are structured alternate identities with one of `abbreviation`, `acronym`, `short_form`, `synonym`, or `legacy`. Sources are structured references. A term source can explicitly support `admission`, `definition`, `role`, `forms`, `alias`, and `status`; do not claim support that the source does not establish.
 
@@ -252,7 +282,7 @@ When a rule needs a fact that cannot be established safely from raw text, a repo
 }
 ```
 
-The current vocabulary supports `dictionary_meaning`, `technical_noun_scope`, and `spelling` facts. Those facts drive bounded checks for Rules 1.3, 1.10, and 1.14 and retain the supplied provenance in diagnostic evidence. They are assertions supplied by project authority, not classifications silently invented by the linter. See `docs/rule-coverage.md` for the exact fields and claim boundary.
+The context schema carries explicit project facts rather than classifications invented by the linter. Those facts drive bounded checks only where the corresponding rule pass consumes them, and diagnostic evidence retains supplied provenance. See `docs/rule-coverage.md` for the exact fields and claim boundary.
 
 ## Agent use
 
