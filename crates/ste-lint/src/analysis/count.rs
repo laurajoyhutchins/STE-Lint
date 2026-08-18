@@ -3,9 +3,7 @@ use std::sync::OnceLock;
 use serde::Deserialize;
 use ste_glossary::AliasKind;
 
-use crate::{
-    AnalysisDocument, CountGroupKind, NamedEntityClass, TextAuthorityKind,
-};
+use crate::{AnalysisDocument, CountGroupKind, NamedEntityClass, TextAuthorityKind};
 
 use super::source::SourceDocument;
 
@@ -56,10 +54,15 @@ impl<'a> CountGroupProjection<'a> {
                 }
                 if let Some(authority) = occurrence.text_authority {
                     let kind = match authority {
-                        TextAuthorityKind::QuotedExternalText => Some(CountGroupKind::QuotedText),
+                        TextAuthorityKind::QuotedExternalText | TextAuthorityKind::Formula => {
+                            Some(CountGroupKind::QuotedText)
+                        }
                         TextAuthorityKind::Title => Some(CountGroupKind::Title),
                         TextAuthorityKind::Placard => Some(CountGroupKind::Placard),
                         TextAuthorityKind::Label => Some(CountGroupKind::Label),
+                        TextAuthorityKind::DocumentNumbering => {
+                            Some(CountGroupKind::DocumentNumberingExcluded)
+                        }
                         TextAuthorityKind::ProtectedText | TextAuthorityKind::CodeOrVerbatim => None,
                     };
                     if let Some(kind) = kind {
@@ -83,7 +86,10 @@ impl<'a> CountGroupProjection<'a> {
                     source: mention.provenance.join("; "),
                 });
             }
-            if matches!(mention.alias_kind, Some(AliasKind::Abbreviation | AliasKind::Acronym)) {
+            if matches!(
+                mention.alias_kind,
+                Some(AliasKind::Abbreviation | AliasKind::Acronym)
+            ) {
                 groups.push(CountGroup {
                     kind: CountGroupKind::Abbreviation,
                     start: mention.span.start,
@@ -132,20 +138,26 @@ impl<'a> CountGroupProjection<'a> {
             return 1;
         }
 
-        let selected = self
+        let mut selected = self
             .groups
             .iter()
             .filter(|group| group.start >= start && group.end <= end)
             .collect::<Vec<_>>();
+        selected.sort_by(|left, right| {
+            left.start
+                .cmp(&right.start)
+                .then_with(|| right.end.cmp(&left.end))
+                .then_with(|| count_group_rank(left.kind).cmp(&count_group_rank(right.kind)))
+        });
+
         let mut count = 0usize;
         let mut cursor = start;
-
         for group in selected {
             if group.start < cursor {
                 continue;
             }
             count += plain_word_count(&self.text[cursor..group.start]);
-            count += 1;
+            count += group_value(group.kind);
             cursor = group.end;
         }
         count + plain_word_count(&self.text[cursor..end])
@@ -161,6 +173,10 @@ fn proper_noun_kind(class: NamedEntityClass) -> CountGroupKind {
     }
 }
 
+fn group_value(kind: CountGroupKind) -> usize {
+    usize::from(kind != CountGroupKind::DocumentNumberingExcluded)
+}
+
 fn canonicalize(mut groups: Vec<CountGroup>) -> Vec<CountGroup> {
     groups.retain(|group| group.start < group.end);
     groups.sort_by(|left, right| {
@@ -169,37 +185,26 @@ fn canonicalize(mut groups: Vec<CountGroup>) -> Vec<CountGroup> {
             .then_with(|| right.end.cmp(&left.end))
             .then_with(|| count_group_rank(left.kind).cmp(&count_group_rank(right.kind)))
     });
-
-    let mut canonical: Vec<CountGroup> = Vec::new();
-    for group in groups {
-        if canonical.last().is_some_and(|previous| {
-            previous.start == group.start && previous.end == group.end
-        }) {
-            continue;
-        }
-        if canonical
-            .last()
-            .is_some_and(|previous| group.start < previous.end)
-        {
-            continue;
-        }
-        canonical.push(group);
-    }
-    canonical
+    groups.dedup_by(|right, left| right.start == left.start && right.end == left.end);
+    groups
 }
 
 fn count_group_rank(kind: CountGroupKind) -> u8 {
     match kind {
-        CountGroupKind::Heading | CountGroupKind::Title | CountGroupKind::Placard | CountGroupKind::Label => 0,
-        CountGroupKind::QuotedText | CountGroupKind::Parenthetical => 1,
+        CountGroupKind::DocumentNumberingExcluded => 0,
+        CountGroupKind::Heading
+        | CountGroupKind::Title
+        | CountGroupKind::Placard
+        | CountGroupKind::Label => 1,
+        CountGroupKind::QuotedText | CountGroupKind::Parenthetical => 2,
         CountGroupKind::ProperNoun
         | CountGroupKind::ProperNounPerson
         | CountGroupKind::ProperNounGroup
         | CountGroupKind::ProperNounOrganization
-        | CountGroupKind::ProperNounGeopoliticalEntity => 2,
-        CountGroupKind::NumberWithUnit | CountGroupKind::Abbreviation => 3,
-        CountGroupKind::AlphanumericIdentifier | CountGroupKind::Number => 4,
-        CountGroupKind::HyphenatedWord => 5,
+        | CountGroupKind::ProperNounGeopoliticalEntity => 3,
+        CountGroupKind::NumberWithUnit | CountGroupKind::Abbreviation => 4,
+        CountGroupKind::AlphanumericIdentifier | CountGroupKind::Number => 5,
+        CountGroupKind::HyphenatedWord => 6,
     }
 }
 
@@ -251,8 +256,7 @@ fn hyphenated_groups(text: &str) -> Vec<CountGroup> {
     lexemes(text)
         .into_iter()
         .filter(|lexeme| {
-            lexeme.text.contains(['-', '‐', '‑'])
-                && lexeme.text.chars().any(char::is_alphabetic)
+            lexeme.text.contains(['-', '‐', '‑']) && lexeme.text.chars().any(char::is_alphabetic)
         })
         .map(|lexeme| CountGroup {
             kind: CountGroupKind::HyphenatedWord,
@@ -345,8 +349,8 @@ fn unit_expression_end(
     analysis: &AnalysisDocument<'_>,
 ) -> Option<usize> {
     let first = tokens.get(start)?;
-
     let max_end = (start + 5).min(tokens.len());
+
     for end in (start..max_end).rev() {
         let phrase = tokens[start..=end]
             .iter()
@@ -465,15 +469,16 @@ fn strip_unit_power(value: &str) -> &str {
 
 fn is_number_expression(value: &str) -> bool {
     let value = value.trim();
-    let value = value
-        .strip_prefix(['+', '-', '−'])
-        .unwrap_or(value);
+    let value = value.strip_prefix(['+', '-', '−']).unwrap_or(value);
     if value.is_empty() {
         return false;
     }
 
-    for separator in ['–', '—'] {
-        if let Some((left, right)) = value.split_once(separator) {
+    for separator in ['-', '–', '—'] {
+        if let Some((left, right)) = value.split_once(separator)
+            && !left.is_empty()
+            && !right.is_empty()
+        {
             return is_number_atom(left) && is_number_atom(right);
         }
     }
@@ -505,7 +510,9 @@ fn is_number_atom(value: &str) -> bool {
 }
 
 fn is_alphanumeric_identifier(value: &str) -> bool {
-    let has_letter = value.chars().any(|character| character.is_ascii_alphabetic());
+    let has_letter = value
+        .chars()
+        .any(|character| character.is_ascii_alphabetic());
     let has_digit = value.chars().any(|character| character.is_ascii_digit());
     has_letter
         && has_digit
@@ -546,10 +553,10 @@ fn lexemes(text: &str) -> Vec<Lexeme<'_>> {
 
     for (index, character) in text.char_indices() {
         if character.is_whitespace() {
-            if let Some(start) = token_start.take() {
-                if let Some(lexeme) = clean_lexeme(text, start, index) {
-                    lexemes.push(lexeme);
-                }
+            if let Some(start) = token_start.take()
+                && let Some(lexeme) = clean_lexeme(text, start, index)
+            {
+                lexemes.push(lexeme);
             }
         } else if token_start.is_none() {
             token_start = Some(index);
@@ -566,7 +573,10 @@ fn lexemes(text: &str) -> Vec<Lexeme<'_>> {
 fn clean_lexeme(text: &str, mut start: usize, mut end: usize) -> Option<Lexeme<'_>> {
     while start < end {
         let character = text[start..end].chars().next()?;
-        if matches!(character, '"' | '“' | '\'' | '(' | '[' | '{' | '#' | '*' | '`') {
+        if matches!(
+            character,
+            '"' | '“' | '\'' | '(' | '[' | '{' | '#' | '*' | '`'
+        ) {
             start += character.len_utf8();
         } else {
             break;
@@ -574,10 +584,8 @@ fn clean_lexeme(text: &str, mut start: usize, mut end: usize) -> Option<Lexeme<'
     }
 
     let raw = &text[start..end];
-    let preserves_terminal_period = matches!(
-        raw.to_ascii_lowercase().as_str(),
-        "a.m." | "p.m." | "no."
-    );
+    let preserves_terminal_period =
+        matches!(raw.to_ascii_lowercase().as_str(), "a.m." | "p.m." | "no.");
     if !preserves_terminal_period {
         while start < end {
             let character = text[start..end].chars().next_back()?;
@@ -624,7 +632,7 @@ mod tests {
 
     #[test]
     fn numeric_classifier_is_bounded() {
-        for value in ["10", "-10", "1,000.5", "1/2", "10–12", "21st"] {
+        for value in ["10", "-10", "1,000.5", "1/2", "10-12", "10–12", "21st"] {
             assert!(is_number_expression(value), "{value}");
         }
         for value in ["A10", "10x", "one", "1/part"] {
