@@ -19,9 +19,7 @@ fn has_paragraph_limit(text: &str) -> bool {
 
 #[test]
 fn wrapped_source_lines_remain_one_paragraph() {
-    assert!(has_paragraph_limit(
-        "USE. USE. USE.\nUSE. USE. USE. USE."
-    ));
+    assert!(has_paragraph_limit("USE. USE. USE.\nUSE. USE. USE. USE."));
 }
 
 #[test]
@@ -49,9 +47,7 @@ fn list_items_are_not_folded_into_the_surrounding_paragraph() {
 
 #[test]
 fn blockquote_prose_keeps_paragraph_identity() {
-    assert!(has_paragraph_limit(
-        "> USE. USE. USE. USE. USE. USE. USE."
-    ));
+    assert!(has_paragraph_limit("> USE. USE. USE. USE. USE. USE. USE."));
 }
 
 #[test]
