@@ -163,6 +163,10 @@ fn item_syntax(analysis: &AnalysisDocument<'_>, item: ListItem) -> ItemSyntax {
         return ItemSyntax::Sentence;
     }
 
+    if determiner_led_nominal_fragment(analysis, &token_indices) {
+        return ItemSyntax::Fragment;
+    }
+
     match analysis.noun_phrase_at(first) {
         Resolution::Resolved(noun_phrase)
             if noun_phrase.span.token_start == first && noun_phrase.span.token_end == last =>
@@ -181,4 +185,33 @@ fn item_syntax(analysis: &AnalysisDocument<'_>, item: ListItem) -> ItemSyntax {
             ItemSyntax::Unresolved
         }
     }
+}
+
+fn determiner_led_nominal_fragment(
+    analysis: &AnalysisDocument<'_>,
+    token_indices: &[usize],
+) -> bool {
+    let Some((&first, rest)) = token_indices.split_first() else {
+        return false;
+    };
+    if rest.is_empty()
+        || !analysis
+            .linguistic_token(first)
+            .is_some_and(|evidence| evidence.determiner)
+    {
+        return false;
+    }
+
+    let nominal_tail = rest.iter().all(|&index| {
+        analysis.linguistic_token(index).is_some_and(|evidence| {
+            evidence.adjective || evidence.noun || evidence.nominal || evidence.np_member
+        })
+    });
+    let nominal_head = rest.last().is_some_and(|&&index| {
+        analysis
+            .linguistic_token(index)
+            .is_some_and(|evidence| evidence.noun || evidence.nominal)
+    });
+
+    nominal_tail && nominal_head
 }
