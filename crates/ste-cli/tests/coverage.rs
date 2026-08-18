@@ -12,6 +12,7 @@ fn coverage_json_tracks_all_issue_nine_rules_without_runtime_data() {
         .stdout(predicate::str::contains("\"id\": \"1.14\""))
         .stdout(predicate::str::contains("\"id\": \"9.4\""))
         .stdout(predicate::str::contains("\"status\": \"partial\""))
+        .stdout(predicate::str::contains("\"status\": \"implemented\""))
         .stdout(predicate::str::contains("\"status\": \"context_required\""))
         .stdout(predicate::str::contains("STE-NOUN-002"))
         .stdout(predicate::str::contains("STE-DISC-001"))
@@ -19,7 +20,9 @@ fn coverage_json_tracks_all_issue_nine_rules_without_runtime_data() {
         .stdout(predicate::str::contains("STE-CTX-002"))
         .stdout(predicate::str::contains("STE-CTX-003"))
         .stdout(predicate::str::contains("STE-FORM-001"))
-        .stdout(predicate::str::contains("STE-PHRASE-001"));
+        .stdout(predicate::str::contains("STE-PHRASE-001"))
+        .stdout(predicate::str::contains("\"id\": \"6.6\""))
+        .stdout(predicate::str::contains("\"id\": \"8.4\""));
 }
 
 #[test]
@@ -31,8 +34,8 @@ fn coverage_human_output_states_that_full_compliance_is_not_claimed() {
         .success()
         .stdout(predicate::str::contains("ASD-STE100 Issue 9"))
         .stdout(predicate::str::contains("53 rules tracked"))
-        .stdout(predicate::str::contains("implemented: 2"))
-        .stdout(predicate::str::contains("partial: 40"))
+        .stdout(predicate::str::contains("implemented: 4"))
+        .stdout(predicate::str::contains("partial: 38"))
         .stdout(predicate::str::contains("context_required: 11"))
         .stdout(predicate::str::contains("not_implemented: 0"))
         .stdout(predicate::str::contains(
