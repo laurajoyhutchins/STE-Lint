@@ -1,3 +1,7 @@
+use harper_core::Document;
+
+use super::source::{SourceDocument, char_to_byte_offsets};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AnalysisToken<'a> {
     pub text: &'a str,
@@ -6,11 +10,10 @@ pub struct AnalysisToken<'a> {
     pub sentence_id: Option<usize>,
 }
 
-/// Hyphen-aware source-token view retained for direct perfect-tense matching.
+/// Hyphen-aware source-token view retained temporarily for direct perfect-tense matching.
 ///
-/// It uses the same source-coordinate scanner as `AnalysisToken`; the only
-/// profile difference is that `-` remains inside a token so source-backed
-/// multiword/compound participle matching preserves its historical behavior.
+/// Canonical generic token identity now comes from Harper. This compatibility view remains only
+/// until source-backed compound matching is moved onto the canonical token stream.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct HyphenAwareToken<'a> {
     pub text: &'a str,
@@ -18,35 +21,33 @@ pub(crate) struct HyphenAwareToken<'a> {
     pub end: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum TokenProfile {
-    Lexical,
-    HyphenAware,
-}
-
 pub(crate) fn lexical_tokens(text: &str) -> Vec<AnalysisToken<'_>> {
-    scan(text, TokenProfile::Lexical)
-        .into_iter()
-        .map(|token| AnalysisToken {
-            text: token.text,
-            start: token.start,
-            end: token.end,
-            sentence_id: None,
+    let source = SourceDocument::new(text);
+    let offsets = char_to_byte_offsets(text);
+    let document = Document::new_plain_english_curated(source.linguistic_projection());
+
+    document
+        .tokens()
+        .filter(|token| token.kind.is_word())
+        .filter_map(|token| {
+            let start = *offsets.get(token.span.start)?;
+            let end = *offsets.get(token.span.end)?;
+            (start < end).then_some(AnalysisToken {
+                text: &text[start..end],
+                start,
+                end,
+                sentence_id: None,
+            })
         })
         .collect()
 }
 
 pub(crate) fn hyphen_aware_tokens(text: &str) -> Vec<HyphenAwareToken<'_>> {
-    scan(text, TokenProfile::HyphenAware)
-}
-
-fn scan(text: &str, profile: TokenProfile) -> Vec<HyphenAwareToken<'_>> {
     let mut tokens = Vec::new();
     let mut start = None;
 
     for (index, character) in text.char_indices() {
-        let is_word =
-            character.is_alphabetic() || (profile == TokenProfile::HyphenAware && character == '-');
+        let is_word = character.is_alphabetic() || character == '-';
         match (start, is_word) {
             (None, true) => start = Some(index),
             (Some(word_start), false) => {

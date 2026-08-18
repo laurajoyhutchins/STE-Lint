@@ -10,3 +10,5 @@ serde_json.workspace = true
 ste-core = { path = "../ste-core" }
 ste-data = { path = "../ste-data" }
 ste-glossary = { path = "../ste-glossary" }
+pulldown-cmark.workspace = true
+harper-core.workspace = true
