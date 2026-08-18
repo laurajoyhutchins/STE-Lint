@@ -77,9 +77,11 @@ pub enum TextAuthorityKind {
     ProtectedText,
     QuotedExternalText,
     CodeOrVerbatim,
+    Formula,
     Title,
     Placard,
     Label,
+    DocumentNumbering,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -185,6 +187,7 @@ pub enum CountGroupKind {
     ProperNounGeopoliticalEntity,
     Parenthetical,
     HyphenatedWord,
+    DocumentNumberingExcluded,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -335,14 +338,24 @@ fn validate_named_entities(facts: &[NamedEntityFact]) -> Result<(), String> {
     let mut ids = HashSet::new();
     let mut forms = HashSet::new();
     for (index, fact) in facts.iter().enumerate() {
-        validate_global_authority("named entity", index, &fact.id, &fact.canonical, &fact.source)?;
+        validate_global_authority(
+            "named entity",
+            index,
+            &fact.id,
+            &fact.canonical,
+            &fact.source,
+        )?;
         if !ids.insert(fact.id.to_ascii_lowercase()) {
-            return Err(format!("named entity {index} duplicates a governed entity id"));
+            return Err(format!(
+                "named entity {index} duplicates a governed entity id"
+            ));
         }
         for surface in std::iter::once(&fact.canonical).chain(&fact.forms) {
             let normalized = normalize_surface(surface);
             if normalized.is_empty() {
-                return Err(format!("named entity {index} contains an empty surface form"));
+                return Err(format!(
+                    "named entity {index} contains an empty surface form"
+                ));
             }
             if !forms.insert(normalized) {
                 return Err(format!(
@@ -409,7 +422,11 @@ fn validate_global_authority(
 }
 
 fn normalize_surface(value: &str) -> String {
-    value.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase()
+    value
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .to_lowercase()
 }
 
 fn validate_safety_component(
