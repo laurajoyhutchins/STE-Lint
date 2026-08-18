@@ -18,7 +18,8 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         };
 
         if matched.term.status == TermStatus::Approved
-            && let Some(evidence) = analysis.technical_role_at(matched.token_start, matched.token_width)
+            && let Some(evidence) =
+                analysis.technical_role_at(matched.token_start, matched.token_width)
             && let Some(diagnostic) = role_diagnostic(
                 matched.term,
                 &matched.text,

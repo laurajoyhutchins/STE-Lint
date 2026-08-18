@@ -56,9 +56,7 @@ fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic
     diagnostics
 }
 
-fn determiner_led_multiword_noun_diagnostics(
-    analysis: &AnalysisDocument<'_>,
-) -> Vec<Diagnostic> {
+fn determiner_led_multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
     let mut index = 0usize;
 
@@ -83,9 +81,7 @@ fn determiner_led_multiword_noun_diagnostics(
             end += 1;
         }
 
-        if end > content_start
-            && has_only_approved_pos(analysis, end - 1, &[PartOfSpeech::Noun])
-        {
+        if end > content_start && has_only_approved_pos(analysis, end - 1, &[PartOfSpeech::Noun]) {
             let content_word_count = multiword_noun_word_count(analysis, content_start, end);
             if content_word_count > 3 {
                 diagnostics.push(multiword_noun_diagnostic(

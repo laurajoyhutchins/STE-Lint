@@ -204,11 +204,15 @@ impl SourceDocument {
         append_legacy_lists(text, &mut document, &mut next_list_id);
         normalize_list_depths(&mut document);
 
-        document.protected.sort_by_key(|span| (span.start, span.end));
+        document
+            .protected
+            .sort_by_key(|span| (span.start, span.end));
         document.protected = merge_spans(document.protected);
         document.headings.sort_by_key(|span| (span.start, span.end));
         document.headings = merge_spans(document.headings);
-        document.paragraphs.sort_by_key(|span| (span.start, span.end));
+        document
+            .paragraphs
+            .sort_by_key(|span| (span.start, span.end));
         document
             .lists
             .sort_by_key(|list| (list.span.start, list.depth, list.span.end));
