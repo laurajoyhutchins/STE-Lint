@@ -1,3 +1,5 @@
+use crate::analysis::source::{SourceDocument, SourceList};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct CountUnit {
     pub start: usize,
@@ -5,54 +7,32 @@ pub(crate) struct CountUnit {
     pub word_count: usize,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct LineSpan {
-    start: usize,
-    end: usize,
-}
-
-use crate::analysis::source::SourceDocument;
-
 pub(crate) fn word_limit_units(text: &str) -> Vec<CountUnit> {
-    let lines = line_spans(text);
     let source = SourceDocument::new(text);
+    let mut roots = source
+        .lists()
+        .iter()
+        .filter(|list| list.depth == 0)
+        .copied()
+        .collect::<Vec<_>>();
+    roots.sort_by_key(|list| (list.span.start, list.span.end));
+
     let mut units = Vec::new();
-    let mut segment_start = 0;
-    let mut index = 0;
-
-    while index + 1 < lines.len() {
-        let line = lines[index];
-        let line_text = text[line.start..line.end].trim_end_matches(['\r', '\n']);
-        let next_line = lines[index + 1];
-
-        if line_text.trim_end().ends_with(':')
-            && list_item_content_span(text, &source, next_line).is_some()
-        {
-            let colon = line.start + line_text.rfind(':').unwrap();
-            push_regular_units(text, segment_start, colon + 1, true, &mut units);
-
-            index += 1;
-            while index < lines.len() {
-                let item_line = lines[index];
-                let Some((content_start, content_end)) =
-                    list_item_content_span(text, &source, item_line)
-                else {
-                    break;
-                };
-                if content_start < content_end {
-                    push_span_and_parentheticals(text, content_start, content_end, &mut units);
-                }
-                segment_start = item_line.end;
-                index += 1;
-            }
+    let mut cursor = 0usize;
+    for list in roots {
+        if list.span.start < cursor {
             continue;
         }
-
-        index += 1;
+        if let Some(colon) = terminal_colon_before(text, cursor, list.span.start) {
+            push_regular_units(text, cursor, colon + 1, true, &mut units);
+        } else {
+            push_regular_units(text, cursor, list.span.start, false, &mut units);
+        }
+        push_list_units(text, &source, list, &mut units);
+        cursor = list.span.end;
     }
-
-    if segment_start < text.len() {
-        push_regular_units(text, segment_start, text.len(), false, &mut units);
+    if cursor < text.len() {
+        push_regular_units(text, cursor, text.len(), false, &mut units);
     }
 
     units.sort_by_key(|unit| (unit.start, unit.end));
@@ -75,34 +55,73 @@ pub(crate) fn paragraph_ranges(text: &str) -> Vec<(usize, usize)> {
 }
 
 pub(crate) fn paragraph_prose_sentence_count(paragraph: &str) -> usize {
-    let lines = line_spans(paragraph);
     let source = SourceDocument::new(paragraph);
-    let mut prose = String::new();
-    let mut index = 0;
-
-    while index < lines.len() {
-        let line = lines[index];
-        let raw = paragraph[line.start..line.end].trim_end_matches(['\r', '\n']);
-        if list_item_content_span(paragraph, &source, line).is_some() {
-            index += 1;
-            continue;
-        }
-
-        let introduces_list = raw.trim_end().ends_with(':')
-            && lines
-                .get(index + 1)
-                .is_some_and(|next| list_item_content_span(paragraph, &source, *next).is_some());
-        if introduces_list {
-            prose.push_str(raw.trim_end_matches(':'));
-            prose.push('.');
-        } else {
-            prose.push_str(raw);
-        }
-        prose.push('\n');
-        index += 1;
+    let mut bytes = paragraph.as_bytes().to_vec();
+    for item in source.list_items() {
+        blank_range_preserving_lines(&mut bytes, item.span.start, item.span.end);
     }
+    let projection = String::from_utf8(bytes)
+        .expect("list projection replaces complete source bytes with ASCII whitespace");
+    sentence_spans(&projection, 0, projection.len(), false).len()
+}
 
-    sentence_spans(&prose, 0, prose.len(), false).len()
+fn push_list_units(
+    text: &str,
+    source: &SourceDocument,
+    list: SourceList,
+    units: &mut Vec<CountUnit>,
+) {
+    let mut items = source
+        .list_items()
+        .iter()
+        .filter(|item| item.list_id == list.id)
+        .copied()
+        .collect::<Vec<_>>();
+    items.sort_by_key(|item| (item.span.start, item.span.end));
+
+    for item in items {
+        let mut children = source
+            .lists()
+            .iter()
+            .filter(|child| child.depth == item.depth + 1)
+            .filter(|child| {
+                child.span.start >= item.content_start && child.span.end <= item.span.end
+            })
+            .copied()
+            .collect::<Vec<_>>();
+        children.sort_by_key(|child| (child.span.start, child.span.end));
+
+        let mut cursor = item.content_start;
+        for child in children {
+            if let Some(colon) = terminal_colon_before(text, cursor, child.span.start) {
+                push_regular_units(text, cursor, colon + 1, true, units);
+            } else {
+                push_regular_units(text, cursor, child.span.start, false, units);
+            }
+            push_list_units(text, source, child, units);
+            cursor = child.span.end;
+        }
+        if cursor < item.content_end {
+            push_regular_units(text, cursor, item.content_end, false, units);
+        }
+    }
+}
+
+fn terminal_colon_before(text: &str, start: usize, boundary: usize) -> Option<usize> {
+    if start >= boundary || boundary > text.len() {
+        return None;
+    }
+    let range = &text[start..boundary];
+    let trimmed = range.trim_end();
+    trimmed.ends_with(':').then(|| start + trimmed.len() - 1)
+}
+
+fn blank_range_preserving_lines(bytes: &mut [u8], start: usize, end: usize) {
+    for byte in bytes.iter_mut().take(end).skip(start) {
+        if !matches!(*byte, b'\r' | b'\n') {
+            *byte = b' ';
+        }
+    }
 }
 
 fn push_regular_units(
@@ -481,91 +500,9 @@ fn is_unit(token: &str) -> bool {
     LOWER_UNITS.contains(&lower.as_str())
 }
 
-fn list_item_content_span(
-    text: &str,
-    source: &SourceDocument,
-    line: LineSpan,
-) -> Option<(usize, usize)> {
-    let line_text_end = line.start
-        + text[line.start..line.end]
-            .trim_end_matches(['\r', '\n'])
-            .len();
-    if let Some(item) = source
-        .list_items()
-        .iter()
-        .find(|item| item.span.start >= line.start && item.span.start < line.end)
-    {
-        return Some((item.content_start, item.content_end.min(line_text_end)));
-    }
-
-    let raw = &text[line.start..line_text_end];
-    legacy_ste_list_item_content_offset(raw).map(|offset| (line.start + offset, line_text_end))
-}
-
-fn legacy_ste_list_item_content_offset(line: &str) -> Option<usize> {
-    let trimmed = line.trim_start();
-    let leading = line.len() - trimmed.len();
-
-    if trimmed.starts_with("• ") {
-        return Some(leading + "• ".len());
-    }
-
-    let bytes = trimmed.as_bytes();
-    if bytes.first() == Some(&b'(') {
-        let mut index = 1;
-        let label_start = index;
-        while index < bytes.len() && bytes[index].is_ascii_alphanumeric() {
-            index += 1;
-        }
-        if index > label_start
-            && index + 1 < bytes.len()
-            && bytes[index] == b')'
-            && bytes[index + 1].is_ascii_whitespace()
-        {
-            return Some(leading + index + 2);
-        }
-        return None;
-    }
-
-    let mut index = 0;
-    while index < bytes.len() && bytes[index].is_ascii_alphabetic() {
-        index += 1;
-    }
-    let label = &trimmed[..index];
-    if label.len() == 1
-        && index + 1 < bytes.len()
-        && matches!(bytes[index], b'.' | b')')
-        && bytes[index + 1].is_ascii_whitespace()
-    {
-        return Some(leading + index + 2);
-    }
-    None
-}
-
 fn trim_start(text: &str, start: usize, end: usize) -> usize {
     let leading = text[start..end].len() - text[start..end].trim_start().len();
     start + leading
-}
-
-fn line_spans(text: &str) -> Vec<LineSpan> {
-    let mut lines = Vec::new();
-    let mut start = 0;
-    for (index, character) in text.char_indices() {
-        if character == '\n' {
-            lines.push(LineSpan {
-                start,
-                end: index + 1,
-            });
-            start = index + 1;
-        }
-    }
-    if start < text.len() || text.is_empty() {
-        lines.push(LineSpan {
-            start,
-            end: text.len(),
-        });
-    }
-    lines
 }
 
 #[cfg(test)]
@@ -600,13 +537,32 @@ mod tests {
     }
 
     #[test]
-    fn prose_word_followed_by_period_is_not_a_list_label() {
-        assert_eq!(legacy_ste_list_item_content_offset("USE. USE THIS."), None);
-        assert_eq!(legacy_ste_list_item_content_offset("A) USE THIS."), Some(3));
-        assert_eq!(
-            legacy_ste_list_item_content_offset("(a) USE THIS."),
-            Some(4)
-        );
-        assert_eq!(legacy_ste_list_item_content_offset("• USE THIS."), Some(4));
+    fn wrapped_list_item_is_one_count_unit() {
+        let text = "USE:\n- ONE TWO THREE\n  FOUR FIVE.";
+        let counts = word_limit_units(text)
+            .into_iter()
+            .map(|unit| unit.word_count)
+            .collect::<Vec<_>>();
+        assert_eq!(counts, vec![1, 5]);
+    }
+
+    #[test]
+    fn nested_colon_list_boundaries_create_independent_units() {
+        let text = "USE:\n- ONE TWO:\n  - THREE FOUR.\n- FIVE SIX.";
+        let counts = word_limit_units(text)
+            .into_iter()
+            .map(|unit| unit.word_count)
+            .collect::<Vec<_>>();
+        assert_eq!(counts, vec![1, 2, 2, 2]);
+    }
+
+    #[test]
+    fn legacy_ste_list_markers_use_the_same_counting_path() {
+        let text = "USE:\n(a) ONE TWO.\n(b) THREE FOUR.";
+        let counts = word_limit_units(text)
+            .into_iter()
+            .map(|unit| unit.word_count)
+            .collect::<Vec<_>>();
+        assert_eq!(counts, vec![1, 2, 2]);
     }
 }
