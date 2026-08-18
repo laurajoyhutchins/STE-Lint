@@ -73,7 +73,10 @@ impl<'a> AnalysisDocument<'a> {
         context: Option<&'a LintContext>,
         mode: LintMode,
     ) -> Self {
-        let source = CanonicalSource::with_context(text, context);
+        let source = context.map_or_else(
+            || CanonicalSource::new(text),
+            |context| CanonicalSource::with_context(text, Some(context)),
+        );
         let lexical_evidence = HarperProvider::analyze(&source);
         let mut tokens = lexical_evidence
             .iter()
