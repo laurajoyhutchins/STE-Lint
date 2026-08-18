@@ -35,11 +35,7 @@ fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic
         }
 
         let head = end - 1;
-        let head_is_noun = analysis
-            .linguistic_token(head)
-            .and_then(|evidence| evidence.occurrence_pos)
-            .is_some_and(|pos| matches!(pos, GenericPos::Noun | GenericPos::ProperNoun));
-        if head_is_noun && end - start > 1 {
+        if is_multiword_noun_head(analysis, head) && end - start > 1 {
             let word_count = multiword_noun_word_count(analysis, start, end);
             if word_count > 3 {
                 diagnostics.push(Diagnostic {
@@ -52,7 +48,7 @@ fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic
                     },
                     rules: vec!["2.1".into()],
                     evidence: Some(json!({
-                        "grammar_resolution": "harper_brill_noun_adjective_compound",
+                        "grammar_resolution": "harper_brill_noun_phrase_chunk_with_lexical_nominal_compatibility",
                         "word_count": word_count,
                         "token_start": start,
                         "token_end": end,
@@ -71,15 +67,33 @@ fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic
 }
 
 fn is_multiword_noun_member(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
-    analysis
-        .linguistic_token(token_index)
-        .and_then(|evidence| evidence.occurrence_pos)
-        .is_some_and(|pos| {
-            matches!(
-                pos,
-                GenericPos::Adjective | GenericPos::Noun | GenericPos::ProperNoun
-            )
-        })
+    let Some(evidence) = analysis.linguistic_token(token_index) else {
+        return false;
+    };
+    if !evidence.np_member {
+        return false;
+    }
+
+    evidence.occurrence_pos.is_some_and(|pos| {
+        matches!(
+            pos,
+            GenericPos::Adjective | GenericPos::Noun | GenericPos::ProperNoun
+        )
+    }) || evidence.adjective
+        || evidence.noun
+        || evidence.nominal
+}
+
+fn is_multiword_noun_head(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
+    let Some(evidence) = analysis.linguistic_token(token_index) else {
+        return false;
+    };
+    evidence.np_member
+        && (evidence
+            .occurrence_pos
+            .is_some_and(|pos| matches!(pos, GenericPos::Noun | GenericPos::ProperNoun))
+            || evidence.noun
+            || evidence.nominal)
 }
 
 fn compound_separator_is_valid(analysis: &AnalysisDocument<'_>, left: usize, right: usize) -> bool {
