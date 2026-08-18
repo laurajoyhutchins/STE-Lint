@@ -1,5 +1,6 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
+use ste_data::{ApprovalStatus, PartOfSpeech};
 
 use crate::analysis::linguistic::GenericPos;
 use crate::{AnalysisDocument, IngRole, LintMode, ParticipleRole, Resolution};
@@ -14,7 +15,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 }
 
 fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
-    let mut diagnostics = Vec::new();
+    let mut diagnostics = determiner_led_multiword_noun_diagnostics(analysis);
     let mut index = 0usize;
 
     while index < analysis.tokens().len() {
@@ -38,25 +39,14 @@ fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic
         if is_multiword_noun_head(analysis, head) && end - start > 1 {
             let word_count = multiword_noun_word_count(analysis, start, end);
             if word_count > 3 {
-                diagnostics.push(Diagnostic {
-                    code: "STE-NOUN-001".into(),
-                    severity: Severity::Error,
-                    message: "Multi-word noun contains more than three words.".into(),
-                    span: Span {
-                        start: analysis.tokens()[start].start,
-                        end: analysis.tokens()[head].end,
-                    },
-                    rules: vec!["2.1".into()],
-                    evidence: Some(json!({
-                        "grammar_resolution": "harper_brill_noun_phrase_chunk_with_lexical_nominal_compatibility",
-                        "word_count": word_count,
-                        "token_start": start,
-                        "token_end": end,
-                        "head_token": head,
-                        "hyphenated_source_groups_count_as_one": true,
-                    })),
-                    autofix: None,
-                });
+                diagnostics.push(multiword_noun_diagnostic(
+                    analysis,
+                    start,
+                    end,
+                    head,
+                    word_count,
+                    "harper_brill_noun_phrase_chunk_with_lexical_nominal_compatibility",
+                ));
             }
         }
 
@@ -64,6 +54,102 @@ fn multiword_noun_diagnostics(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic
     }
 
     diagnostics
+}
+
+fn determiner_led_multiword_noun_diagnostics(
+    analysis: &AnalysisDocument<'_>,
+) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+    let mut index = 0usize;
+
+    while index < analysis.tokens().len() {
+        if !has_only_approved_pos(analysis, index, &[PartOfSpeech::Article]) {
+            index += 1;
+            continue;
+        }
+
+        let sentence_id = analysis.tokens()[index].sentence_id;
+        let content_start = index + 1;
+        let mut end = content_start;
+        while end < analysis.tokens().len()
+            && analysis.tokens()[end].sentence_id == sentence_id
+            && (end == content_start || compound_separator_is_valid(analysis, end - 1, end))
+            && has_only_approved_pos(
+                analysis,
+                end,
+                &[PartOfSpeech::Adjective, PartOfSpeech::Noun],
+            )
+        {
+            end += 1;
+        }
+
+        if end > content_start
+            && has_only_approved_pos(analysis, end - 1, &[PartOfSpeech::Noun])
+        {
+            let content_word_count = multiword_noun_word_count(analysis, content_start, end);
+            if content_word_count > 3 {
+                diagnostics.push(multiword_noun_diagnostic(
+                    analysis,
+                    index,
+                    end,
+                    end - 1,
+                    content_word_count,
+                    "authoritative_determiner_led_noun_phrase",
+                ));
+            }
+        }
+
+        index = end.max(index + 1);
+    }
+
+    diagnostics
+}
+
+fn has_only_approved_pos(
+    analysis: &AnalysisDocument<'_>,
+    token_index: usize,
+    allowed: &[PartOfSpeech],
+) -> bool {
+    let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
+        return false;
+    };
+    !matched.candidates.is_empty()
+        && matched.candidates.iter().all(|entry| {
+            entry.status == ApprovalStatus::Approved
+                && entry
+                    .part_of_speech
+                    .is_some_and(|part_of_speech| allowed.contains(&part_of_speech))
+        })
+}
+
+fn multiword_noun_diagnostic(
+    analysis: &AnalysisDocument<'_>,
+    start: usize,
+    end: usize,
+    head: usize,
+    content_word_count: usize,
+    grammar_resolution: &str,
+) -> Diagnostic {
+    Diagnostic {
+        code: "STE-NOUN-001".into(),
+        severity: Severity::Error,
+        message: "Multi-word noun contains more than three words.".into(),
+        span: Span {
+            start: analysis.tokens()[start].start,
+            end: analysis.tokens()[head].end,
+        },
+        rules: vec!["2.1".into()],
+        evidence: Some(json!({
+            "grammar_resolution": grammar_resolution,
+            "content_word_count": content_word_count,
+            "word_count": content_word_count,
+            "token_start": start,
+            "token_end": end,
+            "head_token": head,
+            "hyphenated_source_groups_count_as_one": true,
+        })),
+        autofix: None,
+    }
 }
 
 fn is_multiword_noun_member(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
