@@ -186,7 +186,7 @@ mod tests {
     }
 
     #[test]
-    fn harper_curated_analysis_disambiguates_noun_and_verb_occurrences() {
+    fn harper_lexical_pos_predicates_preserve_homograph_ambiguity() {
         let document = LinguisticDocument::new("Check the valve. The check is complete.");
         let checks = document
             .tokens
@@ -195,9 +195,8 @@ mod tests {
             .collect::<Vec<_>>();
         assert_eq!(checks.len(), 2);
         assert!(checks[0].verb);
-        assert!(!checks[0].noun);
+        assert!(checks[0].noun || checks[0].nominal);
         assert!(checks[1].noun || checks[1].nominal);
-        assert!(!checks[1].verb);
     }
 
     #[test]
