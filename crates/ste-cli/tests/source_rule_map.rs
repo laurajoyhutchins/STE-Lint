@@ -89,7 +89,7 @@ fn all_issue_nine_rules_have_source_audited_semantic_keys() {
 }
 
 #[test]
-fn audited_coverage_downgrades_unsupported_rule_claims() {
+fn audited_coverage_keeps_only_supported_rule_claims() {
     let rules = rules();
 
     assert_eq!(rules["1.4"]["status"], "partial");
@@ -108,11 +108,16 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
         serde_json::json!(["STE-PHRASE-001"])
     );
 
-    assert_eq!(rules["2.2"]["status"], "partial");
+    assert_eq!(rules["2.2"]["status"], "implemented");
     assert_eq!(
         rules["2.2"]["diagnostic_codes"],
         serde_json::json!(["STE-NOUN-002"])
     );
+    assert_eq!(rules["5.1"]["status"], "implemented");
+    assert_eq!(rules["6.3"]["status"], "implemented");
+    assert_eq!(rules["8.1"]["status"], "implemented");
+    assert_eq!(rules["8.6"]["status"], "implemented");
+    assert_eq!(rules["8.4"]["status"], "partial");
     assert_eq!(rules["3.3"]["status"], "partial");
     assert_eq!(
         rules["3.3"]["diagnostic_codes"],
@@ -156,8 +161,8 @@ fn audited_coverage_downgrades_unsupported_rule_claims() {
     for rule in rules.values() {
         *counts.entry(rule["status"].as_str().unwrap()).or_default() += 1;
     }
-    assert_eq!(counts.get("implemented"), Some(&2));
-    assert_eq!(counts.get("partial"), Some(&40));
+    assert_eq!(counts.get("implemented"), Some(&7));
+    assert_eq!(counts.get("partial"), Some(&35));
     assert_eq!(counts.get("context_required"), Some(&11));
     assert_eq!(counts.get("not_implemented"), None);
 }
