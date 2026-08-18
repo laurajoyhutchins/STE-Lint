@@ -178,7 +178,13 @@ fn rule_22_alias_collision_fails_closed_in_governed_terminology() {
         {"id":"b","canonical":"amber blue green diamond","roles":["noun"],"definition":"B.","forms":[],"aliases":[{"text":"ABGD","kind":"abbreviation"}],"sources":[{"source":"fixture","supports":["admission","definition","role","alias","status"]}],"status":"approved"}
       ]
     }"#;
-    assert!(Glossary::from_json(source).is_err());
+    let glossary = Glossary::from_json(source).unwrap();
+    assert!(
+        glossary
+            .validate()
+            .iter()
+            .any(|diagnostic| diagnostic.code == "TERM-ID-CONFLICT-001")
+    );
 }
 
 #[test]
