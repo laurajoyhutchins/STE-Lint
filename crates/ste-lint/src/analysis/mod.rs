@@ -6,6 +6,7 @@ mod evidence;
 mod grammar;
 pub(crate) mod linguistic;
 mod safety;
+mod semantic;
 mod sense;
 mod sentence;
 mod shadow;
@@ -34,6 +35,7 @@ pub use linguistic::LexicalObservation;
 pub use safety::{
     SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence,
 };
+pub use semantic::{ClauseKind, SemanticResolutionPolicy, resolve_clause_kind};
 pub use sense::{SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag};
 pub use sentence::AnalysisSentence;
 pub use shadow::{

@@ -8,17 +8,17 @@ use std::cmp::Reverse;
 
 pub use analysis::{
     ActionCardinality, ActionStructure, AnalysisDocument, AnalysisEvidence, AnalysisSentence,
-    AnalysisToken, AuxiliaryChain, AuxiliaryKind, CanonicalSpan, CountGroup, CountGroupProjection,
-    DictionaryMatch, DocumentGraph, DocumentNode, DocumentNodeId, DocumentNodeKind,
-    DocumentReferenceRelation, DocumentRelation, DocumentRelationKind, DocumentSemanticOrdering,
-    DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind, EvidenceAlternative,
-    EvidenceProvenance, EvidenceTarget, GlossaryMatch, GrammarSpan, IngRole, IngUse,
-    LexicalObservation, ModelIdentity, NounPhrase, ObservedRole, ObservedRoleEvidence,
+    AnalysisToken, AuxiliaryChain, AuxiliaryKind, CanonicalSpan, ClauseKind, CountGroup,
+    CountGroupProjection, DictionaryMatch, DocumentGraph, DocumentNode, DocumentNodeId,
+    DocumentNodeKind, DocumentReferenceRelation, DocumentRelation, DocumentRelationKind,
+    DocumentSemanticOrdering, DocumentSpan, EntityIdentity, EntityMention, EntityMentionKind,
+    EvidenceAlternative, EvidenceProvenance, EvidenceTarget, GlossaryMatch, GrammarSpan, IngRole,
+    IngUse, LexicalObservation, ModelIdentity, NounPhrase, ObservedRole, ObservedRoleEvidence,
     ParticipleRole, ParticipleUse, ProviderIdentity, ReferenceBasis, ReferenceLink, Resolution,
     SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence,
-    SemanticObservation, SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag,
-    ShadowEvidenceError, ShadowEvidenceIdentity, ShadowEvidenceSet, SubjectPredicate,
-    VerbFormCandidate, VerbFormRole,
+    SemanticObservation, SemanticResolutionPolicy, SenseEvidence, SenseIdentity, SenseProvenance,
+    SenseRestrictionTag, ShadowEvidenceError, ShadowEvidenceIdentity, ShadowEvidenceSet,
+    SubjectPredicate, VerbFormCandidate, VerbFormRole, resolve_clause_kind,
 };
 pub use context::{
     CountGroupKind, DictionaryMeaningUse, LintContext, MeasurementUnitFact, NamedEntityClass,
