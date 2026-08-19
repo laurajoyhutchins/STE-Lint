@@ -54,3 +54,37 @@ cat "$OUT_DIR/semantic-provider-results.md"
 printf '%s\n' 'SEMANTIC_PROVIDER_RESULTS_JSON_BEGIN'
 cat "$OUT_DIR/semantic-provider-results.json"
 printf '%s\n' 'SEMANTIC_PROVIDER_RESULTS_JSON_END'
+
+"$PYTHON" - "$OUT_DIR/semantic-provider-results.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as source:
+    results = json.load(source)
+
+summary = {"schema_version": 1, "providers": {}}
+for name, provider in sorted(results["providers"].items()):
+    metrics = provider["metrics"]
+    summary["providers"][name] = {
+        "model_identity": provider["model_identity"],
+        "offline_probe": provider["offline_probe"],
+        "runtime": provider["runtime"],
+        "artifact": {
+            key: provider["artifact"].get(key)
+            for key in ("bytes", "files", "sha256")
+        },
+        "span_alignment": provider["span_alignment"],
+        "metrics": {
+            "dependencies": metrics["dependencies"],
+            "constituency": metrics["constituency"],
+            "entities": metrics["entities"],
+            "coreference": metrics["coreference"],
+            "harper_parity": metrics["harper_parity"],
+        },
+    }
+
+print(
+    "SEMANTIC_PROVIDER_SUMMARY_JSON="
+    + json.dumps(summary, sort_keys=True, separators=(",", ":"))
+)
+PY
