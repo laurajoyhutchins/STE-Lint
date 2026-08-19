@@ -391,7 +391,7 @@ fn sha256_hex(input: &[u8]) -> String {
     let bit_len = (input.len() as u64) * 8;
     let mut message = input.to_vec();
     message.push(0x80);
-    while (message.len() + 8) % 64 != 0 {
+    while !(message.len() + 8).is_multiple_of(64) {
         message.push(0);
     }
     message.extend_from_slice(&bit_len.to_be_bytes());
