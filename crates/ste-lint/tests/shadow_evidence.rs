@@ -6,8 +6,7 @@ use ste_lint::{
 
 const TEXT: &str = "The pump is open. It runs.";
 const SOURCE_SHA256: &str = "4ab4f8c5b5bda8d6ccb78ff9a600a641464d166b65900760aff129b68a2f3396";
-const CONFIGURATION: &str =
-    "lang=en;package=default_accurate;processors=tokenize,mwt,pos,lemma,depparse,constituency,ner,coref;use_gpu=false;offline=true";
+const CONFIGURATION: &str = "lang=en;package=default_accurate;processors=tokenize,mwt,pos,lemma,depparse,constituency,ner,coref;use_gpu=false;offline=true";
 const CONFIGURATION_SHA256: &str =
     "664a351f8e4d0b885e2a164a4e16545c80d7550e1468bf12ae0fd47a3fb9830d";
 
