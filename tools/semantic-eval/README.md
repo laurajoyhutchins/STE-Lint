@@ -11,4 +11,8 @@ The harness evaluates two deliberately different candidates:
 
 `run.sh` explicitly hydrates Stanza before inference, then evaluates it with Hugging Face and Transformers network access disabled. It records provider versions, resource-tree identity, artifact bytes, initialization time, per-document latency, peak RSS, exact synthetic-task metrics, Harper parity, ambiguity controls, and canonical UTF-8 byte-span alignment.
 
+The measured Gate 3 decision is recorded in `docs/semantic-nlp-provider-decision.md`. Stanza is the Gate 4 full-pipeline reference/shadow provider; spaCy remains the small deployment control. The production runtime remains contingent on representative technical-English benchmark evidence from GitHub #64.
+
+The branch-specific Rust CI bridge used to obtain the original measurements was removed after the decision. Run this harness deliberately when evaluation evidence needs to be regenerated; it is not part of ordinary workspace CI.
+
 These results are provider evidence, not ASD-STE100 authority. The corpus contains no protected Issue 9 prose. Normal lint execution never invokes the harness, downloads these models, or acquires a Python dependency.
