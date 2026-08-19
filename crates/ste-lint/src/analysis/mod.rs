@@ -8,6 +8,7 @@ pub(crate) mod linguistic;
 mod safety;
 mod sense;
 mod sentence;
+mod shadow;
 pub(crate) mod source;
 pub(crate) mod token;
 
@@ -35,5 +36,8 @@ pub use safety::{
 };
 pub use sense::{SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag};
 pub use sentence::AnalysisSentence;
+pub use shadow::{
+    SemanticObservation, ShadowEvidenceError, ShadowEvidenceIdentity, ShadowEvidenceSet,
+};
 pub use source::CanonicalSpan;
 pub use token::AnalysisToken;

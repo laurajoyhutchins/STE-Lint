@@ -16,7 +16,8 @@ pub use analysis::{
     LexicalObservation, ModelIdentity, NounPhrase, ObservedRole, ObservedRoleEvidence,
     ParticipleRole, ParticipleUse, ProviderIdentity, ReferenceBasis, ReferenceLink, Resolution,
     SafetyEvidenceSource, SafetyLevel, SafetyLevelEvidence, SafetySemantics, SafetySpanEvidence,
-    SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag, SubjectPredicate,
+    SemanticObservation, SenseEvidence, SenseIdentity, SenseProvenance, SenseRestrictionTag,
+    ShadowEvidenceError, ShadowEvidenceIdentity, ShadowEvidenceSet, SubjectPredicate,
     VerbFormCandidate, VerbFormRole,
 };
 pub use context::{
