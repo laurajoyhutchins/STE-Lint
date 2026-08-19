@@ -168,47 +168,27 @@ mod tests {
         let span = CanonicalSpan { start: 4, end: 20 };
         let evidence = vec![
             evidence(ClauseKind::Requirement, span, Some(0.96), "provider-a"),
-            evidence(
-                ClauseKind::LimitOrTolerance,
-                span,
-                Some(0.84),
-                "provider-b",
-            ),
+            evidence(ClauseKind::LimitOrTolerance, span, Some(0.84), "provider-b"),
         ];
 
         assert_eq!(
             resolve_clause_kind(&evidence, span, SemanticResolutionPolicy::default()),
-            Resolution::Ambiguous(vec![
-                ClauseKind::Requirement,
-                ClauseKind::LimitOrTolerance,
-            ])
+            Resolution::Ambiguous(vec![ClauseKind::Requirement, ClauseKind::LimitOrTolerance,])
         );
     }
 
     #[test]
     fn qualifying_alternative_prevents_false_resolution() {
         let span = CanonicalSpan { start: 2, end: 18 };
-        let mut observation = evidence(
-            ClauseKind::WorkStepResult,
-            span,
-            Some(0.90),
-            "provider-a",
-        );
+        let mut observation = evidence(ClauseKind::WorkStepResult, span, Some(0.90), "provider-a");
         observation.alternatives.push(EvidenceAlternative {
             value: ClauseKind::Condition,
             confidence: Some(0.82),
         });
 
         assert_eq!(
-            resolve_clause_kind(
-                &[observation],
-                span,
-                SemanticResolutionPolicy::default()
-            ),
-            Resolution::Ambiguous(vec![
-                ClauseKind::Condition,
-                ClauseKind::WorkStepResult,
-            ])
+            resolve_clause_kind(&[observation], span, SemanticResolutionPolicy::default()),
+            Resolution::Ambiguous(vec![ClauseKind::Condition, ClauseKind::WorkStepResult,])
         );
     }
 
@@ -224,11 +204,7 @@ mod tests {
         )];
 
         assert_eq!(
-            resolve_clause_kind(
-                &evidence,
-                requested,
-                SemanticResolutionPolicy::default()
-            ),
+            resolve_clause_kind(&evidence, requested, SemanticResolutionPolicy::default()),
             Resolution::Unknown
         );
     }
