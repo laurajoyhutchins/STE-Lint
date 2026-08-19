@@ -39,10 +39,10 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 
 "$PYTHON" tools/semantic-eval/evaluate.py provider \
   --provider spacy --offline \
-  --cases tools/semantic-eval/cases.json \
-  --harper "$OUT_DIR/semantic-harper.json" \
-  --model-dir "$ROOT/.semantic-models/unused" \
-  --output "$OUT_DIR/spacy-results.json"
+    --cases tools/semantic-eval/cases.json \
+    --harper "$OUT_DIR/semantic-harper.json" \
+    --model-dir "$ROOT/.semantic-models/unused" \
+    --output "$OUT_DIR/spacy-results.json"
 
 "$PYTHON" tools/semantic-eval/evaluate.py combine \
   --stanza "$OUT_DIR/stanza-results.json" \
@@ -51,11 +51,8 @@ HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
   --output-md "$OUT_DIR/semantic-provider-results.md"
 
 cat "$OUT_DIR/semantic-provider-results.md"
-printf '%s\n' 'SEMANTIC_PROVIDER_RESULTS_JSON_BEGIN'
-cat "$OUT_DIR/semantic-provider-results.json"
-printf '%s\n' 'SEMANTIC_PROVIDER_RESULTS_JSON_END'
 
-"$PYTHON" - "$OUT_DIR/semantic-provider-results.json" <<'PY'
+SUMMARY="$($PYTHON - "$OUT_DIR/semantic-provider-results.json" <<'PY'
 import json
 import sys
 
@@ -75,16 +72,21 @@ for name, provider in sorted(results["providers"].items()):
         },
         "span_alignment": provider["span_alignment"],
         "metrics": {
-            "dependencies": metrics["dependencies"],
-            "constituency": metrics["constituency"],
-            "entities": metrics["entities"],
-            "coreference": metrics["coreference"],
-            "harper_parity": metrics["harper_parity"],
+            metric_name: metrics[metric_name]
+            for metric_name in (
+                "dependencies",
+                "constituency",
+                "entities",
+                "coreference",
+                "harper_parity",
+            )
         },
     }
 
-print(
-    "SEMANTIC_PROVIDER_SUMMARY_JSON="
-    + json.dumps(summary, sort_keys=True, separators=(",", ":"))
-)
+print(json.dumps(summary, sort_keys=True, separators=(",", ":")))
 PY
+)"
+printf 'SEMANTIC_PROVIDER_SUMMARY_JSON=%s\n' "$SUMMARY"
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  printf '::notice title=Semantic provider summary::%s\n' "$SUMMARY"
+fi
