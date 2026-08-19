@@ -206,3 +206,64 @@ Do not delete a deterministic heuristic merely because a neural provider can dup
 All 51 unresolved rules now have an evidence-class mapping. The current shared analysis substrate already contains reusable grammar, entity/reference, sense, document-graph, and safety facts, so the next real gate is not another rule-specific parser. Gate 2 should make canonical source/span identity provider-neutral, wrap Harper as one evidence provider behind that boundary, add first-class provider/model provenance and alternatives, and preserve all existing diagnostics and rule statuses.
 
 Gate 2 is complete only when existing Harper-backed behavior remains compatible, every exposed provider fact is mapped to repository-owned canonical byte spans, and `Resolved | Ambiguous | Unknown` remains fail-closed without any standards-coverage promotion.
+
+## Gate 6 re-audit after the Gate 5 semantic substrate
+
+This section refreshes the promotion boundary after Gates 2 through 5 landed. It is a current rule re-audit, not a rule-status change.
+
+### Current authority snapshot
+
+The re-audit is against repository `main` at `584ded197d1c9b5e581f20df37e29c7ca302a43a`, with `data/rules.json` blob `9511a28b5a1472faf51f916d2faf4ef7dafb32fc`.
+
+The current coverage ledger contains 53 Issue 9 rules:
+
+- 9 `implemented`;
+- 33 `partial`;
+- 11 `context_required`;
+- 44 rules with at least one unresolved requirement.
+
+The implemented rules are `2.2`, `5.1`, `6.3`, `6.6`, `8.1`, `8.4`, `8.5`, `8.6`, and `8.7`. Their existing claim scopes remain unchanged by this re-audit.
+
+Gate 5 added a source-safe `ClauseKind` evidence type for `Condition`, `Requirement`, `LimitOrTolerance`, and `WorkStepResult` plus a fail-closed semantic resolver. No rule pass consumes `ClauseKind` at this snapshot, so that substrate does not by itself justify a coverage promotion.
+
+### Primary promotion disposition
+
+The Gate 1 evidence classes intentionally overlap. Gate 6 needs one primary disposition per unresolved rule so later work cannot mistake model capability for authority. The following classification applies this precedence:
+
+1. If the unresolved requirement contains a genuinely editorial or human-judgment component, classify it as `editorial/human`.
+2. Otherwise, if it requires governed standard, project, domain, terminology, risk, or other external authority, classify it as `authority-dependent`.
+3. Otherwise, classify it as an `evidence-only candidate`: richer deterministic, generic-NLP, or STE-specific evidence could in principle complete the language-analysis part, subject to rule-level verification and the Gate 6 claim policy.
+
+| Primary disposition | Count | Rules |
+| --- | ---: | --- |
+| Evidence-only candidate | 14 | `1.2`, `2.1`, `3.3`, `3.4`, `3.6`, `4.2`, `5.2`, `5.3`, `5.4`, `5.5`, `7.2`, `7.3`, `8.2`, `8.3` |
+| Authority-dependent | 20 | `1.1`, `1.3`, `1.4`, `1.5`, `1.6`, `1.7`, `1.8`, `1.10`, `1.11`, `1.12`, `1.13`, `1.14`, `3.1`, `3.2`, `3.5`, `3.7`, `7.1`, `9.2`, `9.3`, `9.4` |
+| Editorial/human | 10 | `1.9`, `4.1`, `4.3`, `4.4`, `4.5`, `6.1`, `6.2`, `6.4`, `6.5`, `9.1` |
+
+These buckets are a routing decision, not new evidence. A rule can still consume several evidence classes internally.
+
+### Promotion decision
+
+No rule status changes in this re-audit.
+
+For the 14 evidence-only candidates, a future promotion requires direct rule-level positive, negative, boundary, and ambiguity tests; an explicit resolver policy; fail-closed behavior below the accepted evidence threshold; and representative technical-English benchmark evidence when model-backed facts are part of the claim.
+
+For the 20 authority-dependent rules, language models may identify candidates or relationships, but they cannot grant the missing standard, dictionary, terminology, project, domain, official-name, risk, or other governed authority. A complete automatic claim requires the relevant authority to be represented and compared by repository-owned logic.
+
+For the 10 editorial/human rules, richer NLP may provide measurements or candidate evidence, but the current source-defined requirement still includes judgment that is not safely reduced to an automatic verdict. Promotion requires an explicit defensible policy boundary in addition to evidence quality.
+
+The source-safe Gate 5 characterization (`56/16/17`, macro-F1 `0.875`) remains characterization evidence only. GitHub #64 remains the required representative technical-English benchmark source before final production model selection or model-backed coverage promotion. The current Gate 5 semantic facts may therefore be shadowed or wired into repository-owned analysis without changing a rule's claim status, but they must not be treated as compliance authority.
+
+### Gate 6 execution boundary
+
+The next Gate 6 implementation work must preserve these rules:
+
+- migrate rule consumers to shared semantic facts rather than provider APIs;
+- keep deterministic rules deterministic;
+- do not promote an authority-dependent rule merely because semantic evidence is accurate;
+- do not promote an editorial/human rule without an explicit claim-policy decision;
+- require representative GitHub #64 evidence before a model-backed status promotion;
+- update `data/rules.json`, CLI/docs, and rule tests atomically when a promotion is eventually justified;
+- keep `partial` or `context_required` when the full stated requirement is not established.
+
+This re-audit narrows Gate 6 from 44 undifferentiated unresolved rules to 14 evidence-only promotion candidates plus 30 rules whose current completion boundary is authority or editorial judgment. It does not redefine `implemented` and does not change the repository's compliance claim.
