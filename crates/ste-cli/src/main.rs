@@ -101,6 +101,28 @@ enum ProfileCommands {
     },
 }
 
+impl Commands {
+    fn output_format(&self) -> Option<OutputFormat> {
+        match self {
+            Self::Lint { format, .. }
+            | Self::CheckRewrite { format, .. }
+            | Self::Coverage { format } => Some(*format),
+            Self::Dictionary { command } => match command {
+                DictionaryCommands::Lookup { format, .. } => Some(*format),
+            },
+            Self::Glossary { command } => match command {
+                GlossaryCommands::Check { format, .. }
+                | GlossaryCommands::Effective { format, .. } => Some(*format),
+            },
+            Self::Profile { command } => match command {
+                ProfileCommands::List { format }
+                | ProfileCommands::Show { format, .. } => Some(*format),
+            },
+            Self::Version => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 enum OutputFormat {
     Human,
@@ -144,10 +166,30 @@ impl AppFailure {
 }
 
 fn main() -> ExitCode {
-    match run(Cli::parse()) {
+    let cli = Cli::parse();
+    let json_errors = cli.command.output_format() == Some(OutputFormat::Json);
+    match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(failure) => {
-            eprintln!("{}", failure.message);
+            if json_errors {
+                let kind = match failure.exit_code {
+                    3 => "invalid_data",
+                    _ => "io_or_internal",
+                };
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "schema": "ste-cli-error/v1",
+                        "error": {
+                            "kind": kind,
+                            "exit_code": failure.exit_code,
+                            "message": failure.message
+                        }
+                    })
+                );
+            } else {
+                eprintln!("{}", failure.message);
+            }
             ExitCode::from(failure.exit_code)
         }
     }

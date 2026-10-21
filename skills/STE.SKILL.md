@@ -42,6 +42,10 @@ Preserve modality, epistemic strength, negation, quantities, conditions, actors,
 
 A clean destination lint is not sufficient evidence that a rewrite is safe. `ste check-rewrite` checks the change itself.
 
+## Machine-readable application failures
+
+When invoking a supported subcommand with `--format json`, distinguish the normal lint-result JSON (including `error` or `blocked` diagnostics) from `schema: ste-cli-error/v1`. An application-failure envelope means the command could not complete its intended verification. Use `error.kind` and `error.exit_code` for control flow; do not parse `error.message` to infer authority or classify a finding. Native command-line parsing errors still use Clap stderr.
+
 ## Exit codes
 
 - `0`: clean, accepted, or coverage reported successfully

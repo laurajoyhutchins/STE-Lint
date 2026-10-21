@@ -59,6 +59,23 @@ Issue 9 sentence-length diagnostics use the `issue9_mechanical_v1` analyzer. It 
 
 The runtime dictionary preserves ambiguity instead of selecting an arbitrary record. Mixed approved/unapproved identity produces `STE-LEX-002`; context-backed or grammar-backed rules likewise block when their required identity cannot be selected safely. An unapproved multi-word dictionary entry is not by itself treated as proof of a Rule 9.3 phrasal verb.
 
+## CLI application failures in JSON mode
+
+For subcommands that support `--format json`, an application failure after successful argument parsing produces one JSON object on stdout and retains its existing process exit code. This is distinct from a lint result with ordinary `error` or `blocked` diagnostics, which retains the existing `LintResult` JSON schema and exit status 1 or 2.
+
+```json
+{
+  "schema": "ste-cli-error/v1",
+  "error": {
+    "kind": "invalid_data",
+    "exit_code": 3,
+    "message": "no verified runtime lexicon is configured"
+  }
+}
+```
+
+`kind` is `invalid_data` for required runtime, context, glossary, or profile failures (exit 3), and `io_or_internal` for file I/O and internal failures (exit 4). The message is a human-readable detail, not an identifier; machine clients should branch on the schema, kind, and exit code. Human output remains on stderr. Clap argument/usage parsing errors happen before subcommand format selection and still use Clap's native stderr contract. Do not assume they produce this JSON envelope.
+
 ## Autofix boundary
 
 Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. **No current STE-Lint diagnostic advertises an automatic fix.** In particular, `STE-PUNC-001` never replaces a semicolon with a period: that edit can change sentence structure and meaning. `ste lint --fix` therefore leaves semicolons unchanged and retains their error diagnostics. A human or agent must make a meaning-preserving rewrite, run `ste check-rewrite`, and lint again. Grammar, terminology, verb, note, list, context, safety, entity-semantic, discourse-semantic, and semantic-rewrite diagnostics likewise require explicit review.

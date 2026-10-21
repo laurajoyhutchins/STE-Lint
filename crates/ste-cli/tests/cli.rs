@@ -198,6 +198,124 @@ fn malformed_project_context_fails_closed() {
 }
 
 #[test]
+fn missing_runtime_json_mode_returns_typed_application_error() {
+    let mut file = tempfile::NamedTempFile::new().unwrap();
+    writeln!(file, "USE THIS.").unwrap();
+
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args(["lint", file.path().to_str().unwrap(), "--format", "json"])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(3));
+    assert!(output.stderr.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(error["schema"], "ste-cli-error/v1");
+    assert_eq!(error["error"]["kind"], "invalid_data");
+    assert_eq!(error["error"]["exit_code"], 3);
+    assert!(error["error"]["message"]
+        .as_str()
+        .unwrap()
+        .contains("no verified runtime lexicon"));
+}
+
+#[test]
+fn invalid_profile_json_mode_returns_typed_application_error() {
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args(["profile", "show", "not-a-profile", "--format", "json"])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(3));
+    assert!(output.stderr.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(error["schema"], "ste-cli-error/v1");
+    assert_eq!(error["error"]["kind"], "invalid_data");
+    assert_eq!(error["error"]["exit_code"], 3);
+}
+
+#[test]
+fn invalid_project_context_json_mode_returns_typed_application_error() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    let document = root.path().join("instructions.txt");
+    fs::write(&document, "USE.").unwrap();
+    fs::write(root.path().join(".ste/context.json"), "{not-json").unwrap();
+
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(3));
+    assert!(output.stderr.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(error["schema"], "ste-cli-error/v1");
+    assert_eq!(error["error"]["kind"], "invalid_data");
+    assert!(error["error"]["message"]
+        .as_str()
+        .unwrap()
+        .contains("invalid lint context"));
+}
+
+#[test]
+fn malformed_glossary_json_mode_returns_typed_application_error() {
+    let mut file = tempfile::NamedTempFile::new().unwrap();
+    writeln!(file, "{{not-json").unwrap();
+
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args([
+            "glossary",
+            "check",
+            file.path().to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(3));
+    assert!(output.stderr.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(error["schema"], "ste-cli-error/v1");
+    assert_eq!(error["error"]["kind"], "invalid_data");
+}
+
+#[test]
+fn missing_file_json_mode_returns_typed_io_error() {
+    let directory = tempfile::tempdir().unwrap();
+    let missing = directory.path().join("missing.txt");
+
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args([
+            "check-rewrite",
+            missing.to_str().unwrap(),
+            missing.to_str().unwrap(),
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(4));
+    assert!(output.stderr.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(error["schema"], "ste-cli-error/v1");
+    assert_eq!(error["error"]["kind"], "io_or_internal");
+    assert_eq!(error["error"]["exit_code"], 4);
+    assert!(error["error"]["message"]
+        .as_str()
+        .unwrap()
+        .contains("could not read"));
+}
+
+#[test]
 fn check_rewrite_rejects_modality_change() {
     let mut before = tempfile::NamedTempFile::new().unwrap();
     let mut after = tempfile::NamedTempFile::new().unwrap();
