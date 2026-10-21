@@ -2,7 +2,6 @@ use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 use ste_data::{ApprovalStatus, PartOfSpeech, VerbClassification};
 
-use crate::analysis::source::SourceDocument;
 use crate::document_structure::{safety_blocks, starts_condition};
 use crate::{
     ActionCardinality, AnalysisDocument, LintMode, Resolution, SafetyEvidenceSource, SafetyLevel,
@@ -319,7 +318,6 @@ fn condition_commas(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 // cannot put its condition before that command. A mere keyword match is not
 // sufficient: source authority must settle the grammatical roles.
 fn trailing_conditions(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
-    let source = SourceDocument::with_context(analysis.text(), analysis.context());
     let mut diagnostics = Vec::new();
 
     for sentence in analysis.sentences() {
@@ -327,7 +325,7 @@ fn trailing_conditions(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
             continue;
         };
         let first_token = &analysis.tokens()[first];
-        if source.is_protected(first_token.start, first_token.end)
+        if analysis.is_protected_span(first_token.start, first_token.end)
             || !uniquely_approved_imperative(analysis, first)
             || analysis.text()[sentence.start..sentence.end].contains('"')
         {
@@ -346,7 +344,7 @@ fn trailing_conditions(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         for index in first + 1..last.saturating_sub(1) {
             let token = &analysis.tokens()[index];
             if !matches!(token.text.to_ascii_lowercase().as_str(), "if" | "when")
-                || source.is_protected(token.start, token.end)
+                || analysis.is_protected_span(token.start, token.end)
             {
                 continue;
             }
