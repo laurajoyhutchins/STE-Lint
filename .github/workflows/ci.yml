@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
@@ -43,7 +43,7 @@ jobs:
             printf 'tested SHA: %s\n' "$(git rev-parse HEAD)"
             printf 'tested tree: %s\n' "$(git rev-parse 'HEAD^{tree}')"
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Compile authority ingest tooling
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
