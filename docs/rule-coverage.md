@@ -96,6 +96,15 @@ The projection deterministically handles numeric expressions, governed number-pl
 
 Rule 8.4 is implemented for the supported source model through the parser-backed semantic list tree: the introducing colon terminates its count unit, and wrapped or nested items become independent count units. This does not decide the separate Rule 4.3 editorial question of when prose is complex enough to require a vertical list.
 
+## Rule 5.4 bounded condition ordering
+
+In procedural mode, STE-Lint now diagnoses two mechanical condition-order slices:
+
+- an authored condition that starts with a recognized leading IF/WHEN/BEFORE/AFTER/WHILE marker but has no comma separating it from the command (`STE-PROC-002`);
+- a uniquely approved imperative that precedes an unambiguous approved IF/WHEN conjunction in the same sentence (`STE-PROC-005`).
+
+The second detector consumes the existing shared action evidence, source-backed verb paradigms, canonical byte spans, and already-parsed source protection boundaries. It does not use a raw substring match as proof of a condition. Competing word/POS identities, quoted sentences, Markdown code, descriptive mode, and incomplete clauses do not receive a trailing-condition verdict. Neither detector rewrites sentence meaning or promotes the whole rule to `implemented`; complex clauses still need richer evidence.
+
 ## Deterministic grammar evidence
 
 Generic syntax and morphology are evidence layers, not STE authority. CommonMark supplies document structure, and the pinned Harper/Brill stack supplies deterministic generic token, part-of-speech, chunk, and morphology evidence. Approval, grammatical identity, allowed forms, and terminology identity still come from the verified ASD-STE100 runtime or governed project terminology. If competing authoritative interpretations would produce different rule verdicts, the linter blocks or leaves the application unresolved instead of selecting a heuristic answer.
