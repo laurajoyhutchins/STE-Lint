@@ -63,7 +63,7 @@ fn lint(
     lint_text(text, &runtime, None, LintOptions { mode, fix: false })
 }
 
-fn trailing<'a>(result: &'a LintResult) -> Vec<&'a ste_core::Diagnostic> {
+fn trailing(result: &LintResult) -> Vec<&ste_core::Diagnostic> {
     result
         .diagnostics
         .iter()
