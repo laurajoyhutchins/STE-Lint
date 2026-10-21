@@ -53,14 +53,14 @@ fn lexicon(ambiguous_condition: bool, ambiguous_command: bool) -> RuntimeLexicon
     .unwrap()
 }
 
-fn lint(text: &str, mode: LintMode, ambiguous_condition: bool, ambiguous_command: bool) -> LintResult {
+fn lint(
+    text: &str,
+    mode: LintMode,
+    ambiguous_condition: bool,
+    ambiguous_command: bool,
+) -> LintResult {
     let runtime = lexicon(ambiguous_condition, ambiguous_command);
-    lint_text(
-        text,
-        &runtime,
-        None,
-        LintOptions { mode, fix: false },
-    )
+    lint_text(text, &runtime, None, LintOptions { mode, fix: false })
 }
 
 fn trailing<'a>(result: &'a LintResult) -> Vec<&'a ste_core::Diagnostic> {
@@ -126,7 +126,12 @@ fn code_span_condition_marker_is_not_prose_evidence() {
 
 #[test]
 fn quoted_word_is_not_assumed_to_introduce_a_condition() {
-    let result = lint("REMOVE \"WHEN READY\" LABEL.", LintMode::Procedural, false, false);
+    let result = lint(
+        "REMOVE \"WHEN READY\" LABEL.",
+        LintMode::Procedural,
+        false,
+        false,
+    );
     assert!(trailing(&result).is_empty());
 }
 
@@ -137,7 +142,10 @@ fn utf8_prefix_preserves_condition_byte_span() {
     let diagnostics = trailing(&result);
     assert_eq!(diagnostics.len(), 1);
     let expected = text.find("IF READY").unwrap();
-    assert_eq!((diagnostics[0].span.start, diagnostics[0].span.end), (expected, expected + 2));
+    assert_eq!(
+        (diagnostics[0].span.start, diagnostics[0].span.end),
+        (expected, expected + 2)
+    );
 }
 
 #[test]
