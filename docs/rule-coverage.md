@@ -127,6 +127,12 @@ Generic syntax and morphology are evidence layers, not STE authority. CommonMark
 
 The deterministic-rule audit deliberately leaves source requirements partial when meaning or editorial judgment remains necessary. Rule 3.7 still requires identifying an action-denoting non-verb and the applicable approved verb. Rule 4.3 still requires deciding that prose is sufficiently complex to require a vertical list. Rule 1.14 still requires a versioned offline American-English spelling authority plus governed external-directive exceptions for a complete claim.
 
+## Rule 4.2 authored-text contraction boundary
+
+The deterministic Rule 4.2 contraction checker now consumes the shared canonical source projection. It diagnoses recognized contractions in STE-authored prose, including authored quotations, titles, labels, and placards. It excludes inline/fenced code and explicitly governed protected, immutable quoted-external, formula, and document-numbering spans. A protected contraction never hides an immediately adjacent authored contraction.
+
+The supported contraction patterns and deliberate avoidance of ambiguous possessive `'s` forms remain unchanged. This is a source-boundary correction, not inference of omitted words or a promotion from `partial`.
+
 ## Rule 8.1 authored-text boundary
 
 Rule 8.1 is enforced as a semicolon prohibition in STE-authored text. The implementation does not treat general English punctuation correctness as an unresolved Rule 8.1 requirement.

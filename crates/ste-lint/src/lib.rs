@@ -106,7 +106,7 @@ fn collect_diagnostics(
 ) -> Vec<Diagnostic> {
     let analysis = AnalysisDocument::new(text, lexicon, glossary, context, mode);
     let mut diagnostics = passes::punctuation::check(&analysis);
-    diagnostics.extend(passes::contractions::check(text));
+    diagnostics.extend(passes::contractions::check(&analysis));
     diagnostics.extend(passes::length::check(&analysis));
     diagnostics.extend(passes::lists::check(&analysis));
     diagnostics.extend(passes::notes::check(text, lexicon, mode));

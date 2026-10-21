@@ -1,9 +1,13 @@
 use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 
-pub(crate) fn check(text: &str) -> Vec<Diagnostic> {
+use crate::AnalysisDocument;
+
+pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let text = analysis.text();
     word_spans(text)
         .into_iter()
+        .filter(|(start, end)| !analysis.is_protected_span(*start, *end))
         .filter_map(|(start, end)| {
             let raw = &text[start..end];
             is_contraction(raw).then(|| Diagnostic {
