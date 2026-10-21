@@ -1,12 +1,47 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ste-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   authority-ingest:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Bind exact CI candidate
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            read -r tested base head extra <<< "$(git rev-list --parents -n 1 HEAD)"
+            test -z "${extra:-}"
+            test "$tested" = "$EXPECTED_SHA"
+            test "$head" = "$PR_HEAD_SHA"
+          fi
+          {
+            echo '### Verification identity'
+            printf 'tested SHA: %s\n' "$(git rev-parse HEAD)"
+            printf 'tested tree: %s\n' "$(git rev-parse 'HEAD^{tree}')"
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -22,8 +57,32 @@ jobs:
 
   rust:
     runs-on: ubuntu-24.04
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Bind exact CI candidate
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            read -r tested base head extra <<< "$(git rev-list --parents -n 1 HEAD)"
+            test -z "${extra:-}"
+            test "$tested" = "$EXPECTED_SHA"
+            test "$head" = "$PR_HEAD_SHA"
+          fi
+          {
+            echo '### Verification identity'
+            printf 'tested SHA: %s\n' "$(git rev-parse HEAD)"
+            printf 'tested tree: %s\n' "$(git rev-parse 'HEAD^{tree}')"
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Install pinned Rust toolchain
         run: >-
           rustup toolchain install 1.97.1
