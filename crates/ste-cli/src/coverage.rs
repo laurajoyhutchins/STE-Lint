@@ -1,6 +1,8 @@
 use std::collections::{BTreeMap, HashSet};
 
 use serde::{Deserialize, Serialize};
+use ste_core::{Diagnostic, Severity};
+use ste_lint::LintMode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -41,6 +43,79 @@ pub(crate) struct RuleCoverageManifest {
     pub full_compliance_claimed: bool,
     pub coverage_model: String,
     pub rules: Vec<RuleCoverage>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum RuleAssessment {
+    ViolationDetected,
+    Blocked,
+    CheckedWithinScope,
+    UnresolvedCoverage,
+    NotEvaluated,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct RuleRunAssessment {
+    pub id: String,
+    pub coverage_status: CoverageStatus,
+    pub assessment: RuleAssessment,
+    pub observed_diagnostic_codes: Vec<String>,
+    pub claim_scope: String,
+    pub unresolved_requirements: Vec<String>,
+}
+
+pub(crate) fn assess_rule_run(
+    manifest: &RuleCoverageManifest,
+    diagnostics: &[Diagnostic],
+    mode: LintMode,
+) -> Vec<RuleRunAssessment> {
+    let globally_blocked = diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "STE-CTX-000");
+    manifest
+        .rules
+        .iter()
+        .map(|rule| {
+            let relevant = diagnostics
+                .iter()
+                .filter(|diagnostic| diagnostic.rules.iter().any(|id| id == &rule.id))
+                .collect::<Vec<_>>();
+            let assessment = if relevant.iter().any(|d| d.severity == Severity::Error) {
+                RuleAssessment::ViolationDetected
+            } else if relevant.iter().any(|d| d.severity == Severity::Blocked) {
+                RuleAssessment::Blocked
+            } else if globally_blocked || mode_excludes_rule(&rule.id, mode) {
+                RuleAssessment::NotEvaluated
+            } else {
+                match rule.status {
+                    CoverageStatus::Implemented => RuleAssessment::CheckedWithinScope,
+                    CoverageStatus::Partial => RuleAssessment::UnresolvedCoverage,
+                    CoverageStatus::ContextRequired | CoverageStatus::NotImplemented => {
+                        RuleAssessment::NotEvaluated
+                    }
+                }
+            };
+            RuleRunAssessment {
+                id: rule.id.clone(),
+                coverage_status: rule.status,
+                assessment,
+                observed_diagnostic_codes: relevant
+                    .iter()
+                    .map(|diagnostic| diagnostic.code.clone())
+                    .collect(),
+                claim_scope: rule.claim_scope.clone(),
+                unresolved_requirements: rule.unresolved_requirements.clone(),
+            }
+        })
+        .collect()
+}
+
+fn mode_excludes_rule(id: &str, mode: LintMode) -> bool {
+    matches!(
+        (id, mode),
+        ("5.1", LintMode::Descriptive) | ("6.3" | "6.6", LintMode::Procedural)
+    )
 }
 
 impl RuleCoverageManifest {
