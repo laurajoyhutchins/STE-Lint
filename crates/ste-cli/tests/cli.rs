@@ -213,10 +213,12 @@ fn missing_runtime_json_mode_returns_typed_application_error() {
     assert_eq!(error["schema"], "ste-cli-error/v1");
     assert_eq!(error["error"]["kind"], "invalid_data");
     assert_eq!(error["error"]["exit_code"], 3);
-    assert!(error["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("no verified runtime lexicon"));
+    assert!(
+        error["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("no verified runtime lexicon")
+    );
 }
 
 #[test]
@@ -258,10 +260,12 @@ fn invalid_project_context_json_mode_returns_typed_application_error() {
     let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(error["schema"], "ste-cli-error/v1");
     assert_eq!(error["error"]["kind"], "invalid_data");
-    assert!(error["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("invalid lint context"));
+    assert!(
+        error["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("invalid lint context")
+    );
 }
 
 #[test]
@@ -309,10 +313,12 @@ fn missing_file_json_mode_returns_typed_io_error() {
     assert_eq!(error["schema"], "ste-cli-error/v1");
     assert_eq!(error["error"]["kind"], "io_or_internal");
     assert_eq!(error["error"]["exit_code"], 4);
-    assert!(error["error"]["message"]
-        .as_str()
-        .unwrap()
-        .contains("could not read"));
+    assert!(
+        error["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("could not read")
+    );
 }
 
 #[test]
