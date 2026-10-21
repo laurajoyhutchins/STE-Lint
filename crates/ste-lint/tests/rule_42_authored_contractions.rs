@@ -107,7 +107,10 @@ fn curly_apostrophe_and_unicode_prefix_keep_byte_offsets() {
 
     assert_eq!(
         contractions(&result),
-        vec![(first, first + "DON'T".len()), (second, second + "WE’RE".len())]
+        vec![
+            (first, first + "DON'T".len()),
+            (second, second + "WE’RE".len())
+        ]
     );
 }
 
