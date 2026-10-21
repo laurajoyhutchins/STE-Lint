@@ -17,6 +17,7 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
 
     diagnostics.extend(action_cardinality(analysis));
     diagnostics.extend(condition_commas(analysis));
+    diagnostics.extend(trailing_conditions(analysis));
     diagnostics.extend(imperative_forms(analysis));
     diagnostics
 }
@@ -310,6 +311,94 @@ fn condition_commas(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         });
     }
     diagnostics
+}
+
+// Rule 5.4 has a second mechanical slice beyond missing commas:
+// a uniquely approved imperative followed by an unambiguous IF/WHEN conjunction
+// cannot put its condition before that command. A mere keyword match is not
+// sufficient: source authority must settle the grammatical roles.
+fn trailing_conditions(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+
+    for sentence in analysis.sentences() {
+        let (Some(first), Some(last)) = (sentence.first_token, sentence.last_token) else {
+            continue;
+        };
+        let first_token = &analysis.tokens()[first];
+        if analysis.is_protected_span(first_token.start, first_token.end)
+            || !uniquely_approved_imperative(analysis, first)
+            || analysis.text()[sentence.start..sentence.end].contains('"')
+        {
+            continue;
+        }
+
+        // The shared grammar evidence must resolve the opening as a command;
+        // conflicting or missing action structure is not proof of an inversion.
+        if !matches!(
+            analysis.action_structure(sentence.id),
+            Resolution::Resolved(_)
+        ) {
+            continue;
+        }
+
+        for index in first + 1..last.saturating_sub(1) {
+            let token = &analysis.tokens()[index];
+            if !matches!(token.text.to_ascii_lowercase().as_str(), "if" | "when")
+                || analysis.is_protected_span(token.start, token.end)
+            {
+                continue;
+            }
+            let Some(matched) = analysis.dictionary_match_at(index, 1) else {
+                continue;
+            };
+            if matched.candidates.is_empty()
+                || !matched.candidates.iter().all(|entry| {
+                    entry.status == ApprovalStatus::Approved
+                        && entry.part_of_speech == Some(PartOfSpeech::Conjunction)
+                })
+            {
+                continue;
+            }
+
+            diagnostics.push(Diagnostic {
+                code: "STE-PROC-005".into(),
+                severity: Severity::Error,
+                message:
+                    "Resolved procedural command precedes an IF/WHEN condition; put the condition first."
+                        .into(),
+                span: Span {
+                    start: token.start,
+                    end: token.end,
+                },
+                rules: vec!["5.4".into()],
+                evidence: Some(json!({
+                    "condition_position": "after_command",
+                    "condition_marker": token.text,
+                    "command_start": first_token.start,
+                    "command_end": first_token.end,
+                    "grammar_resolution": "uniquely_approved_imperative_and_conjunction",
+                })),
+                autofix: None,
+            });
+            break;
+        }
+    }
+    diagnostics
+}
+
+fn uniquely_approved_imperative(analysis: &AnalysisDocument<'_>, token_index: usize) -> bool {
+    let Some(matched) = analysis.dictionary_match_at(token_index, 1) else {
+        return false;
+    };
+    !matched.candidates.is_empty()
+        && matched.candidates.iter().all(|entry| {
+            entry.status == ApprovalStatus::Approved
+                && entry.part_of_speech == Some(PartOfSpeech::Verb)
+                && entry.verb_paradigm.as_ref().is_some_and(|paradigm| {
+                    paradigm.classification == VerbClassification::Lexical
+                        && matched.text.eq_ignore_ascii_case(&paradigm.base_form)
+                })
+        })
 }
 
 fn safety_openings(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {

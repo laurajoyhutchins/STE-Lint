@@ -20,6 +20,7 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | `STE-PROC-001` | error | A procedural instruction begins with a source-backed lexical verb form that is not its base form. | 5.3 | none |
 | `STE-PROC-002` | error | A leading procedural condition lacks the comma that separates it from the command. | 5.4 | none |
 | `STE-PROC-003` | error | Shared Grammar v1 uniquely resolves more than one action in a procedural instruction. | 5.2 | none |
+| `STE-PROC-005` | error | A uniquely approved procedural imperative is followed by an unambiguously approved `IF` or `WHEN` conjunction, placing the condition after its command. | 5.4 | none |
 | `STE-NOTE-001` | error | A procedural `NOTE:` sentence begins with an unambiguous approved imperative base form. | 5.5 | none |
 | `STE-NOTE-002` | blocked | A `NOTE:` opening can be an imperative base form but has a competing approved identity. | 5.5 | none |
 | `STE-SAFE-001` | error | A `WARNING:` or `CAUTION:` does not begin with a clear command or condition in the bounded safety-opening model. | 7.2 | none |
