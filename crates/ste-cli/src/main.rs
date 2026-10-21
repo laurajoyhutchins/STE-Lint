@@ -115,8 +115,9 @@ impl Commands {
                 | GlossaryCommands::Effective { format, .. } => Some(*format),
             },
             Self::Profile { command } => match command {
-                ProfileCommands::List { format }
-                | ProfileCommands::Show { format, .. } => Some(*format),
+                ProfileCommands::List { format } | ProfileCommands::Show { format, .. } => {
+                    Some(*format)
+                }
             },
             Self::Version => None,
         }
