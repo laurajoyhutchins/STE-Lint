@@ -150,11 +150,17 @@ Rule-specific fixtures for the implemented 2.2, 8.1, and 8.6 work are also indep
 The 53 rules classify as:
 
 - 9 `implemented`;
-- 33 `partial`;
-- 11 `context_required`;
+- 34 `partial`;
+- 10 `context_required`;
 - 0 `not_implemented`.
 
 The implemented rules are 2.2, 5.1, 6.3, 6.6, 8.1, 8.4, 8.5, 8.6, and 8.7. Rules 5.1 and 6.3 use the completed shared Issue 9 count-group model. Rule 6.6 uses parser-backed paragraph identity, and Rule 8.4 uses the shared semantic list tree and canonical count projection. `data/rules.json` is the authority for every exact per-rule claim boundary.
+
+## Governed terminology consistency (Rule 9.4)
+
+The shared entity analysis can prove when two authored mentions express the same approved project technical-noun concept but use different canonical/synonym forms. The `STE-TERM-005` diagnostic reports that discrepancy and cites both source spans plus the governed glossary identity and its sources. This is a bounded document-wide terminology check: it does not infer referents from prose, and a lack of glossary authority is not a consistency pass.
+
+The check explicitly excludes abbreviations, acronyms, permitted short forms, grammatical inflections, code, protected external text, deprecated terms, and mentions with competing official-name authority. It does not judge whether work steps express the same operation or whether a general sentence rewrite is necessary. Rule 9.4 is `partial`. Rule 1.11 still requires governed physical-item identity and remains `context_required`.
 
 ## Claim boundary
 

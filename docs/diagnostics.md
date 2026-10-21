@@ -41,6 +41,7 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 | `STE-TERM-002` | error | A matched technical term is deprecated by the project glossary. | 1.8 for governed technical nouns; project terminology governance otherwise | none |
 | `STE-TERM-003` | error | A governed technical noun is used in the bounded imperative verb position. | 1.7 | none |
 | `STE-TERM-004` | error | A governed technical verb is used in the bounded noun position after a determiner. | 1.13 | none |
+| `STE-TERM-005` | error | Approved canonical and explicit synonym terms for one uniquely governed technical noun are used inconsistently across authored text. | 9.4 | none |
 | `STE-CTX-000` | blocked | Supplied project context is structurally invalid, out of range, not UTF-8 aligned, overlapping where prohibited, or inconsistent with the asserted evidence shape. | context integrity | none |
 | `STE-CTX-001` | error | Project authority explicitly resolves a dictionary occurrence to a meaning that is not approved. | 1.3, 9.2 | none |
 | `STE-CTX-002` | error | Project authority explicitly classifies a technical noun as regional, slang, or jargon. | 1.10 | none |
