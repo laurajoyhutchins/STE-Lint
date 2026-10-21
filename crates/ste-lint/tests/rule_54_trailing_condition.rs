@@ -90,25 +90,45 @@ fn command_followed_by_if_condition_is_reported_with_source_coordinates() {
 
 #[test]
 fn command_followed_by_when_condition_is_reported() {
-    let result = lint("REMOVE POWER WHEN READY.", LintMode::Procedural, false, false);
+    let result = lint(
+        "REMOVE POWER WHEN READY.",
+        LintMode::Procedural,
+        false,
+        false,
+    );
     assert_eq!(trailing(&result).len(), 1);
 }
 
 #[test]
 fn leading_condition_is_not_reported_as_trailing() {
-    let result = lint("IF READY, REMOVE POWER.", LintMode::Procedural, false, false);
+    let result = lint(
+        "IF READY, REMOVE POWER.",
+        LintMode::Procedural,
+        false,
+        false,
+    );
     assert!(trailing(&result).is_empty());
 }
 
 #[test]
 fn descriptive_text_does_not_use_procedural_ordering() {
-    let result = lint("REMOVE POWER IF READY.", LintMode::Descriptive, false, false);
+    let result = lint(
+        "REMOVE POWER IF READY.",
+        LintMode::Descriptive,
+        false,
+        false,
+    );
     assert!(trailing(&result).is_empty());
 }
 
 #[test]
 fn ambiguous_condition_word_is_not_assumed_to_be_a_conjunction() {
-    let result = lint("REMOVE POWER WHEN READY.", LintMode::Procedural, true, false);
+    let result = lint(
+        "REMOVE POWER WHEN READY.",
+        LintMode::Procedural,
+        true,
+        false,
+    );
     assert!(trailing(&result).is_empty());
 }
 
@@ -120,7 +140,12 @@ fn ambiguous_command_identity_does_not_create_ordering_verdict() {
 
 #[test]
 fn code_span_condition_marker_is_not_prose_evidence() {
-    let result = lint("REMOVE POWER `IF READY`.", LintMode::Procedural, false, false);
+    let result = lint(
+        "REMOVE POWER `IF READY`.",
+        LintMode::Procedural,
+        false,
+        false,
+    );
     assert!(trailing(&result).is_empty());
 }
 
