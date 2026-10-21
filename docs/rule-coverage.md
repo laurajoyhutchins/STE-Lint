@@ -15,6 +15,22 @@ Coverage inspection does not require `--lexicon` or `STE_LINT_LEXICON`. This let
 
 The human summary reports status counts and always states that full Issue 9 compliance is not claimed. JSON output exposes every rule entry, including its evidence and remaining gaps.
 
+## Per-document rule assessment report
+
+Use `ste lint <path> --format json --rule-report` to obtain a `ste-lint-rule-report/v1` JSON response. The response includes the unmodified `LintResult` under `lint`, all 53 manifest-backed entries under `rules`, and an explicit `full_compliance_claimed: false` flag. Existing JSON lint consumers are unchanged unless they request the new flag.
+
+Each entry records its static `coverage_status`, actual `observed_diagnostic_codes`, `claim_scope`, unresolved requirements, and one **per-run** assessment:
+
+- `violation_detected`: a rule-linked error diagnostic was found;
+- `blocked`: rule-linked evidence explicitly blocked a verdict;
+- `checked_within_scope`: an `implemented` rule's supported scope produced no error or blocker (not full standards compliance);
+- `unresolved_coverage`: a `partial` rule produced no detected violation but has outstanding applications; this is **not a pass**;
+- `not_evaluated`: a context-required or unimplemented rule lacked executable evidence, or invalid global context blocked meaningful rule evaluation.
+
+Mode-inapplicable checks are `not_evaluated`, not `checked_within_scope`. For example, Rule 5.1 is procedural, while Rules 6.3 and 6.6 are descriptive; procedural-mode notes can still produce their appropriate sentence-length diagnostics, but an absence of such a diagnostic is not proof that the descriptive rule was comprehensively evaluated.
+
+A rule with both error and blocked diagnostics is assessed as `violation_detected`; the original diagnostics retain both facts. This report is not a second linter, and it does not infer fact-level success from missing diagnostics. It is a conservative interpretation of the same executed passes and coverage manifest.
+
 ## Per-rule evidence fields
 
 Every rule entry contains:

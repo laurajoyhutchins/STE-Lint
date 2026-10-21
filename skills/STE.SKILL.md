@@ -27,6 +27,8 @@ Do not convert “no diagnostics from implemented checks” into “ASD-STE100 c
 
 For `STE-TERM-001`, use the technical-glossary workflow instead of inventing a replacement.
 
+For machine-consumed evidence on a specific file, prefer `ste lint <file> --mode procedural --format json --rule-report`. The `rules` array distinguishes found violations, explicit blockers, checks within the bounded implemented scope, incomplete partial coverage, and wholly not-evaluated rules. Treat `unresolved_coverage` and `not_evaluated` as outstanding review, never as compliance approval. The default lint JSON contract is unchanged without `--rule-report`.
+
 ## Coverage contract
 
 - `implemented`: the current executable text-level rule scope is covered.

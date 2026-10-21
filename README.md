@@ -139,6 +139,14 @@ Apply only whitelisted deterministic fixes:
 ste lint instructions.md --mode procedural --fix
 ```
 
+Inspect the **per-document** result alongside honest rule coverage:
+
+```bash
+ste --lexicon /private/path/runtime-lexicon.json lint instructions.md --mode procedural --format json --rule-report
+```
+
+The opt-in `--rule-report` wraps the ordinary lint result with 53 rule assessments. A detected violation is not a clean check; a partial rule without a diagnostic remains `unresolved_coverage`; and a context-required rule without evidence is `not_evaluated`. Only `implemented` rule scopes can report `checked_within_scope`. The test lexicon can exercise this format for development but cannot establish production compliance. Default `ste lint --format json` output remains unchanged.
+
 Inspect executable Issue 9 coverage without requiring the private runtime:
 
 ```bash

@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand, ValueEnum};
-use coverage::{CoverageStatus, RuleCoverageManifest};
+use coverage::{CoverageStatus, RuleCoverageManifest, RuleRunAssessment, assess_rule_run};
 use profiles::{builtin_profile, builtin_profiles, resolve_effective_glossary};
 use serde::Serialize;
 use ste_core::{Diagnostic, Severity};
@@ -35,6 +35,8 @@ enum Commands {
         path: PathBuf,
         #[arg(long)]
         fix: bool,
+        #[arg(long)]
+        rule_report: bool,
         #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
         format: OutputFormat,
         #[arg(long, value_enum, default_value_t = ModeArg::Descriptive)]
@@ -206,11 +208,13 @@ fn run(cli: Cli) -> Result<u8, AppFailure> {
         Commands::Lint {
             path,
             fix,
+            rule_report,
             format,
             mode,
         } => run_lint(
             &path,
             fix,
+            rule_report,
             format,
             mode.into(),
             lexicon.as_deref(),
@@ -231,14 +235,28 @@ fn run(cli: Cli) -> Result<u8, AppFailure> {
     }
 }
 
+#[derive(Serialize)]
+struct LintRuleReport<'a> {
+    schema: &'static str,
+    lint: &'a LintResult,
+    rules: Vec<RuleRunAssessment>,
+    full_compliance_claimed: bool,
+}
+
 fn run_lint(
     path: &Path,
     fix: bool,
+    rule_report: bool,
     format: OutputFormat,
     mode: LintMode,
     lexicon_path: Option<&Path>,
     allow_test_lexicon: bool,
 ) -> Result<u8, AppFailure> {
+    if rule_report && format != OutputFormat::Json {
+        return Err(AppFailure::invalid_data(
+            "--rule-report requires --format json",
+        ));
+    }
     let (lexicon, _) = runtime_lexicon(lexicon_path, allow_test_lexicon)?;
     let original = read_text(path)?;
     let effective = resolve_effective_glossary(path).map_err(AppFailure::invalid_data)?;
@@ -257,7 +275,18 @@ fn run_lint(
         })?;
     }
 
-    print_lint_result(&result, format)?;
+    if rule_report {
+        let manifest = RuleCoverageManifest::embedded().map_err(AppFailure::internal)?;
+        let rules = assess_rule_run(&manifest, &result.diagnostics, mode);
+        print_json(&LintRuleReport {
+            schema: "ste-lint-rule-report/v1",
+            lint: &result,
+            rules,
+            full_compliance_claimed: false,
+        })?;
+    } else {
+        print_lint_result(&result, format)?;
+    }
     Ok(exit_code_for_diagnostics(&result.diagnostics))
 }
 
