@@ -8,6 +8,6 @@ Automatic push CI runs on `main`. Pull requests into the repository run the same
 
 ## Residual environment limits
 
-Exact repository inputs do not fully pin the hosted CI machine. GitHub's `ubuntu-24.04` runner image is platform-managed and changes over time. The authority-ingest job requests Python 3.13, not a specific patch release. `actions/checkout@v4` and `actions/setup-python@v5` intentionally follow their maintained major-version action lines rather than exact action commit SHAs.
+Exact repository inputs do not fully pin the hosted CI machine. GitHub's `ubuntu-24.04` runner image is platform-managed and changes over time. The authority-ingest job requests Python 3.13, not a specific patch release. `actions/checkout@v7` and `actions/setup-python@v7` follow maintained Node 24-based major-version action lines rather than exact action commit SHAs. GitHub-hosted `ubuntu-24.04` runners meet the current action runtime requirement; any future self-hosted runner must be at least Actions Runner v2.327.1.
 
 These limits describe the CI execution environment. They do not relax the repository's source, runtime-identity, standards-authority, or exact-head evidence requirements.
