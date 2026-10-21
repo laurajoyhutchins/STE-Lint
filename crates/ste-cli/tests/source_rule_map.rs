@@ -168,7 +168,7 @@ fn audited_coverage_preserves_the_verified_rule_boundary() {
         *counts.entry(rule["status"].as_str().unwrap()).or_default() += 1;
     }
     assert_eq!(counts.get("implemented"), Some(&9));
-    assert_eq!(counts.get("partial"), Some(&33));
-    assert_eq!(counts.get("context_required"), Some(&11));
+    assert_eq!(counts.get("partial"), Some(&34));
+    assert_eq!(counts.get("context_required"), Some(&10));
     assert_eq!(counts.get("not_implemented"), None);
 }

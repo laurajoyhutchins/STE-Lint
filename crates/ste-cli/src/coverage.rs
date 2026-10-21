@@ -291,6 +291,7 @@ mod tests {
         assert_eq!(status("1.4"), CoverageStatus::Partial);
         assert_eq!(status("1.10"), CoverageStatus::Partial);
         assert_eq!(status("1.14"), CoverageStatus::Partial);
+        assert_eq!(status("9.4"), CoverageStatus::Partial);
         assert_eq!(status("3.1"), CoverageStatus::Partial);
         assert_eq!(status("3.4"), CoverageStatus::Partial);
         assert_eq!(status("5.3"), CoverageStatus::Partial);
@@ -299,10 +300,10 @@ mod tests {
 
         let counts = manifest.status_counts();
         assert_eq!(counts.get(&CoverageStatus::Implemented).copied(), Some(9));
-        assert_eq!(counts.get(&CoverageStatus::Partial).copied(), Some(33));
+        assert_eq!(counts.get(&CoverageStatus::Partial).copied(), Some(34));
         assert_eq!(
             counts.get(&CoverageStatus::ContextRequired).copied(),
-            Some(11)
+            Some(10)
         );
         assert_eq!(
             counts
