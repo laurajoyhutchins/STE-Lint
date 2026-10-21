@@ -135,7 +135,10 @@ fn lint_fix_json_preserves_semicolons_and_does_not_offer_autofix() {
         .find(|diagnostic| diagnostic["code"] == "STE-PUNC-001")
         .expect("expected semicolon diagnostic");
     assert!(semicolon["autofix"].is_null());
-    assert_eq!(fs::read_to_string(file.path()).unwrap(), "USE THIS; USE THIS.\n");
+    assert_eq!(
+        fs::read_to_string(file.path()).unwrap(),
+        "USE THIS; USE THIS.\n"
+    );
 }
 
 #[test]
