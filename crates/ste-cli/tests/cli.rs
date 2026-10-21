@@ -107,6 +107,41 @@ fn lint_fix_does_not_apply_unsafe_semicolon_replacement() {
 }
 
 #[test]
+fn lint_fix_json_preserves_semicolons_and_does_not_offer_autofix() {
+    let mut file = tempfile::NamedTempFile::new().unwrap();
+    writeln!(file, "USE THIS; USE THIS.").unwrap();
+
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            file.path().to_str().unwrap(),
+            "--fix",
+            "--format",
+            "json",
+            "--mode",
+            "procedural",
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(1));
+    let result: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(result["text"], "USE THIS; USE THIS.\n");
+    let semicolon = result["diagnostics"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|diagnostic| diagnostic["code"] == "STE-PUNC-001")
+        .expect("expected semicolon diagnostic");
+    assert!(semicolon["autofix"].is_null());
+    assert_eq!(
+        fs::read_to_string(file.path()).unwrap(),
+        "USE THIS; USE THIS.\n"
+    );
+}
+
+#[test]
 fn lint_discovers_nearest_project_context() {
     let root = tempfile::tempdir().unwrap();
     let nested = root.path().join("docs");

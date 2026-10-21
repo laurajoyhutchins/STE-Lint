@@ -6,7 +6,7 @@ Diagnostic codes are the stable external API. ASD-STE100 rule numbers are attach
 
 | Code | Severity | Meaning | Rule provenance | Autofix |
 | --- | --- | --- | --- | --- |
-| `STE-PUNC-001` | error | A semicolon is present. | 8.1 | `;` to `.` |
+| `STE-PUNC-001` | error | A semicolon occurs in STE-authored text. | 8.1 | none |
 | `STE-PUNC-002` | error | Project evidence explicitly says the words joined by a hyphen are not directly related. | 8.2 | none |
 | `STE-PUNC-003` | error | Project evidence explicitly classifies a parenthetical use outside the allowed Rule 8.3 categories. | 8.3 | none |
 | `STE-SYN-001` | error | A deterministic contraction form is present. | 4.2 | none |
@@ -61,7 +61,7 @@ The runtime dictionary preserves ambiguity instead of selecting an arbitrary rec
 
 ## Autofix boundary
 
-Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. The current implementation only autofixes `STE-PUNC-001` semicolons. Grammar, terminology, verb, note, list, context, safety, entity-semantic, discourse-semantic, and semantic-rewrite diagnostics do not receive automatic edits when a safe repair can depend on meaning or document context.
+Only diagnostics carrying explicit `autofix` metadata can be changed mechanically. **No current STE-Lint diagnostic advertises an automatic fix.** In particular, `STE-PUNC-001` never replaces a semicolon with a period: that edit can change sentence structure and meaning. `ste lint --fix` therefore leaves semicolons unchanged and retains their error diagnostics. A human or agent must make a meaning-preserving rewrite, run `ste check-rewrite`, and lint again. Grammar, terminology, verb, note, list, context, safety, entity-semantic, discourse-semantic, and semantic-rewrite diagnostics likewise require explicit review.
 
 ## Coverage relationship
 
