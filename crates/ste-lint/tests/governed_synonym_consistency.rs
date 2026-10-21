@@ -1,6 +1,6 @@
 use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
-use ste_lint::{LintContext, LintMode, LintOptions, LintResult, lint_text_with_context};
+use ste_lint::{AnalysisDocument, LintContext, LintMode, LintOptions, LintResult, Resolution, lint_text_with_context};
 
 fn glossary() -> Glossary {
     Glossary::from_json(
@@ -63,6 +63,24 @@ fn terminology_diagnostics(result: &LintResult) -> Vec<&ste_core::Diagnostic> {
 #[test]
 fn governed_synonym_change_for_same_entity_is_reported() {
     let text = "THE BUSWAY IS READY. THE BUS DUCT IS READY.";
+    let lexicon = RuntimeLexicon::embedded().unwrap();
+    let glossary = glossary();
+    let analysis = AnalysisDocument::new(
+        text,
+        &lexicon,
+        Some(&glossary),
+        None,
+        LintMode::Descriptive,
+    );
+    let mentions = analysis.entity_mentions();
+    assert_eq!(mentions.len(), 2, "governed mentions: {mentions:?}");
+    for mention in &mentions {
+        let resolution = analysis.entity_mention_at(mention.span.token_start);
+        assert!(
+            matches!(resolution, Resolution::Resolved(_)),
+            "governed span should uniquely resolve: {resolution:?}"
+        );
+    }
     let result = lint(text, None);
     let diagnostics = terminology_diagnostics(&result);
 
