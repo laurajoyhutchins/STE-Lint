@@ -159,6 +159,12 @@ impl<'a> AnalysisDocument<'a> {
         self.source.span(start, end)
     }
 
+    pub(crate) fn is_protected_span(&self, start: usize, end: usize) -> bool {
+        self.source
+            .span(start, end)
+            .is_some_and(|span| self.source.is_protected(span))
+    }
+
     pub fn lexical_evidence(&self) -> &[AnalysisEvidence<LexicalObservation>] {
         &self.lexical_evidence
     }
