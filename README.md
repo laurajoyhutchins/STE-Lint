@@ -172,6 +172,8 @@ Validate a project technical glossary:
 ste glossary check .ste/terms.json --format json
 ```
 
+Machine clients can request `--format json` on supported subcommands. Successful results and lint diagnostics preserve their established JSON shapes; application failures after argument parsing return a versioned `ste-cli-error/v1` envelope on stdout with a stable kind and exit code. See `docs/diagnostics.md`. Invalid command-line syntax still uses Clap's native stderr.
+
 Exit codes:
 
 | Code | Meaning |
