@@ -76,7 +76,7 @@ class PackageAdmissionTests(unittest.TestCase):
             binary.parent.mkdir(parents=True)
             binary.write_bytes(b"synthetic public executable fixture")
             (root / "Cargo.toml").write_text(
-                '[workspace.package]\\nversion = "0.1.0"\\n', encoding="utf-8"
+                '[workspace.package]\nversion = "0.1.0"\n', encoding="utf-8"
             )
             for name in ("README.md", "LICENSE", "Cargo.lock"):
                 (root / name).write_text(name, encoding="utf-8")
@@ -88,11 +88,11 @@ class PackageAdmissionTests(unittest.TestCase):
                 if args == ("rev-parse", "HEAD^{tree}"):
                     return "b" * 40
                 return "a" * 40
-            with patch.object(packaging, "ROOT", root), \\
-                 patch.object(packaging.platform, "system", return_value="Linux"), \\
+            with patch.object(packaging, "ROOT", root), \
+                 patch.object(packaging.platform, "system", return_value="Linux"), \
                  patch.object(packaging.subprocess, "check_output",
-                              return_value="host: x86_64-unknown-linux-gnu\\n"), \\
-                 patch.object(packaging.subprocess, "run"), \\
+                              return_value="host: x86_64-unknown-linux-gnu\n"), \
+                 patch.object(packaging.subprocess, "run"), \
                  patch.object(packaging, "git", side_effect=git):
                 archive = packaging.stage("v0.1.0", output)
                 receipt = json.loads((output / (archive.name + ".provenance.json")).read_text())
@@ -112,13 +112,13 @@ class PackageAdmissionTests(unittest.TestCase):
     def test_staging_inside_source_repo_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
-            with patch.object(packaging, "ROOT", root), \\
-                 patch.object(packaging, "git", return_value="a" * 40), \\
-                 patch.object(packaging.platform, "system", return_value="Linux"), \\
+            with patch.object(packaging, "ROOT", root), \
+                 patch.object(packaging, "git", return_value="a" * 40), \
+                 patch.object(packaging.platform, "system", return_value="Linux"), \
                  patch.object(packaging.subprocess, "check_output",
-                              return_value="host: x86_64-unknown-linux-gnu\\n"):
+                              return_value="host: x86_64-unknown-linux-gnu\n"):
                 (root / "Cargo.toml").write_text(
-                    '[workspace.package]\\nversion = "0.1.0"\\n'
+                    '[workspace.package]\nversion = "0.1.0"\n'
                 )
                 with self.assertRaisesRegex(ValueError, "outside the source"):
                     packaging.stage("v0.1.0", root / "dist")
