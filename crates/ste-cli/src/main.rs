@@ -264,7 +264,8 @@ fn run_lint(
     if let Some(context) = &context {
         context.validate_text(&original).map_err(|error| {
             AppFailure::invalid_data(format!(
-                "invalid lint context for {}: {error}", path.display()
+                "invalid lint context for {}: {error}",
+                path.display()
             ))
         })?;
     }
