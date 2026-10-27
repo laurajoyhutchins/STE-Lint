@@ -108,7 +108,11 @@ impl<'a> CountGroupProjection<'a> {
 
         Self {
             text,
-            groups: canonicalize(groups),
+            groups: canonicalize(
+                groups.into_iter().filter(|group| {
+                    text.is_char_boundary(group.start) && text.is_char_boundary(group.end)
+                }).collect()
+            ),
         }
     }
 
@@ -117,7 +121,11 @@ impl<'a> CountGroupProjection<'a> {
     }
 
     pub fn count_range(&self, start: usize, end: usize) -> usize {
-        if start >= end || end > self.text.len() {
+        if start >= end
+            || end > self.text.len()
+            || !self.text.is_char_boundary(start)
+            || !self.text.is_char_boundary(end)
+        {
             return 0;
         }
 
