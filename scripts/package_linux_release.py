@@ -60,8 +60,8 @@ def stage(tag: str, destination: Path) -> Path:
     tagged_sha = git("rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}")
     if source_sha != tagged_sha:
         raise ValueError("checked-out source is not the exact release tag commit")
-    if git("status", "--porcelain", "--untracked-files=no"):
-        raise ValueError("tracked source is dirty; refusing to produce release bytes")
+    if git("status", "--porcelain", "--untracked-files=all"):
+        raise ValueError("source checkout contains tracked or untracked changes; refusing release bytes")
 
     if platform.system() != "Linux":
         raise ValueError("this packager produces Linux-only artifacts")
