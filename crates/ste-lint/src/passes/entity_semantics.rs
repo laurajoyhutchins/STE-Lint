@@ -2,6 +2,8 @@ use serde_json::json;
 use ste_core::{Diagnostic, Severity, Span};
 use ste_glossary::{AliasKind, GlossaryIdentityKind, TermRole, TermStatus};
 
+use crate::Resolution;
+
 use crate::{AnalysisDocument, EntityIdentity, EntityMention};
 
 pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
@@ -51,7 +53,87 @@ pub(crate) fn check(analysis: &AnalysisDocument<'_>) -> Vec<Diagnostic> {
         }
     }
 
+    diagnostics.extend(governed_term_consistency(analysis, &mentions));
     diagnostics
+}
+
+// Only identity-backed canonical words and explicit synonym aliases are
+// comparable. Approved abbreviations, acronyms, short forms and grammatical
+// inflections are not interchangeable spelling evidence for this rule.
+fn governed_term_consistency(
+    analysis: &AnalysisDocument<'_>,
+    mentions: &[EntityMention],
+) -> Vec<Diagnostic> {
+    let Some(glossary) = analysis.glossary() else {
+        return Vec::new();
+    };
+    let mut diagnostics = Vec::new();
+    for (index, mention) in mentions.iter().enumerate() {
+        let EntityIdentity::GovernedTerm { term, domain } = &mention.identity else {
+            continue;
+        };
+        let Some(governed) = glossary.lookup_term(term) else {
+            continue;
+        };
+        if governed.status != TermStatus::Approved
+            || !governed.has_role(TermRole::Noun)
+            || !is_comparable_term_mention(analysis, mention)
+        {
+            continue;
+        }
+
+        let first_different = mentions[..index].iter().find(|prior| {
+            prior.identity == mention.identity
+                && is_comparable_term_mention(analysis, prior)
+                && !prior.surface.eq_ignore_ascii_case(&mention.surface)
+        });
+        let Some(prior) = first_different else {
+            continue;
+        };
+
+        diagnostics.push(Diagnostic {
+            code: "STE-TERM-005".into(),
+            severity: Severity::Error,
+            message: format!(
+                "The governed technical noun forms '{}' and '{}' express the same governed term; use consistent terminology.",
+                prior.surface, mention.surface
+            ),
+            span: Span {
+                start: mention.span.start,
+                end: mention.span.end,
+            },
+            rules: vec!["9.4".into()],
+            evidence: Some(json!({
+                "resolution": "governed_concept_different_synonyms",
+                "term_id": governed.id,
+                "canonical": governed.canonical,
+                "domain": domain,
+                "first_form": prior.surface,
+                "first_span": {"start": prior.span.start, "end": prior.span.end},
+                "different_form": mention.surface,
+                "different_span": {"start": mention.span.start, "end": mention.span.end},
+                "sources": governed.sources,
+            })),
+            autofix: None,
+        });
+    }
+    diagnostics
+}
+
+fn is_comparable_term_mention(analysis: &AnalysisDocument<'_>, mention: &EntityMention) -> bool {
+    if analysis.is_protected_span(mention.span.start, mention.span.end)
+        || !matches!(
+            analysis.entity_mention_at(mention.span.token_start),
+            Resolution::Resolved(resolved) if resolved.identity == mention.identity
+        )
+    {
+        return false;
+    }
+    match mention.glossary_identity_kind {
+        Some(GlossaryIdentityKind::Canonical) => true,
+        Some(GlossaryIdentityKind::Alias) => mention.alias_kind == Some(AliasKind::Synonym),
+        Some(GlossaryIdentityKind::Form) | None => false,
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
