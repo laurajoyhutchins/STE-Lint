@@ -113,7 +113,7 @@ class PackageAdmissionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             with patch.object(packaging, "ROOT", root), \
-                 patch.object(packaging, "git", return_value="a" * 40), \
+                 patch.object(packaging, "git", side_effect=lambda *args: "" if args[0] == "status" else "a" * 40), \
                  patch.object(packaging.platform, "system", return_value="Linux"), \
                  patch.object(packaging.subprocess, "check_output",
                               return_value="host: x86_64-unknown-linux-gnu\n"):
