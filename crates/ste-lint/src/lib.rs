@@ -104,6 +104,13 @@ fn collect_diagnostics(
     context: Option<&LintContext>,
     mode: LintMode,
 ) -> Vec<Diagnostic> {
+    // Context byte offsets are untrusted. Validate before constructing analysis
+    // or running word-count passes that slice the source text.
+    if let Some(context) = context
+        && let Err(error) = context.validate_for_text(text)
+    {
+        return vec![passes::contextual::invalid_context(error)];
+    }
     let analysis = AnalysisDocument::new(text, lexicon, glossary, context, mode);
     let mut diagnostics = passes::punctuation::check(&analysis);
     diagnostics.extend(passes::contractions::check(&analysis));
