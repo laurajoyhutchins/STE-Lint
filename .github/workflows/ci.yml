@@ -53,6 +53,8 @@ jobs:
           tools/authority-ingest/test_ingest_issue9.py
           tools/authority-ingest/build_runtime_lexicon.py
           tools/authority-ingest/test_build_runtime_lexicon.py
+          scripts/release_smoke.py
+          scripts/package_linux_release.py
       - name: Test authority ingest tooling
         run: python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
 
@@ -103,3 +105,5 @@ jobs:
         run: ./target/debug/ste coverage
       - name: Coverage report JSON
         run: ./target/debug/ste coverage --format json
+      - name: Public release smoke without private runtime
+        run: python3 scripts/release_smoke.py target/debug/ste
