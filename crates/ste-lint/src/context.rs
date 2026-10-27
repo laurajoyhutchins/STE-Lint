@@ -252,6 +252,38 @@ impl LintContext {
         Ok(())
     }
 
+    /// Validate externally supplied byte spans against the actual UTF-8 text.
+    ///
+    /// validate(text_len) remains available for length-only structural checks;
+    /// callers that consume source offsets must use this stronger boundary.
+    pub fn validate_text(&self, text: &str) -> Result<(), String> {
+        self.validate(text.len())?;
+        for (index, occurrence) in self.occurrences.iter().enumerate() {
+            validate_char_boundaries(text, "context occurrence", index, occurrence.start, occurrence.end)?;
+        }
+        for (index, topic) in self.topics.iter().enumerate() {
+            validate_char_boundaries(text, "context topic", index, topic.start, topic.end)?;
+        }
+        for (index, ordering) in self.semantic_orderings.iter().enumerate() {
+            validate_char_boundaries(text, "context semantic ordering before target", index, ordering.before.start, ordering.before.end)?;
+            validate_char_boundaries(text, "context semantic ordering after target", index, ordering.after.start, ordering.after.end)?;
+        }
+        for (index, fact) in self.safety_facts.iter().enumerate() {
+            validate_char_boundaries(text, "context safety fact", index, fact.start, fact.end)?;
+            for (name, component) in [
+                ("actor", fact.actor),
+                ("command", fact.command),
+                ("hazard", fact.hazard),
+                ("consequence", fact.consequence),
+            ] {
+                if let Some(component) = component {
+                    validate_char_boundaries(text, &format!("context safety fact {name}"), index, component.start, component.end)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn validate_evidence(&self) -> Result<(), String> {
         for (index, occurrence) in self.occurrences.iter().enumerate() {
             if occurrence.source.trim().is_empty() {
@@ -470,6 +502,21 @@ fn validate_span(
     if end > text_len {
         return Err(format!(
             "{kind} {index} ends at {end}, beyond text length {text_len}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_char_boundaries(
+    text: &str,
+    kind: &str,
+    index: usize,
+    start: usize,
+    end: usize,
+) -> Result<(), String> {
+    if !text.is_char_boundary(start) || !text.is_char_boundary(end) {
+        return Err(format!(
+            "{kind} {index} span {start}..{end} is not on UTF-8 character boundaries"
         ));
     }
     Ok(())
