@@ -1,6 +1,9 @@
 use ste_data::RuntimeLexicon;
 use ste_glossary::Glossary;
-use ste_lint::{AnalysisDocument, LintContext, LintMode, LintOptions, LintResult, Resolution, lint_text_with_context};
+use ste_lint::{
+    AnalysisDocument, LintContext, LintMode, LintOptions, LintResult, Resolution,
+    lint_text_with_context,
+};
 
 fn glossary() -> Glossary {
     Glossary::from_json(
@@ -65,17 +68,15 @@ fn governed_synonym_change_for_same_entity_is_reported() {
     let text = "THE BUSWAY IS READY. THE BUS DUCT IS READY.";
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let glossary = glossary();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        Some(&glossary),
-        None,
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, Some(&glossary), None, LintMode::Descriptive);
     let mentions = analysis.entity_mentions();
     assert_eq!(mentions.len(), 2, "governed mentions: {mentions:?}");
     assert_eq!(
-        mentions.iter().map(|mention| mention.surface.as_str()).collect::<Vec<_>>(),
+        mentions
+            .iter()
+            .map(|mention| mention.surface.as_str())
+            .collect::<Vec<_>>(),
         vec!["BUSWAY", "BUS DUCT"],
         "full approved synonym must not be swallowed by overlapping 'the bus' shorthand"
     );
@@ -93,7 +94,10 @@ fn governed_synonym_change_for_same_entity_is_reported() {
     let diagnostic = diagnostics[0];
     assert_eq!(diagnostic.rules, vec!["9.4"]);
     let second = text.find("BUS DUCT").unwrap();
-    assert_eq!((diagnostic.span.start, diagnostic.span.end), (second, second + 8));
+    assert_eq!(
+        (diagnostic.span.start, diagnostic.span.end),
+        (second, second + 8)
+    );
     assert_eq!(
         diagnostic.evidence.as_ref().unwrap()["resolution"],
         "governed_concept_different_synonyms"
@@ -109,7 +113,10 @@ fn reverse_order_still_reports_only_the_later_conflicting_form() {
 
     assert_eq!(diagnostics.len(), 1);
     let second = text.rfind("BUSWAY").unwrap();
-    assert_eq!((diagnostics[0].span.start, diagnostics[0].span.end), (second, second + 6));
+    assert_eq!(
+        (diagnostics[0].span.start, diagnostics[0].span.end),
+        (second, second + 6)
+    );
 }
 
 #[test]
@@ -120,7 +127,10 @@ fn repeated_same_term_is_not_a_false_positive() {
 
 #[test]
 fn short_forms_abbreviations_and_inflections_remain_exempt() {
-    let result = lint("THE BUSWAY IS READY. THE BWY IS READY. THE BUSWAYS ARE READY.", None);
+    let result = lint(
+        "THE BUSWAY IS READY. THE BWY IS READY. THE BUSWAYS ARE READY.",
+        None,
+    );
     assert!(terminology_diagnostics(&result).is_empty());
 }
 
@@ -129,13 +139,8 @@ fn isolated_short_form_remains_a_governed_entity() {
     let text = "THE BUS IS READY.";
     let lexicon = RuntimeLexicon::embedded().unwrap();
     let glossary = glossary();
-    let analysis = AnalysisDocument::new(
-        text,
-        &lexicon,
-        Some(&glossary),
-        None,
-        LintMode::Descriptive,
-    );
+    let analysis =
+        AnalysisDocument::new(text, &lexicon, Some(&glossary), None, LintMode::Descriptive);
     assert!(analysis.entity_mentions().iter().any(|mention| {
         mention.surface == "THE BUS"
             && mention.glossary_identity_kind == Some(ste_glossary::GlossaryIdentityKind::Alias)
@@ -205,7 +210,10 @@ fn unicode_prefix_retains_byte_accurate_diagnostic() {
     let diagnostics = terminology_diagnostics(&result);
 
     assert_eq!(diagnostics.len(), 1);
-    assert_eq!((diagnostics[0].span.start, diagnostics[0].span.end), (second, second + 8));
+    assert_eq!(
+        (diagnostics[0].span.start, diagnostics[0].span.end),
+        (second, second + 8)
+    );
 }
 
 #[test]
