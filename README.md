@@ -96,6 +96,28 @@ python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
 
 CI runs the same pinned Rust verification plus the authority-ingest suite.
 
+## Release staging, not yet published
+
+The existing CI also runs `python3 scripts/release_smoke.py target/debug/ste`, checking the CLI help surface, workspace version, 53-rule JSON coverage, explicit public test-dictionary lookup and the exit-3 failure when a production runtime lexicon is absent. These checks do **not** establish complete ASD-STE100 Issue 9 compliance.
+
+A maintainer can stage a checksummed **Linux** package from an already-created, explicitly authorized release tag. This repository does not automatically create tags, upload artifacts, change a GitHub Release or publish to a registry:
+
+```bash
+git checkout v0.1.0
+python3 scripts/package_linux_release.py --tag v0.1.0 --output /path/outside/the/repo
+cd /path/outside/the/repo
+sha256sum -c ste-0.1.0-x86_64-unknown-linux-gnu.tar.gz.sha256
+# Independently obtain exact source commit and tree from accepted GitHub evidence.
+python3 scripts/verify_linux_release.py \
+  --archive ste-0.1.0-x86_64-unknown-linux-gnu.tar.gz \
+  --expected-tag v0.1.0 --expected-source <40-hex-source-SHA> \
+  --expected-tree <40-hex-source-tree-SHA>
+```
+
+The script requires a tag whose commit is exactly checked out, a matching workspace version, clean tracked source, pinned Rust 1.97.1, `cargo --locked`, and successful public CLI smoke. It stages a normalized archive, an independent archive checksum, and a JSON manifest with source commit/tree, build epoch, binary/lock/archive SHA-256, toolchain and target. **It does not assert bit-for-bit reproducibility across independent builders or create signed provenance.** A verified source checkout is not the same as an independently verified binary release.
+
+The current staging target is Linux `x86_64` or `aarch64`, where GNU targets are reported based on host architecture. Windows and macOS release packaging, actual versioned public GitHub Release uploads, detached proof retention, owner publication approval and independent archive inspection remain open under [issue #79](https://github.com/laurajoyhutchins/STE-Lint/issues/79). Continue to use the source `cargo install --path crates/ste-cli --locked` path until a real tagged artifact is published. Public release bytes must never embed the protected private Issue 9 dictionary.
+
 ## Runtime dictionary
 
 The public repository does not contain the populated Issue 9 dictionary. Authorized users can point STE-Lint at the verified private runtime artifact:

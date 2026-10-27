@@ -53,8 +53,14 @@ jobs:
           tools/authority-ingest/test_ingest_issue9.py
           tools/authority-ingest/build_runtime_lexicon.py
           tools/authority-ingest/test_build_runtime_lexicon.py
+          scripts/release_smoke.py
+          scripts/package_linux_release.py
+          scripts/verify_linux_release.py
+          scripts/test_release_gate.py
       - name: Test authority ingest tooling
         run: python -m unittest discover -s tools/authority-ingest -p 'test_*.py' -v
+      - name: Test public release admission and hostile smoke cases
+        run: python -m unittest discover -s scripts -p 'test_*.py' -v
 
   rust:
     runs-on: ubuntu-24.04
@@ -103,3 +109,5 @@ jobs:
         run: ./target/debug/ste coverage
       - name: Coverage report JSON
         run: ./target/debug/ste coverage --format json
+      - name: Public release smoke without private runtime
+        run: python3 scripts/release_smoke.py target/debug/ste
