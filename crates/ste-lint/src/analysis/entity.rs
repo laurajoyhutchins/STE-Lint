@@ -48,16 +48,26 @@ pub struct ReferenceLink {
 impl<'a> AnalysisDocument<'a> {
     pub fn entity_mentions(&self) -> Vec<EntityMention> {
         let mut mentions = Vec::new();
-        let mut token_index = 0;
-
-        while token_index < self.tokens().len() {
-            if let Some(matched) = self.longest_glossary_match_at(token_index) {
-                let width = matched.token_width;
-                mentions.push(mention_from_glossary(matched));
-                token_index += width;
-            } else {
-                token_index += 1;
+        // Resolve overlap across source-aligned matches before consuming tokens.
+        // Otherwise a preceding short form such as "the bus" can swallow the
+        // full approved synonym "bus duct" starting one token later.
+        let mut candidates = (0..self.tokens().len())
+            .filter_map(|token_index| self.longest_glossary_match_at(token_index))
+            .collect::<Vec<_>>();
+        candidates.sort_by_key(|matched| {
+            (
+                std::cmp::Reverse(matched.token_width),
+                glossary_match_priority(matched),
+                matched.token_start,
+            )
+        });
+        for matched in candidates {
+            if mentions.iter().any(|accepted: &EntityMention| {
+                accepted.span.start < matched.end && matched.start < accepted.span.end
+            }) {
+                continue;
             }
+            mentions.push(mention_from_glossary(matched));
         }
 
         if let Some(context) = self.context() {
@@ -170,6 +180,19 @@ impl<'a> AnalysisDocument<'a> {
             reference,
             ReferenceBasis::PreviousSentenceUniqueEntity,
         )
+    }
+}
+
+// Tie-break overlapping equally long authoritative forms in favor of the
+// full canonical term or explicitly governed synonym, not incidental shorthand.
+fn glossary_match_priority(matched: &GlossaryMatch<'_>) -> u8 {
+    match (matched.identity_kind, matched.alias_kind) {
+        (GlossaryIdentityKind::Canonical, _) => 0,
+        (GlossaryIdentityKind::Alias, Some(AliasKind::Synonym)) => 1,
+        (GlossaryIdentityKind::Form, _) => 2,
+        (GlossaryIdentityKind::Alias, Some(AliasKind::Abbreviation | AliasKind::Acronym)) => 3,
+        (GlossaryIdentityKind::Alias, Some(AliasKind::ShortForm)) => 4,
+        _ => 5,
     }
 }
 
