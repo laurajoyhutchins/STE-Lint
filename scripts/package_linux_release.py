@@ -64,10 +64,20 @@ def stage(tag: str, destination: Path) -> Path:
     if git("status", "--porcelain", "--untracked-files=no"):
         raise ValueError("tracked source is dirty; refusing to produce release bytes")
 
-    if platform.system() != "Linux" or platform.machine() not in {"x86_64", "aarch64"}:
+    if platform.system() != "Linux":
         raise ValueError("this packager produces Linux-only artifacts")
-    target = "x86_64-unknown-linux-gnu" if platform.machine() == "x86_64" \
-        else "aarch64-unknown-linux-gnu"
+    # Never label an unqualified build as GNU merely from uname. Host triples
+    # such as musl are not ABI-compatible with the advertised GNU release.
+    host_output = subprocess.check_output(
+        ["rustc", "+1.97.1", "-vV"], cwd=ROOT, text=True
+    )
+    hosts = [line.partition(":")[2].strip() for line in host_output.splitlines()
+             if line.startswith("host:")]
+    if len(hosts) != 1 or hosts[0] not in {
+        "x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu"
+    }:
+        raise ValueError("unsupported Rust host triple; refuse misleading artifact target")
+    target = hosts[0]
     archive_name = f"ste-{version}-{target}.tar.gz"
     destination = destination.resolve()
     if any((destination / name).exists() for name in
