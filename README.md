@@ -107,6 +107,11 @@ git checkout v0.1.0
 python3 scripts/package_linux_release.py --tag v0.1.0 --output /path/outside/the/repo
 cd /path/outside/the/repo
 sha256sum -c ste-0.1.0-x86_64-unknown-linux-gnu.tar.gz.sha256
+# Independently obtain exact source commit and tree from accepted GitHub evidence.
+python3 scripts/verify_linux_release.py \
+  --archive ste-0.1.0-x86_64-unknown-linux-gnu.tar.gz \
+  --expected-tag v0.1.0 --expected-source <40-hex-source-SHA> \
+  --expected-tree <40-hex-source-tree-SHA>
 ```
 
 The script requires a tag whose commit is exactly checked out, a matching workspace version, clean tracked source, pinned Rust 1.97.1, `cargo --locked`, and successful public CLI smoke. It stages a normalized archive, an independent archive checksum, and a JSON manifest with source commit/tree, build epoch, binary/lock/archive SHA-256, toolchain and target. **It does not assert bit-for-bit reproducibility across independent builders or create signed provenance.** A verified source checkout is not the same as an independently verified binary release.
