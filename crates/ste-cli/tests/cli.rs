@@ -225,7 +225,12 @@ fn multibyte_project_context_offsets_fail_before_lint_and_fix() {
     assert!(output.stderr.is_empty());
     let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(error["error"]["kind"], "invalid_data");
-    assert!(error["error"]["message"].as_str().unwrap().contains("UTF-8"));
+    assert!(
+        error["error"]["message"]
+            .as_str()
+            .unwrap()
+            .contains("UTF-8")
+    );
     assert_eq!(fs::read_to_string(document).unwrap(), "é A");
 }
 
