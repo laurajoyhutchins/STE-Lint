@@ -41,12 +41,12 @@ class PackageAdmissionTests(unittest.TestCase):
                     packaging.stage("v0.1.0", Path(output))
 
             def dirty(*args):
-                if args == ("status", "--porcelain", "--untracked-files=no"):
+                if args == ("status", "--porcelain", "--untracked-files=all"):
                     return " M README.md"
                 return "a" * 40
 
             with patch.object(packaging, "git", side_effect=dirty):
-                with self.assertRaisesRegex(ValueError, "dirty"):
+                with self.assertRaisesRegex(ValueError, "source checkout"):
                     packaging.stage("v0.1.0", Path(output))
 
     def test_existing_archive_cannot_be_overwritten(self):
@@ -83,7 +83,7 @@ class PackageAdmissionTests(unittest.TestCase):
             for name in ("README.md", "LICENSE", "Cargo.lock"):
                 (root / name).write_text(name, encoding="utf-8")
             def git(*args):
-                if args == ("status", "--porcelain", "--untracked-files=no"):
+                if args == ("status", "--porcelain", "--untracked-files=all"):
                     return ""
                 if args[:2] == ("show", "-s"):
                     return "1730000000"
