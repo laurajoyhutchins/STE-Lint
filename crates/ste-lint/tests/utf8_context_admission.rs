@@ -2,7 +2,7 @@ use ste_data::RuntimeLexicon;
 use ste_lint::{LintContext, LintMode, LintOptions, lint_text_with_context};
 
 fn lexicon() -> RuntimeLexicon {
-    ste_data::RuntimeLexicon::from_entries(Vec::new())
+    RuntimeLexicon::embedded().unwrap()
 }
 
 #[test]
