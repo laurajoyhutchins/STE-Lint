@@ -54,7 +54,7 @@ class PackageAdmissionTests(unittest.TestCase):
             location.write_bytes(b"prior proof")
             with patch.object(packaging.platform, "system", return_value="Linux"), \
                  patch.object(packaging.platform, "machine", return_value="x86_64"), \
-                 patch.object(packaging, "git", return_value="a" * 40):
+                 patch.object(packaging, "git", side_effect=lambda *args: "" if args[0] == "status" else "a" * 40):
                 with self.assertRaisesRegex(ValueError, "already exists"):
                     packaging.stage("v0.1.0", Path(output))
             self.assertEqual(location.read_bytes(), b"prior proof")
