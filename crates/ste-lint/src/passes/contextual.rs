@@ -9,16 +9,8 @@ pub(crate) fn check(text: &str, context: Option<&LintContext>) -> Vec<Diagnostic
     let Some(context) = context else {
         return Vec::new();
     };
-    if let Err(error) = context.validate(text.len()) {
-        return vec![Diagnostic {
-            code: "STE-CTX-000".into(),
-            severity: Severity::Blocked,
-            message: format!("Lint context is invalid: {error}"),
-            span: Span { start: 0, end: 0 },
-            rules: Vec::new(),
-            evidence: Some(json!({ "error": error })),
-            autofix: None,
-        }];
+    if let Err(error) = context.validate_for_text(text) {
+        return vec![invalid_context(error)];
     }
 
     let mut diagnostics = Vec::new();
@@ -224,6 +216,18 @@ fn invalid_occurrence_shape(occurrence: &crate::OccurrenceFact, message: &str) -
             "source": occurrence.source,
             "span": {"start": occurrence.start, "end": occurrence.end},
         })),
+        autofix: None,
+    }
+}
+
+pub(crate) fn invalid_context(error: String) -> Diagnostic {
+    Diagnostic {
+        code: "STE-CTX-000".into(),
+        severity: Severity::Blocked,
+        message: format!("Lint context is invalid: {error}"),
+        span: Span { start: 0, end: 0 },
+        rules: Vec::new(),
+        evidence: Some(json!({ "error": error })),
         autofix: None,
     }
 }
