@@ -67,6 +67,62 @@ class PackageAdmissionTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "unsupported Rust host triple"):
                     packaging.stage("v0.1.0", Path(output))
 
+    def test_staging_creates_checksum_and_last_written_receipt_without_overwrite(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "checkout"
+            output = Path(td) / "release"
+            binary = root / "target" / "release" / "ste"
+            binary.parent.mkdir(parents=True)
+            binary.write_bytes(b"synthetic public executable fixture")
+            (root / "Cargo.toml").write_text(
+                '[workspace.package]\\nversion = "0.1.0"\\n', encoding="utf-8"
+            )
+            for name in ("README.md", "LICENSE", "Cargo.lock"):
+                (root / name).write_text(name, encoding="utf-8")
+            def git(*args):
+                if args == ("status", "--porcelain", "--untracked-files=no"):
+                    return ""
+                if args[:2] == ("show", "-s"):
+                    return "1730000000"
+                if args == ("rev-parse", "HEAD^{tree}"):
+                    return "b" * 40
+                return "a" * 40
+            with patch.object(packaging, "ROOT", root), \\
+                 patch.object(packaging.platform, "system", return_value="Linux"), \\
+                 patch.object(packaging.subprocess, "check_output",
+                              return_value="host: x86_64-unknown-linux-gnu\\n"), \\
+                 patch.object(packaging.subprocess, "run"), \\
+                 patch.object(packaging, "git", side_effect=git):
+                archive = packaging.stage("v0.1.0", output)
+                receipt = json.loads((output / (archive.name + ".provenance.json")).read_text())
+                checksum = (output / (archive.name + ".sha256")).read_text()
+                actual_sha = hashlib.sha256(archive.read_bytes()).hexdigest()
+                self.assertEqual(receipt["archive_sha256"], actual_sha)
+                self.assertEqual(receipt["source_commit"], "a" * 40)
+                self.assertEqual(receipt["source_tree"], "b" * 40)
+                self.assertIn(actual_sha, checksum)
+                self.assertFalse(receipt["private_runtime_included"])
+                before = archive.read_bytes()
+                with self.assertRaisesRegex(ValueError, "already exists"):
+                    packaging.stage("v0.1.0", output)
+                self.assertEqual(before, archive.read_bytes())
+                self.assertEqual(len(list(output.glob("*.provenance.json"))), 1)
+
+    def test_staging_inside_source_repo_is_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            with patch.object(packaging, "ROOT", root), \\
+                 patch.object(packaging, "git", return_value="a" * 40), \\
+                 patch.object(packaging.platform, "system", return_value="Linux"), \\
+                 patch.object(packaging.subprocess, "check_output",
+                              return_value="host: x86_64-unknown-linux-gnu\\n"):
+                (root / "Cargo.toml").write_text(
+                    '[workspace.package]\\nversion = "0.1.0"\\n'
+                )
+                with self.assertRaisesRegex(ValueError, "outside the source"):
+                    packaging.stage("v0.1.0", root / "dist")
+
 
 class PublicSmokeTests(unittest.TestCase):
     def _stub(self, directory: Path, *, version: str = "0.1.0",
