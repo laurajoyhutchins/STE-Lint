@@ -263,7 +263,10 @@ fn run_lint(
     let context = find_project_context(path)?;
     if let Some(context) = &context {
         context.validate_for_text(&original).map_err(|error| {
-            AppFailure::invalid_data(format!("invalid lint context for {}: {error}", path.display()))
+            AppFailure::invalid_data(format!(
+                "invalid lint context for {}: {error}",
+                path.display()
+            ))
         })?;
     }
     let result = lint_text_with_context(
