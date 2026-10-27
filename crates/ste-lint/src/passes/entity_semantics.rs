@@ -120,10 +120,7 @@ fn governed_term_consistency(
     diagnostics
 }
 
-fn is_comparable_term_mention(
-    analysis: &AnalysisDocument<'_>,
-    mention: &EntityMention,
-) -> bool {
+fn is_comparable_term_mention(analysis: &AnalysisDocument<'_>, mention: &EntityMention) -> bool {
     if analysis.is_protected_span(mention.span.start, mention.span.end)
         || !matches!(
             analysis.entity_mention_at(mention.span.token_start),
