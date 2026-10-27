@@ -104,6 +104,21 @@ fn collect_diagnostics(
     context: Option<&LintContext>,
     mode: LintMode,
 ) -> Vec<Diagnostic> {
+    // All passes must receive source-aligned offsets; the contextual pass runs
+    // too late to protect the counting/analysis stages from malformed spans.
+    if let Some(context) = context
+        && let Err(error) = context.validate_text(text)
+    {
+        return vec![Diagnostic {
+            code: "STE-CTX-000".into(),
+            severity: Severity::Blocked,
+            message: format!("Lint context is invalid: {error}"),
+            span: ste_core::Span { start: 0, end: 0 },
+            rules: Vec::new(),
+            evidence: Some(serde_json::json!({"error": error})),
+            autofix: None,
+        }];
+    }
     let analysis = AnalysisDocument::new(text, lexicon, glossary, context, mode);
     let mut diagnostics = passes::punctuation::check(&analysis);
     diagnostics.extend(passes::contractions::check(&analysis));
