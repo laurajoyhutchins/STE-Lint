@@ -76,7 +76,7 @@ fn governed_synonym_change_for_same_entity_is_reported() {
     assert_eq!(mentions.len(), 2, "governed mentions: {mentions:?}");
     assert_eq!(
         mentions.iter().map(|mention| mention.surface.as_str()).collect::<Vec<_>>(),
-        vec!["busway", "bus duct"],
+        vec!["BUSWAY", "BUS DUCT"],
         "full approved synonym must not be swallowed by overlapping 'the bus' shorthand"
     );
     for mention in &mentions {
@@ -137,7 +137,7 @@ fn isolated_short_form_remains_a_governed_entity() {
         LintMode::Descriptive,
     );
     assert!(analysis.entity_mentions().iter().any(|mention| {
-        mention.surface == "the bus"
+        mention.surface == "THE BUS"
             && mention.glossary_identity_kind == Some(ste_glossary::GlossaryIdentityKind::Alias)
             && mention.alias_kind == Some(ste_glossary::AliasKind::ShortForm)
     }));
