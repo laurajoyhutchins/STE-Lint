@@ -87,12 +87,22 @@ def stage(tag: str, destination: Path) -> Path:
 
     epoch = int(git("show", "-s", "--format=%ct", "HEAD"))
     env = os.environ.copy()
+    # Ambient target/flags or a private dictionary path must not change the
+    # advertised binary or accidentally enter a public release build.
+    for name in (
+        "CARGO_BUILD_TARGET", "CARGO_TARGET_DIR", "RUSTFLAGS",
+        "CARGO_ENCODED_RUSTFLAGS", "RUSTC", "RUSTC_WRAPPER",
+        "RUSTC_WORKSPACE_WRAPPER", "RUSTC_BOOTSTRAP", "STE_LINT_LEXICON",
+    ):
+        env.pop(name, None)
     env["SOURCE_DATE_EPOCH"] = str(epoch)
-    subprocess.run(["cargo", "+1.97.1", "build", "-p", "ste-cli", "--locked", "--release"],
-                   cwd=ROOT, env=env, check=True)
-    executable = ROOT / "target" / "release" / "ste"
+    subprocess.run([
+        "cargo", "+1.97.1", "build", "-p", "ste-cli",
+        "--target", target, "--locked", "--release",
+    ], cwd=ROOT, env=env, check=True)
+    executable = ROOT / "target" / target / "release" / "ste"
     subprocess.run([sys.executable, str(ROOT / "scripts" / "release_smoke.py"),
-                    str(executable)], cwd=ROOT, check=True)
+                    str(executable)], cwd=ROOT, env=env, check=True)
 
     destination.mkdir(parents=True, exist_ok=True)
     # Temp and final paths must share a filesystem for create-only hard links.
