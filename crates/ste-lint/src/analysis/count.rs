@@ -109,9 +109,12 @@ impl<'a> CountGroupProjection<'a> {
         Self {
             text,
             groups: canonicalize(
-                groups.into_iter().filter(|group| {
-                    text.is_char_boundary(group.start) && text.is_char_boundary(group.end)
-                }).collect()
+                groups
+                    .into_iter()
+                    .filter(|group| {
+                        text.is_char_boundary(group.start) && text.is_char_boundary(group.end)
+                    })
+                    .collect(),
             ),
         }
     }
