@@ -73,7 +73,8 @@ class PackageAdmissionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td) / "checkout"
             output = Path(td) / "release"
-            binary = root / "target" / "release" / "ste"
+            target = "x86_64-unknown-linux-gnu"
+            binary = root / "target" / target / "release" / "ste"
             binary.parent.mkdir(parents=True)
             binary.write_bytes(b"synthetic public executable fixture")
             (root / "Cargo.toml").write_text(
@@ -93,7 +94,7 @@ class PackageAdmissionTests(unittest.TestCase):
                  patch.object(packaging.platform, "system", return_value="Linux"), \
                  patch.object(packaging.subprocess, "check_output",
                               return_value="host: x86_64-unknown-linux-gnu\n"), \
-                 patch.object(packaging.subprocess, "run"), \
+                 patch.object(packaging.subprocess, "run") as runner, \
                  patch.object(packaging, "git", side_effect=git):
                 archive = packaging.stage("v0.1.0", output)
                 receipt = json.loads((output / (archive.name + ".provenance.json")).read_text())
@@ -104,6 +105,15 @@ class PackageAdmissionTests(unittest.TestCase):
                 self.assertEqual(receipt["source_tree"], "b" * 40)
                 self.assertIn(actual_sha, checksum)
                 self.assertFalse(receipt["private_runtime_included"])
+                self.assertEqual(runner.call_count, 2)
+                command = runner.call_args_list[0].args[0]
+                self.assertIn("--target", command)
+                self.assertEqual(command[command.index("--target") + 1], target)
+                self.assertNotIn("STE_LINT_LEXICON", runner.call_args_list[0].kwargs["env"])
+                self.assertNotIn("CARGO_BUILD_TARGET", runner.call_args_list[0].kwargs["env"])
+                self.assertEqual(
+                    Path(runner.call_args_list[1].args[0][2]), binary
+                )
                 independently_verified = verifier.verify(
                     archive, expected_tag="v0.1.0",
                     expected_source="a" * 40, expected_tree="b" * 40
