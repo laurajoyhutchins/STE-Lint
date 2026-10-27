@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Stage a checksummed, source-pinned Linux CLI archive. Does not publish a release."""
+
+import argparse
+from datetime import datetime, timezone
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import shutil
+import subprocess
+import sys
+import tarfile
+import tempfile
+import tomllib
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def git(*args: str) -> str:
+    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
+
+
+def digest(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def add_file(tar: tarfile.TarFile, path: Path, name: str, epoch: int,
+             executable: bool = False) -> None:
+    info = tar.gettarinfo(str(path), arcname=name)
+    info.uid = 0
+    info.gid = 0
+    info.uname = ""
+    info.gname = ""
+    info.mtime = epoch
+    info.mode = 0o755 if executable else 0o644
+    with path.open("rb") as stream:
+        tar.addfile(info, stream)
+
+
+def stage(tag: str, destination: Path) -> Path:
+    if not tag.startswith("v") or not tag[1:].replace(".", "").isdigit():
+        raise ValueError("release tag must be an explicit vMAJOR.MINOR.PATCH")
+    segments = tag[1:].split(".")
+    if len(segments) != 3 or any(not s or (len(s) > 1 and s[0] == "0") for s in segments):
+        raise ValueError("release tag must be an explicit vMAJOR.MINOR.PATCH")
+
+    with (ROOT / "Cargo.toml").open("rb") as stream:
+        version = tomllib.load(stream)["workspace"]["package"]["version"]
+    if tag != "v" + version:
+        raise ValueError("tag and workspace package version differ")
+
+    source_sha = git("rev-parse", "HEAD")
+    tagged_sha = git("rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}")
+    if source_sha != tagged_sha:
+        raise ValueError("checked-out source is not the exact release tag commit")
+    if git("status", "--porcelain", "--untracked-files=no"):
+        raise ValueError("tracked source is dirty; refusing to produce release bytes")
+
+    if platform.system() != "Linux" or platform.machine() not in {"x86_64", "aarch64"}:
+        raise ValueError("this packager produces Linux-only artifacts")
+    target = "x86_64-unknown-linux-gnu" if platform.machine() == "x86_64" \
+        else "aarch64-unknown-linux-gnu"
+    archive_name = f"ste-{version}-{target}.tar.gz"
+    destination = destination.resolve()
+    if any((destination / name).exists() for name in
+           (archive_name, archive_name + ".sha256", archive_name + ".provenance.json")):
+        raise ValueError("release output already exists; never overwrite retained evidence")
+
+    epoch = int(git("show", "-s", "--format=%ct", "HEAD"))
+    env = os.environ.copy()
+    env["SOURCE_DATE_EPOCH"] = str(epoch)
+    subprocess.run(["cargo", "+1.97.1", "build", "-p", "ste-cli", "--locked", "--release"],
+                   cwd=ROOT, env=env, check=True)
+    executable = ROOT / "target" / "release" / "ste"
+    subprocess.run([sys.executable, str(ROOT / "scripts" / "release_smoke.py"),
+                    str(executable)], cwd=ROOT, check=True)
+
+    destination.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="ste-release-") as temporary:
+        compressed = Path(temporary) / archive_name
+        with compressed.open("wb") as output:
+            with gzip.GzipFile(fileobj=output, mode="wb", filename="", mtime=0) as gz:
+                with tarfile.open(fileobj=gz, mode="w", format=tarfile.GNU_FORMAT) as tar:
+                    prefix = f"ste-{version}-{target}"
+                    add_file(tar, executable, prefix + "/ste", epoch, executable=True)
+                    add_file(tar, ROOT / "README.md", prefix + "/README.md", epoch)
+                    add_file(tar, ROOT / "LICENSE", prefix + "/LICENSE", epoch)
+        archive_hash = digest(compressed)
+        # Only byte identities are claimed. Toolchain pin alone cannot prove
+        # bit-for-bit reproducibility across all hosts.
+        manifest = {
+            "schema": "ste-release-provenance/v1",
+            "tag": tag,
+            "source_commit": source_sha,
+            "source_tree": git("rev-parse", "HEAD^{tree}"),
+            "build_epoch_utc": datetime.fromtimestamp(epoch, timezone.utc).isoformat(),
+            "toolchain": "1.97.1",
+            "target": target,
+            "archive_name": archive_name,
+            "archive_sha256": archive_hash,
+            "binary_sha256": digest(executable),
+            "cargo_lock_sha256": digest(ROOT / "Cargo.lock"),
+            "private_runtime_included": False,
+            "reproducibility_claimed": False,
+        }
+        archive = destination / archive_name
+        shutil.copyfile(compressed, archive)
+        (destination / (archive_name + ".sha256")).write_text(
+            f"{archive_hash}  {archive_name}\n", encoding="utf-8"
+        )
+        (destination / (archive_name + ".provenance.json")).write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        return archive
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--tag", required=True, help="already-created immutable release tag")
+    parser.add_argument("--output", required=True, type=Path)
+    args = parser.parse_args()
+    archive = stage(args.tag, args.output)
+    print(f"Staged checksummed archive: {archive}; no upload or release published")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (ValueError, OSError, subprocess.CalledProcessError) as exc:
+        print(f"release package rejected: {exc}", file=sys.stderr)
+        raise SystemExit(1) from exc
