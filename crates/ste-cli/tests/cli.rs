@@ -198,6 +198,38 @@ fn malformed_project_context_fails_closed() {
 }
 
 #[test]
+fn multibyte_project_context_offsets_fail_before_lint_and_fix() {
+    let root = tempfile::tempdir().unwrap();
+    fs::create_dir_all(root.path().join(".ste")).unwrap();
+    let document = root.path().join("sample.txt");
+    fs::write(&document, "é A").unwrap();
+    fs::write(
+        root.path().join(".ste/context.json"),
+        r#"{"occurrences":[{"start":1,"end":2,"source":"review","count_group":"number"}]}"#,
+    )
+    .unwrap();
+
+    let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
+        .args([
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--format",
+            "json",
+            "--fix",
+        ])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(3));
+    assert!(output.stderr.is_empty());
+    let error: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(error["error"]["kind"], "invalid_data");
+    assert!(error["error"]["message"].as_str().unwrap().contains("UTF-8"));
+    assert_eq!(fs::read_to_string(document).unwrap(), "é A");
+}
+
+#[test]
 fn missing_runtime_json_mode_returns_typed_application_error() {
     let mut file = tempfile::NamedTempFile::new().unwrap();
     writeln!(file, "USE THIS.").unwrap();
