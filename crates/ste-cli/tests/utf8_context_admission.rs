@@ -9,13 +9,19 @@ fn malformed_multibyte_context_is_a_typed_cli_error_and_does_not_rewrite_input()
     fs::write(
         root.path().join(".ste/context.json"),
         r#"{"occurrences":[{"start":1,"end":2,"source":"test","count_group":"title"}]}"#,
-    ).unwrap();
+    )
+    .unwrap();
     let output = assert_cmd::cargo::cargo_bin_cmd!("ste")
         .args([
-            "--allow-test-lexicon", "lint",
-            document.to_str().unwrap(), "--fix", "--format", "json",
+            "--allow-test-lexicon",
+            "lint",
+            document.to_str().unwrap(),
+            "--fix",
+            "--format",
+            "json",
         ])
-        .output().unwrap();
+        .output()
+        .unwrap();
     assert_eq!(output.status.code(), Some(3));
     assert!(output.stderr.is_empty());
     let data: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
