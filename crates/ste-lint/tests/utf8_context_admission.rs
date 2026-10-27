@@ -17,8 +17,14 @@ fn malformed_utf8_spans_are_blocked_before_other_passes_consume_offsets() {
         let context = LintContext::from_json(fact).unwrap();
         assert!(context.validate_text(source).is_err(), "{fact}");
         let result = lint_text_with_context(
-            source, &lexicon(), None, Some(&context),
-            LintOptions { mode: LintMode::Descriptive, fix: true },
+            source,
+            &lexicon(),
+            None,
+            Some(&context),
+            LintOptions {
+                mode: LintMode::Descriptive,
+                fix: true,
+            },
         );
         assert_eq!(result.text, source);
         assert_eq!(result.diagnostics.len(), 1, "{fact}");
@@ -33,6 +39,11 @@ fn valid_multibyte_and_empty_contexts_are_accepted() {
         r#"{"occurrences":[{"start":0,"end":2,"source":"test","count_group":"title"}]}"#,
         r#"{"occurrences":[]}"#,
     ] {
-        assert!(LintContext::from_json(fact).unwrap().validate_text(source).is_ok());
+        assert!(
+            LintContext::from_json(fact)
+                .unwrap()
+                .validate_text(source)
+                .is_ok()
+        );
     }
 }
