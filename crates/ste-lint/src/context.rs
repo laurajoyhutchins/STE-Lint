@@ -252,6 +252,60 @@ impl LintContext {
         Ok(())
     }
 
+    /// Validate all caller-provided byte spans against the exact source text.
+    /// Length-only validation cannot distinguish a UTF-8 continuation byte.
+    pub fn validate_for_text(&self, text: &str) -> Result<(), String> {
+        self.validate(text.len())?;
+        for (index, occurrence) in self.occurrences.iter().enumerate() {
+            validate_char_boundaries(
+                "context occurrence",
+                index,
+                occurrence.start,
+                occurrence.end,
+                text,
+            )?;
+        }
+        for (index, topic) in self.topics.iter().enumerate() {
+            validate_char_boundaries("context topic", index, topic.start, topic.end, text)?;
+        }
+        for (index, ordering) in self.semantic_orderings.iter().enumerate() {
+            validate_char_boundaries(
+                "context semantic ordering before target",
+                index,
+                ordering.before.start,
+                ordering.before.end,
+                text,
+            )?;
+            validate_char_boundaries(
+                "context semantic ordering after target",
+                index,
+                ordering.after.start,
+                ordering.after.end,
+                text,
+            )?;
+        }
+        for (index, fact) in self.safety_facts.iter().enumerate() {
+            validate_char_boundaries("context safety fact", index, fact.start, fact.end, text)?;
+            for (component, span) in [
+                ("actor", fact.actor),
+                ("command", fact.command),
+                ("hazard", fact.hazard),
+                ("consequence", fact.consequence),
+            ] {
+                if let Some(span) = span {
+                    validate_char_boundaries(
+                        &format!("context safety fact {component}"),
+                        index,
+                        span.start,
+                        span.end,
+                        text,
+                    )?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     fn validate_evidence(&self) -> Result<(), String> {
         for (index, occurrence) in self.occurrences.iter().enumerate() {
             if occurrence.source.trim().is_empty() {
@@ -473,4 +527,76 @@ fn validate_span(
         ));
     }
     Ok(())
+}
+
+fn validate_char_boundaries(
+    kind: &str,
+    index: usize,
+    start: usize,
+    end: usize,
+    text: &str,
+) -> Result<(), String> {
+    if !text.is_char_boundary(start) || !text.is_char_boundary(end) {
+        return Err(format!(
+            "{kind} {index} span {start}..{end} is not on UTF-8 character boundaries"
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod utf8_context_tests {
+    use super::LintContext;
+
+    #[test]
+    fn rejects_interior_offsets_for_every_context_span_family() {
+        let cases = [
+            r#"{"occurrences":[{"start":1,"end":2,"source":"review","count_group":"number"}]}"#,
+            r#"{"topics":[{"start":0,"end":1,"topic":"topic","source":"review"}]}"#,
+            r#"{"semantic_orderings":[{"before":{"kind":"sentence","start":0,"end":1},"after":{"kind":"sentence","start":3,"end":4},"source":"review"}]}"#,
+            r#"{"safety_facts":[{"start":0,"end":2,"source":"review","actor":{"start":0,"end":1}}]}"#,
+        ];
+        for raw in cases {
+            let context = LintContext::from_json(raw).unwrap();
+            let error = context.validate_for_text("é A").unwrap_err();
+            assert!(error.contains("UTF-8 character boundaries"), "{error}");
+        }
+    }
+
+    #[test]
+    fn accepts_valid_unicode_and_empty_context_but_rejects_out_of_range_spans() {
+        let context = LintContext::from_json(
+            r#"{"occurrences":[{"start":0,"end":2,"source":"review","count_group":"number"}],"topics":[{"start":3,"end":4,"topic":"A","source":"review"}],"safety_facts":[{"start":0,"end":2,"source":"review","actor":{"start":0,"end":2}}]}"#,
+        )
+        .unwrap();
+        context.validate_for_text("é A").unwrap();
+        LintContext::default().validate_for_text("").unwrap();
+
+        let out_of_range = LintContext::from_json(
+            r#"{"occurrences":[{"start":0,"end":2,"source":"review","count_group":"number"}]}"#,
+        )
+        .unwrap();
+        assert!(out_of_range.validate_for_text("").is_err());
+    }
+
+    #[test]
+    fn public_lint_blocks_malformed_unicode_before_counting() {
+        let lexicon = ste_data::RuntimeLexicon::embedded().unwrap();
+        let context = LintContext::from_json(
+            r#"{"occurrences":[{"start":1,"end":2,"source":"review","count_group":"number"}]}"#,
+        )
+        .unwrap();
+        let result = crate::lint_text_with_context(
+            "é A",
+            &lexicon,
+            None,
+            Some(&context),
+            crate::LintOptions {
+                mode: crate::LintMode::Descriptive,
+                fix: false,
+            },
+        );
+        assert_eq!(result.diagnostics.len(), 1);
+        assert_eq!(result.diagnostics[0].code, "STE-CTX-000");
+    }
 }
