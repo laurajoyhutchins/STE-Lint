@@ -14,6 +14,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 import package_linux_release as packaging  # noqa: E402
+import verify_linux_release as verifier  # noqa: E402
 
 
 class PackageAdmissionTests(unittest.TestCase):
@@ -103,11 +104,29 @@ class PackageAdmissionTests(unittest.TestCase):
                 self.assertEqual(receipt["source_tree"], "b" * 40)
                 self.assertIn(actual_sha, checksum)
                 self.assertFalse(receipt["private_runtime_included"])
+                independently_verified = verifier.verify(
+                    archive, expected_tag="v0.1.0",
+                    expected_source="a" * 40, expected_tree="b" * 40
+                )
+                self.assertTrue(independently_verified["byte_integrity_verified"])
+                self.assertFalse(independently_verified["signed_provenance_verified"])
+                for wrong_source, wrong_tree in (("c" * 40, "b" * 40),
+                                                 ("a" * 40, "c" * 40)):
+                    with self.assertRaisesRegex(ValueError, "identity"):
+                        verifier.verify(archive, expected_tag="v0.1.0",
+                                        expected_source=wrong_source,
+                                        expected_tree=wrong_tree)
                 before = archive.read_bytes()
                 with self.assertRaisesRegex(ValueError, "already exists"):
                     packaging.stage("v0.1.0", output)
                 self.assertEqual(before, archive.read_bytes())
                 self.assertEqual(len(list(output.glob("*.provenance.json"))), 1)
+                archive.write_bytes(before + b"tampered")
+                with self.assertRaisesRegex(ValueError, "digest"):
+                    verifier.verify(archive, expected_tag="v0.1.0",
+                                    expected_source="a" * 40,
+                                    expected_tree="b" * 40)
+
 
     def test_staging_inside_source_repo_is_rejected(self):
         with tempfile.TemporaryDirectory() as td:
